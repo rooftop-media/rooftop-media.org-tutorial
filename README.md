@@ -36,7 +36,7 @@ Each individual **part** is broken down into different **steps**.
 
 Each tutorial **version** has its own step-by-step tutorial.
 
-To get started, go to the **initial set up** page [here](#), and then continue to the tutorial for version 1.0.
+To get started, go to the **initial set up** page [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/setup.md), and then continue to the tutorial for version 1.0.
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
