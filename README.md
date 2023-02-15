@@ -8,8 +8,8 @@ Step-by-step documentation for how rooftop-media.org is built.
 ##  Introduction
 
 rooftop-media.org is a website with many features.  
-You can see the finished code [here](https://github.com/rooftop-media/rooftop-media.org).
-You can also visit the website [here](https://rooftop-media.org).
+You can see the [finished code](https://github.com/rooftop-media/rooftop-media.org).
+You can also [visit the website](https://rooftop-media.org).
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
@@ -36,7 +36,7 @@ Each individual **part** is broken down into different **steps**.
 
 Each tutorial **version** has its own step-by-step tutorial.
 
-To get started, go to the **initial set up** page [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/setup.md), and then continue to the tutorial for version 1.0.
+To get started, go to the [**initial set up**](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/setup.md), and then continue to the tutorial for version 1.0.
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
