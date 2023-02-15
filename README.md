@@ -1,4 +1,4 @@
-# rooftop-media.org-tutorial
+# Tutorial for rooftop-media.org
 Step-by-step documentation for how rooftop-media.org is built. 
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
