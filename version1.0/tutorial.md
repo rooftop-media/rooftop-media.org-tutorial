@@ -3,7 +3,7 @@
 This is a tutorial for building rooftop-media.org version 1.0.  
 This version creates a website with a few static pages, and user management.
 
-*Total estimated time for this tutorial: <ADD EESTIMATED TIME>*
+*Total estimated time for this tutorial: ADD EESTIMATED TIME*
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
@@ -23,15 +23,15 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - Drawing the Buffer](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md#part-a) | 12 min. | 12 |
-| [Part B - Drawing the Status Bar](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md#part-b) | 14 min. | 11 |
-| [Part C - Cursor & Feedback Bar](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md#part-c) | 24 min.  | 14 |
-| [Part D - File Editing](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md#part-d) | 11 min. | 10 |
-| [Part E - Object Oriented Refactor](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md#part-e) | 32 min. | 11 |
-| [Part F - Feedback Mode](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md#part-f) | 30 min. | 13 |
-| [Part G - Scroll & Resize](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md#part-g) | 24 min. | 17 |
-| [Part H - Undo & Redo](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md#part-h) | 20 min. | 9 |
-| [Version 2.0.](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md#v2) | Todo | ? |
+| [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 0 min. | 0 |
+| [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 0 min. | 0 |
+| [Part C - User sessions and /logout](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
+| [Part D - /login, unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
+| [Part E - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 0 min. | 0 |
+| [Part F - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
+| [Part G - Password reset](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-g) | 0 min. | 0 |
+| [Part H - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |
+| [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
@@ -39,19 +39,22 @@ Click a part title to jump down to it, in this file.
 
 
 
-<h2 id="part-a" align="center">  Part A:  Drawing the Buffer </h2>
+<h2 id="part-a" align="center">  Part A:  Serving static pages </h2>
 
-The steps in Part A will culminate in us displaying the text file on the screen, along with controls to move and type.  
+The steps in Part A will culminate in us serving a website with static pages, including:
+  - a landing page
+  - a register page
+  - a login page
 
-Along the way, we’ll break the code into 6 code sections with comments, and add some code to each section.  
+Along the way, we’ll create a webserver that can serve up assets, do SSR, and more. 
 
-*Estimated time: 12 minutes*
+*Estimated time: ?? minutes*
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-1">  ☑️ Step 1:  Add a sample file </h3>
+<h3 id="a-1">  ☑️ Step 1:  Edit <code>server.js</code> </h3>
 
 We’ll add a text file to the directory too, called `sample.txt`. 
 It just needs a couple lines of any text. Here’s what I wrote:
