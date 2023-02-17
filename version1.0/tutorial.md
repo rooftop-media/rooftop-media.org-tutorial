@@ -46,7 +46,10 @@ The steps in Part A will culminate in us serving a website with static pages, in
   - a register page
   - a login page
 
-Along the way, we’ll create a webserver that can serve up assets, do SSR, and more. 
+Along the way, we’ll do several things.
+We'll create a webserver that can serve up assets.
+We'll make sure our web pages are handicap accessible and mobile friendly.
+And we'll implement both *server side rendering* and *single page app* design patterns. 
 
 *Estimated time: ?? minutes*
 
@@ -54,54 +57,22 @@ Along the way, we’ll create a webserver that can serve up assets, do SSR, and 
 
 
 
-<h3 id="a-1">  ☑️ Step 1:  Edit <code>server.js</code> </h3>
+<h3 id="a-1">  ☑️ Step 1:  Serve the home page with <code>server.js</code> </h3>
 
-We’ll add a text file to the directory too, called `sample.txt`. 
-It just needs a couple lines of any text. Here’s what I wrote:
+Open up the file you created in the set up, `server.js`. 
+
+```javascript
 
 ```
-Hello there, world!  Nice to see you!
-This is some sample text in sample.txt. :)
-Lorem ipsum, foo bar baz.
-The quick brown fox jumped over the lazy dog.
 
-
-Unique New York.
-The sixth sheik's sixth sheep's sick. 
-She sells seashells by the seashore. 
-Cellar door.  White rabbit, white rabbit, white rabbit. 
-```
-
-Our goal will be to open & edit this file with ktty. 
 
 <br/><br/><br/><br/>
 
 
 
 
-<h3 id="a-2">  ☑️ Step 2. Outlining <code>ktty.js</code>  </h3>
+<h3 id="a-2">  ☑️ Step 2.  <code>server.js</code>  </h3>
 
-Let’s go into ktty.js and add some comments to plan our architecture.  
 
-Delete the 2nd line, which was  `console.log('Starting ktty!');`.  
-We’ll outline 6 sections. Here’s what we’ll write:
-
-```javascript
-#!/usr/bin/env node
-
-////  SECTION 1:  Imports.
-
-////  SECTION 2:  App memory. 
-
-////  SECTION 3:  Boot stuff.
-
-////  SECTION 4:  Events.
-
-////  SECTION 5:  Draw functions.
-
-////  SECTION 6:  Algorithms.
-```
-
-We’ll reference these 6 sections throughout the rest of this version.
 
 <br/><br/><br/><br/>
