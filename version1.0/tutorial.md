@@ -57,13 +57,32 @@ And we'll implement both *server side rendering* and *single page app* design pa
 
 
 
-<h3 id="a-1">  ☑️ Step 1:  Serve the home page with <code>server.js</code> </h3>
+<h3 id="a-1">  ☑️ Step 1:  Create a homepage at <code>/pages/index.html</code> </h3>
 
-Open up the file you created in the set up, `server.js`. 
+Create a new folder in the `/rooftop-media.org/` folder, called `/pages/`.  
+This is where we'll put the code for our website's pages. 
 
-```javascript
+Inside the new folder, make a file called `index.html`.  
+
+```html
+
+<html>
+  <head>
+    <title>Rooftop Media</title>
+  </head>
+  <body>
+    <div id="header">
+      Rooftop Media
+    </div>
+    <div id="content">
+      <h1>Welcome!</h1>
+    </div>
+  </body>
+</html>
 
 ```
+
+Opem the html file in a browser to make sure it shows the content correctly.
 
 
 <br/><br/><br/><br/>
@@ -71,8 +90,12 @@ Open up the file you created in the set up, `server.js`.
 
 
 
-<h3 id="a-2">  ☑️ Step 2.  <code>server.js</code>  </h3>
+<h3 id="a-2">  ☑️ Step 2.  Serve the home page with <code>server.js</code> </h3>
 
+Open up the file you created in the set up, `server.js`. 
 
+```javascript
+
+```
 
 <br/><br/><br/><br/>
