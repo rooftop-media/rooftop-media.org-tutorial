@@ -68,12 +68,12 @@ Inside the new folder, make a file called `index.html`.
 
 <html>
   <head>
-    <title>Rooftop Media</title>
+    <title>&#x2756;  Rooftop Media &#x2756;</title>
     <meta charset="utf-8">
   </head>
   <body>
     <div id="header">
-      Rooftop Media
+      
     </div>
     <div id="content">
       <h1>Welcome!</h1>
@@ -84,7 +84,7 @@ Inside the new folder, make a file called `index.html`.
 ```
 
 In the `<head>` tag, we describe the page's title, and the character encoding for the page.  
-In the `<body>`, we've added some text that will become our header, and some text as the page's content.  
+In the `<body>`, we've added a divider that will become our header, and some text as the page's content.  
 
 Open the html file in a browser to make sure it shows the content correctly.
 
@@ -201,13 +201,117 @@ You should see the exit message.
 
 
 
-<h3 id="a-7">  ☑️ Step 7:  Add external files to <code>/pages/index.html</code> </h3>
+<h3 id="a-7">  ☑️ Step 7:  Add image and font assets to <code>/asseets/</code> </h3>
 
-Now, we'll edit `index.html` again, to add content.  
+Up next, we're going to make sure our server properly loads non-HTML assets, like images, fonts, and other files. 
+
+In `/rooftop-media.org/`, create a folder called `/assets/`, and add the following files:
+
+`/assets`
+ - `/favicons`
+   - `/apple-touch-icon.png`
+   - `/favicon-16x16.png`
+   - `/favicon-32x32.png`
+   - `/site.webmanifest`
+ - `/fonts`
+   - `/CrimsonText-Regular.ttf`
+ - `/logo.png`
+
+I made the logo in a vector image editor (Affinity Designer).  
+I generated the favicons by uploading the logo to a [favicon generator](https://favicon.io/) website.  
+I downloaded the font from [Google Fonts](https://fonts.google.com/specimen/Crimson+Text/about) -- after checking the license to make sure I could use it!
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-8">  ☑️ Step 8:  Add a JS and CSS file to <code>/pages/</code> </h3>
+
+Next, we'll add two files to our `/pages/` directory.
+
+First, create `/pages/index.css`, and add this:
+```css
+@font-face {
+  font-family: CrimsonText;
+  src: url(/assets/fonts/CrimsonText-Regular.ttf);
+}
+
+html, body {
+    font-family: CrimsonText;
+    margin: 0;
+}
+
+/* The header, including the RTM logo and user profile button  */
+#header {
+    width:           100%;
+    height:          105px;
+    background:      #efefef;
+    box-shadow:      0px 0px 10px rgba(0,0,0,.5);
+    padding:         10px 25px;
+    box-sizing:      border-box;
+    z-index:         10;
+    position:        relative;
+}
+
+#logo {
+    width:           100px;
+    margin-top:      15px;
+    margin-bottom:   25px;
+}
+```
+
+Then, create `/pages/index.js`, and add this:
+```javascript
+console.log("Welcome to Rooftop Media Dot Org!");
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-9">  ☑️ Step 9:  Add external files to <code>/pages/index.html</code> </h3>
+
+Now, we'll edit `index.html` again, to use those other files.  
 We'll add an image, a favicon, a CSS file, and a JS file. 
 
 ~todo
 
+```html
+<html>
+  <head>
+    <title>&#x2756;  Rooftop Media &#x2756;</title>
+    <meta charset="utf-8">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicons/site.webmanifest">
+    
+    <link rel="stylesheet" href="/pages/index.css">
+    <script src="/pages/index.js"></script>
+  </head>
+  <body>
+    <div id="header">
+      <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!" onclick="goto('/')" style="cursor:pointer;">
+    </div>
+    <div id="content">
+      <h1>Welcome!</h1>
+    </div>
+  </body>
+</html>
+```
+
+Opening the file won't load our new assets properly, becauuse we didn't use relative file paths.  
+Running the server also won't load our new assets properly *yet*.  We'll set that up next. 
+
+
 <br/><br/><br/><br/>
+
+
+
+<h3 id="a-10">  ☑️ Step 10:  Editing the request response in <code>/server/server.js</code> </h3>
+
+<br/><br/><br/><br/>
+
 
 
