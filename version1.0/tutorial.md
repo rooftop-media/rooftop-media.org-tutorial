@@ -69,6 +69,7 @@ Inside the new folder, make a file called `index.html`.
 <html>
   <head>
     <title>Rooftop Media</title>
+    <meta charset="utf-8">
   </head>
   <body>
     <div id="header">
@@ -82,6 +83,9 @@ Inside the new folder, make a file called `index.html`.
 
 ```
 
+In the `<head>` tag, we describe the page's title, and the character encoding for the page.  
+In the `<body>`, we've added some text that will become our header, and some text as the page's content.  
+
 Opem the html file in a browser to make sure it shows the content correctly.
 
 
@@ -89,13 +93,79 @@ Opem the html file in a browser to make sure it shows the content correctly.
 
 
 
+<h3 id="a-2">  ☑️ Step 2.  Outlining <code>server.js</code> </h3>
 
-<h3 id="a-2">  ☑️ Step 2.  Serve the home page with <code>server.js</code> </h3>
+Let’s go into ktty.js and add some comments to plan our architecture.
+
+Delete the line of code, which was `console.log('Starting the rooftop-media.org server!");`;.
+We’ll outline 6 sections. Here’s what we’ll write:
+
+```javascript
+
+////  SECTION 1: Imports.
+
+////  SECTION 2: Request response.
+
+////  SECTION 3: API.
+
+////  SECTION 4: Boot.
+
+```
+
+We’ll reference these 6 sections throughout the rest of this version.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-3">  ☑️ Step 3.  Imports in<code>server.js</code> </h3>
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-3">  ☑️ Step 3.  Serve the home page with <code>server.js</code> </h3>
 
 Open up the file you created in the set up, `server.js`. 
 
 ```javascript
+//  Server script
+//  Run "node server.js" to host rooftop-media.org on localhost:8080
 
+
+console.log("\x1b[32m >\x1b[0m Starting the rooftop server, at \x1b[36mlocalhost:8080\x1b[0m !");
+
+
+//  Importing libraries
+var http = require('http');
+var path = require('path');
+var fs   = require('fs');
+
+
+//  This function will fire upon every request to our server.
+function server_request(req, res) {
+	var url = req.url;
+	console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
+
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html');
+  res.write(main_page);
+  res.end();
+
+}
+
+
+//  Creating the server!
+var server = http.createServer(
+	server_request
+);
+server.on('close', () => {
+	console.log("\x1b[31m >\x1b[0m Shutting down server. Bye!")
+})
+process.on('SIGINT', function() {
+  server.close();
+});
+server.listen(8080);
 ```
 
 <br/><br/><br/><br/>
