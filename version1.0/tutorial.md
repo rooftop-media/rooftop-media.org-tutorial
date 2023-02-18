@@ -1,7 +1,7 @@
 # NodeJS Tutorial for rooftop-media.org, version 1.0
 
 This is a tutorial for building rooftop-media.org version 1.0.  
-This version creates a website with a few static pages, and user management.
+This version creates a website with a few static pages, and user management.  
 
 *Total estimated time for this tutorial: ADD ESTIMATED TIME*
 
@@ -87,7 +87,6 @@ In the `<head>` tag, we describe the page's title, and the character encoding fo
 In the `<body>`, we've added a divider that will become our header, and some text as the page's content.  
 
 Open the html file in a browser to make sure it shows the content correctly.
-
 
 <br/><br/><br/><br/>
 
@@ -265,7 +264,7 @@ Then, create `/pages/index.js`, and add this:
 console.log("Welcome to Rooftop Media Dot Org!");
 ```
 
-Finally, create `/pages/404.html` and add this:
+Finally, create a new folder in `/pages` called `/misc`, create a file `/pages/misc/404.html` and add this:
 ```html
 <h1>404 - page not found!</h1>
 ```
@@ -297,7 +296,7 @@ We'll add an image, a favicon, a CSS file, and a JS file.
   </head>
   <body>
     <div id="header">
-      <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!" onclick="goto('/')" style="cursor:pointer;">
+      <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!">
     </div>
     <div id="content">
       <h1>Welcome!</h1>
@@ -347,22 +346,22 @@ function server_request(req, res) {
   console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
   var extname = String(path.extname(url)).toLowerCase();
 
-  if (extname.length == 0) {                  /*  No extension? Respond with index.html .  */
-    respond_with_landing_page(req, res);
+  if (extname.length == 0) {                   /*  No extension? Respond with index.html.  */
+    respond_with_a_page(res, url);
   } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
-    respond_with_asset(res, extname);
+    respond_with_asset(res, url, extname);
   }
 
 }
 
-function respond_with_landing_page(res) {
+function respond_with_a_page(res, url) {
   res.writeHead(200, {'Content-Type': 'text/html'});
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html');
   res.write(main_page);
   res.end();
 }
 
-function respond_with_asset(res, extname) {
+function respond_with_asset(res, url, extname) {
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     if (error) {
         if(error.code == 'ENOENT') {
@@ -396,30 +395,124 @@ In the `/server/` folder, run `node server.js` to start the server, and then ope
 Our page should now be loaded with the logo .png, a favicon, and css styling!  
 Open the developer console -- the javascript script should have logged our welcome message there.  
 
-In the developer tools side bar, the "networking" section should have info about all the files we got. 
+In the developer tools side bar, the "networking" section should have info about all the files we recieved. 
+
+We can also test what happens when we request a file that doesn't exist.  
+In `/pages/index.html` change the img tag's source to: 
+`<img id="logo" src="/assets/notlogo.png" alt="Rooftop Media's logo!">`  
+Reload the website.  The logo should be missing, and in our networking tab, we should see the 404.html file loaded.  
+Change the logo source back to the correct value before moving on. 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-12"> ☑️ Step 12. Adding more pages to <code>/pages</code>  </h3>
+<h3 id="a-12"> ☑️ Step 12. Adding pages to <code>/pages</code>  </h3>
 
-We're now going to add two more pages to our website.  
-Create a new folder in the `/pages` folder called `/auth`.  
+We're going to add three pages to our website.  
 
-Create a new file, `/pages/auth/register.html`, and add:
+Create a new file, `/pages/misc/landing.html`, and add:
 
 ```html
-
+<h2>Rooftop Media landing page</h2>
+<p>We'll highlight some content here.</p>
 ```
 
-Create another new file, `/pages/auth/login.html`, and add:
+Create a new file, `/pages/misc/register.html`, and add:
 
 ```html
+<h3>Register</h3>
+<div>Username: <input type="text" placeholder="mickeymouse"/></div>
+<div>Email: <input type="text" placeholder="mickey@mouse.org"/></div>
+<div>Password: <input type="password"/></div>
+<div>Confirm password: <input type="password"/></div>
+```
 
+Create another new file, `/pages/misc/login.html`, and add:
+
+```html
+<h3>Login</h3>
+<div>Username: <input type="text" placeholder="mickeymouse"/></div>
+<div>Password: <input type="password"/></div>
+```
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-13"> ☑️ Step 13. Using SSR to load pages  </h3>
+
+We're going to use "single page app" architecture, allowing us to reuse the header in `index.html` on every page.  
+When pages are loaded initially, they should be rendered with the SSR (server side rendering) pattern.  
+
+For example, when the `/register` page first loads, we want to respond with `/index.html`, but replace the 
+content inside `<div id="content"></div>` with the HTML from `/register.html`. 
+
+First, edit `/pages/index.html`, to prepare the content tag:
+```html
+<div id="content">
+  <!--  Insert page content here!  -->
+</div>
+```
+
+Now, on the server, we'll insert the page content.  
+In `server.js`, add this right below the mimeTypes:  
+```javascript
+//  Mapping URLs to pages
+var pageURLs = {
+  '/': '/pages/misc/landing.html',
+  '/register': '/pages/misc/register.html',
+  '/login': '/pages/misc/login.html'
+}
+var pageURLkeys = Object.keys(pageURLs);
+```
+
+Then in the same file, edit `respond_with_a_page`:  
+```javascript
+function respond_with_a_page(res, url) {
+  if (pageURLkeys.includes(url)) {
+    url = pageURLs[url];
+  }
+  fs.readFile( __dirname + '/..' + url, function(error, content) {
+    var content_page = "";
+    if (error) {
+      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+    } else {
+      content_page = content;
+    }
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+    var page_halves = main_page.split('<!--  Insert page content here!  -->');
+    var rendered = page_halves[0] + content_page + page_halves[1];
+    res.write(rendered);
+    res.end();
+  });
+}
 ```
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="a-14"> ☑️ Step 14. ☞  Test the code!  </h3>
+
+Restart the server to see if you can load the different pages!  
+`localhost:8080` should load the landing page.  
+`localhost:8080/login` should load the login page.  
+`localhost:8080/register` should load the register page.  
+Any other URL should load the 404 page.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-15"> ☑️ Step 15. Using SPA to load pages  </h3>
+
+When the user clicks on "internal links" in the website...
+
+
+
 
 
 
