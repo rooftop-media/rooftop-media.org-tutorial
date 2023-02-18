@@ -93,6 +93,14 @@ Also, make sure you're in the /server/ folder.
 
 
 
+☑️ **Step 6**: Continue to version 1
+
+You're now ready to get started on the tutorial for [version 1](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
 
 
 
