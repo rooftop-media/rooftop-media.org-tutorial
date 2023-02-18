@@ -47,7 +47,7 @@ The steps in Part A will culminate in us serving a website with static pages, in
   - a login page
 
 Along the way, we’ll do several things.  
-We'll create a webserver that can serve up assets.  
+We'll create a webserver that can serve up assets. This NodeJS-only server set up is based on the [MDN docs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework).
 We'll make sure our web pages are handicap accessible and mobile friendly.  
 And we'll implement both *server side rendering* and *single page app* design patterns. 
 
@@ -225,7 +225,7 @@ I downloaded the font from [Google Fonts](https://fonts.google.com/specimen/Crim
 
 
 
-<h3 id="a-8">  ☑️ Step 8:  Add a JS and CSS file to <code>/pages/</code> </h3>
+<h3 id="a-8">  ☑️ Step 8:  Add <code>index.js</code>, <code>index.css</code>, and <code>404.html</code> to <code>/pages/</code> </h3>
 
 Next, we'll add two files to our `/pages/` directory.
 
@@ -263,6 +263,11 @@ html, body {
 Then, create `/pages/index.js`, and add this:
 ```javascript
 console.log("Welcome to Rooftop Media Dot Org!");
+```
+
+Finally, create `/pages/404.html` and add this:
+```html
+<h1>404 - page not found!</h1>
 ```
 
 <br/><br/><br/><br/>
@@ -310,6 +315,49 @@ Running the server also won't load our new assets properly *yet*.  We'll set tha
 
 
 <h3 id="a-10">  ☑️ Step 10:  Editing the request response in <code>/server/server.js</code> </h3>
+
+In our request response section, we'll add a dictionary of [mime types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_Types).  
+Then, in our response function, we'll respond with index.html, an asset, or the 404 page.
+
+```javascript
+function server_request(req, res) {
+  var url = req.url;
+  console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
+  var extname = String(path.extname(url)).toLowerCase();
+
+  /*  No extension? Respond with index.html .  */
+  if (extname.length == 0) {
+	
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    var main_page = fs.readFileSync(__dirname + '/../pages/index.html');
+    res.write(main_page);
+    res.end();
+
+  } 
+  /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
+  else {
+    fs.readFile( __dirname + '/..' + url, function(error, content) {
+    if (error) {
+					if(error.code == 'ENOENT') {
+						fs.readFile('./404.html', function(error, content) {
+							res.writeHead(404, { 'Content-Type': 'text/html' });
+							res.end(content, 'utf-8');
+						});
+					}
+					else {
+				res.writeHead(500);
+				res.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
+					}
+      } else {
+	var contentType = mimeTypes[extname] || 'application/octet-stream';
+	res.writeHead(200, { 'Content-Type': contentType });
+        res.end(content, 'utf-8');
+      }
+    });
+  }
+}
+
+```
 
 <br/><br/><br/><br/>
 
