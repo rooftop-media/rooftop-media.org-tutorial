@@ -23,7 +23,7 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 0 min. | 0 |
+| [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 0 min. | 19 |
 | [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 0 min. | 0 |
 | [Part C - User sessions and /logout](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
 | [Part D - /login, unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
@@ -676,6 +676,30 @@ Check the console to see if the page changes are being logged, without refreshin
 <h3 id="a-19"> ☑️ Step 19. ❖ Part A review. </h3>
 
 The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+<h2 id="part-b" align="center">  Part B:  /register, API & DB basics </h2>
+
+In Part B, we'll register new users, and securely store their data in a database.  
+Along the way, we'll set up our API and our database, and hash user passwords. 
+
+*Estimated time: ?? minutes*
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-1">  ☑️ Step 1:  Handling an API call in <code>server.js</code> </h3>
+
+
+
+<br/><br/><br/><br/>
+
+
 
 
 
