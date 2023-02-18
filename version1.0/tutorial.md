@@ -207,14 +207,14 @@ Up next, we're going to make sure our server properly loads non-HTML assets, lik
 In `/rooftop-media.org/`, create a folder called `/assets/`, and add the following files:
 
 `/assets`
- - `/favicons`
+ - [`/favicons`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/favicons)
    - `/apple-touch-icon.png`
    - `/favicon-16x16.png`
    - `/favicon-32x32.png`
    - `/site.webmanifest`
- - `/fonts`
+ - [`/fonts`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/fonts)
    - `/CrimsonText-Regular.ttf`
- - `/logo.png`
+ - [`/logo.png`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/logo.png)
 
 I made the logo in a vector image editor (Affinity Designer).  
 I generated the favicons by uploading the logo to a [favicon generator](https://favicon.io/) website.  
@@ -662,6 +662,20 @@ function respond_with_page_content(res, url) {
 
 <br/><br/><br/><br/>
 
+
+
+<h3 id="a-18"> ☑️ Step 18. ☞  Test the code!  </h3>
+
+Restart the server and click the links in the header.  They should all work!  
+Check the console to see if the page changes are being logged, without refreshing the page.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-19"> ☑️ Step 19. ❖ Part A review. </h3>
+
+The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A).
 
 
 
