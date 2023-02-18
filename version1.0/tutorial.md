@@ -347,14 +347,11 @@ function server_request(req, res) {
   console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
   var extname = String(path.extname(url)).toLowerCase();
 
-  /*  No extension? Respond with index.html .  */
-  if (extname.length == 0) {
+  if (extname.length == 0) {                  /*  No extension? Respond with index.html .  */
     respond_with_landing_page(req, res);
-  } 
-  /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
-	else {
-		respond_with_asset(res, extname);
-	}
+  } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
+    respond_with_asset(res, extname);
+  }
 
 }
 
@@ -385,6 +382,40 @@ function respond_with_asset(res, extname) {
     }
   });
 }
+
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-11"> ☑️ Step 11. ☞  Test the code!  </h3>
+
+In the `/server/` folder, run `node server.js` to start the server, and then open `localhost:8080`.  
+
+Our page should now be loaded with the logo .png, a favicon, and css styling!  
+Open the developer console -- the javascript script should have logged our welcome message there.  
+
+In the developer tools side bar, the "networking" section should have info about all the files we got. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-12"> ☑️ Step 12. Adding more pages to <code>/pages</code>  </h3>
+
+We're now going to add two more pages to our website.  
+Create a new folder in the `/pages` folder called `/auth`.  
+
+Create a new file, `/pages/auth/register.html`, and add:
+
+```html
+
+```
+
+Create another new file, `/pages/auth/login.html`, and add:
+
+```html
 
 ```
 
