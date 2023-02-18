@@ -65,7 +65,7 @@ This is where we'll put the code for our website's pages.
 Inside the new folder, make a file called `index.html`.  
 
 ```html
-
+<!DOCTYPE html>
 <html>
   <head>
     <title>&#x2756;  Rooftop Media &#x2756;</title>
@@ -281,6 +281,7 @@ We'll add an image, a favicon, a CSS file, and a JS file.
 ~todo
 
 ```html
+<!DOCTYPE html>
 <html>
   <head>
     <title>&#x2756;  Rooftop Media &#x2756;</title>
@@ -507,9 +508,159 @@ Any other URL should load the 404 page.
 
 
 
-<h3 id="a-15"> ☑️ Step 15. Using SPA to load pages  </h3>
+<h3 id="a-15"> ☑️ Step 15. Set up internal links to load pages  </h3>
 
-When the user clicks on "internal links" in the website...
+When the user clicks on "internal links" in the website, pages should load inside `index.html` 
+*without* reloading `index.html` itself. 
+
+In `index.html`, we'll add three links in the header div: 
+```html
+<div id="header">
+  <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!" onclick="goto('/')">
+  <div id="user-buttons">
+    <button onclick="goto('/login')">Log in</button>
+    <button onclick="goto('/register')">Register</button>
+  </div>
+</div>
+```
+
+We'll implement the `goto(page_route)` function in the next step.  
+
+We'll also restyle our header a bit, in `index.css`.  
+We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
+
+```css
+/* The header, including the RTM logo and user profile buttons  */
+#header {
+    width:           100%;
+    height:          105px;
+    align-items:     center;
+    justify-content: space-between;
+    display:         flex;
+    background:      #efefef;
+    box-shadow:      0px 0px 10px rgba(0,0,0,.5);
+    padding:         10px 25px;
+    box-sizing:      border-box;
+    z-index:         10;
+    position:        relative;
+}
+
+#logo {
+    width:           100px;
+    margin-top:      15px;
+    margin-bottom:   25px;
+    cursor:          pointer;
+}
+
+#user-buttons {
+    display: flex;
+}
+#user-buttons button {
+    margin-left: 10px;
+    padding: 5px 20px;
+    cursor: pointer;
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-16"> ☑️ Step 16. Editing <code>index.js</code>  </h3>
+
+The `index.js` file will be our main frontend javascript file.  
+Let's outline it as well, and add our `goto(page_route)` function.
+
+```javascript
+
+////  SECTION 1: Main website memory.
+var _current_page  = window.location.pathname;
+
+////  SECTION 2: Page navigation.
+
+function goto(page_route) {
+    console.log('Navigating to ' + page_route);
+
+  //  Changing the page's URL without triggering HTTP call...
+  window.history.pushState({page: "/"}, "Rooftop Media", page_route);
+  _current_page = page_route;
+  if (page == '/') {
+    page = '/misc/landing';
+  }
+  
+  //  Now we'll do the HTTP call here, to keep the SPA frame...
+  const http = new XMLHttpRequest();
+  http.open("GET", page + ".html");
+  http.send();
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      var page_content = JSON.parse(http.responseText);
+      document.getElementById('content').innerHTML = page_content;
+    }
+  }
+}
+
+////  SECTION 3: User auth.
+
+////  SECTION 4: Boot.
+
+console.log("Welcome to Rooftop Media Dot Org!");
+
+
+```
+
+Note that, when loading pages from an internal link, we're making an http call ending in `.html`. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-17"> ☑️ Step 17. Serving SPA pages in <code>server.js</code>  </h3>
+
+First, we'll update `server.js` to add a new option to the server_request function:  files ending in .html. 
+
+```javascript
+//  This function will fire upon every request to our server.
+function server_request(req, res) {
+  var url = req.url;
+  console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
+  var extname = String(path.extname(url)).toLowerCase();
+
+  if (extname.length == 0) {                   /*  No extension? Respond with index.html.  */
+    respond_with_a_page(res, url);
+  } else if (extname == '.html') {       /*  Getting page content ffor inside index.html.  */
+    respond_with_page_content(res, url);
+  } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
+    respond_with_asset(res, url, extname);
+  }
+
+}
+```
+
+Then, we'll add `respond_with_page_content(res, url);`
+
+```javascript
+function respond_with_page_content(res, url) {
+  url = url.split(path.extname(url))[0]; // removing the extension
+  if (pageURLkeys.includes(url)) {
+    url = pageURLs[url];
+  }
+  fs.readFile( __dirname + '/..' + url, function(error, content) {
+    var content_page = "";
+    if (error) {
+      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+    } else {
+      content_page = content;
+    }
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.write(content_page);
+    res.end();
+  });
+}
+```
+
+<br/><br/><br/><br/>
+
 
 
 
