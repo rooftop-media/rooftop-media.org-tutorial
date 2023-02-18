@@ -463,6 +463,7 @@ In `server.js`, add this right below the mimeTypes:
 //  Mapping URLs to pages
 var pageURLs = {
   '/': '/pages/misc/landing.html',
+  '/landing': '/pages/misc/landing.html',
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html'
 }
