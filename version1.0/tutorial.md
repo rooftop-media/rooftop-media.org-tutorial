@@ -693,9 +693,9 @@ Along the way, we'll set up our API and our database, and hash user passwords.
 
 
 
-<h3 id="b-1">  ☑️ Step 1:  Handling an API call in <code>server.js</code> </h3>
+<h3 id="b-1">  ☑️ Step 1:  Setting up <code>database.js</code> </h3>
 
-
+We're going to need a database that can save, update, and retrieve user's profile data.  
 
 <br/><br/><br/><br/>
 
