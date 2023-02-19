@@ -682,7 +682,7 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-b" align="center">  Part B:  /register, API & DB basics </h2>
+<h2 id="part-b" align="center">  Part B:  <code>/register</code>, API & DB basics </h2>
 
 In Part B, we'll register new users, and securely store their data in a database.  
 Along the way, we'll set up our API and our database, and hash user passwords. 
@@ -803,6 +803,27 @@ module.exports = {
 ```
 
 <br/><br/><br/><br/>
+
+
+<h3 id="b-2">  ☑️ Step 2:  Setting up the API in <code>server.js</code> </h3>
+
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-3">  ☑️ Step 3:  Calling the API in <code>register.html</code> </h3>
+
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-4"> ☑️ Step 4. ☞  Test the code!  </h3>
+
+
 
 
 
