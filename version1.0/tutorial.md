@@ -427,10 +427,11 @@ Create a new file, `/pages/misc/register.html`, and add:
 ```html
 <h3>Register</h3>
 <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
+<div>Display name: <input type="text" id="display_name" placeholder="Mickey Mouse"/></div>
 <div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
 <div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
 <div>Password: <input type="password" id="password"/></div>
-<div>Confirm password: <input type="password" id="confirm-password"/></div>
+<div>Confirm password: <input type="password" id="confirm_password"/></div>
 <p id="error"></p>
 <button onclick="register()">Register</button>
 ```
@@ -807,6 +808,12 @@ module.exports = {
 }
 ```
 
+Finally, we'll add the file `/server/database/table_rows/users.json`, and add empty square brackets:
+
+```json
+[]
+```
+
 <br/><br/><br/><br/>
 
 
@@ -927,8 +934,8 @@ function register() {
   var email = document.getElementById('email').value;
   var phone = document.getElementById('phone').value;
   var password = document.getElementById('password').value;
-  var password_confirm = document.getElementById('password_confirm').value;
-  if (password != password_confirm) {
+  var confirm_password = document.getElementById('confirm_password').value;
+  if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
   }
