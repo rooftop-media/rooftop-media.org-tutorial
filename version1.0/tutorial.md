@@ -682,7 +682,7 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-b" align="center">  Part B:  <code>/register</code>, API & DB basics </h2>
+<h2 id="part-b" align="center">  Part B:  /register, API & DB basics </h2>
 
 In Part B, we'll register new users, and securely store their data in a database.  
 Along the way, we'll set up our API and our database, and hash user passwords. 
@@ -807,7 +807,32 @@ module.exports = {
 
 <h3 id="b-2">  ☑️ Step 2:  Setting up the API in <code>server.js</code> </h3>
 
+In `server.js`, we'll set up another conditional, to catch calls with no extension that begin with **/api/**.
+```javascript
+//  This function will fire upon every request to our server.
+function server_request(req, res) {
+  var url = req.url;
+  console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
+  var extname = String(path.extname(url)).toLowerCase();
 
+  if (extname.length == 0 && url.split('/')[1] == 'api') {
+    if (req.method == "GET") {
+      api_GET_routes(url, res);
+    } else if (req.method == "POST") {
+      api_POST_routes(url, req, res);
+    }
+  } else if (extname.length == 0) {                   /*  No extension? Respond with index.html.  */
+    respond_with_a_page(res, url);
+  } else if (extname == '.html') {       /*  Getting page content ffor inside index.html.  */
+    respond_with_page_content(res, url);
+  } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
+    respond_with_asset(res, url, extname);
+  }
+
+}
+```
+
+Then, we'll add some API functions...
 
 <br/><br/><br/><br/>
 
