@@ -426,18 +426,23 @@ Create a new file, `/pages/misc/register.html`, and add:
 
 ```html
 <h3>Register</h3>
-<div>Username: <input type="text" placeholder="mickeymouse"/></div>
-<div>Email: <input type="text" placeholder="mickey@mouse.org"/></div>
-<div>Password: <input type="password"/></div>
-<div>Confirm password: <input type="password"/></div>
+<div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
+<div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
+<div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
+<div>Password: <input type="password" id="password"/></div>
+<div>Confirm password: <input type="password" id="confirm-password"/></div>
+<p id="error"></p>
+<button onclick="register()">Register</button>
 ```
 
 Create another new file, `/pages/misc/login.html`, and add:
 
 ```html
 <h3>Login</h3>
-<div>Username: <input type="text" placeholder="mickeymouse"/></div>
-<div>Password: <input type="password"/></div>
+<div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
+<div>Password: <input type="password" id="password"/></div>
+<p id="error"></p>
+<button onclick="login()">Login</button>
 ```
 
 
@@ -959,12 +964,31 @@ function register() {
 }
 ```
 
+Then, in `pages/index.html`, we'll need to import our `auth.js` script.  
+
+```javascript
+<!DOCTYPE html>
+<html>
+  <head>
+    <!--  meta tags, favicon link, css, etc -->
+    <script src="/pages/index.js"></script>
+    <script src="/pages/misc/auth.js"></script>
+  </head>
+  <body>
+    <!-- all the body HTML content -->
+  </body>
+</html>
+```
+
 <br/><br/><br/><br/>
 
 
 
 <h3 id="b-4"> ☑️ Step 4. ☞  Test the code!  </h3>
 
+Now, we can run the serve, and navigate to the `/register` page. 
+
+<br/><br/><br/><br/>
 
 
 
