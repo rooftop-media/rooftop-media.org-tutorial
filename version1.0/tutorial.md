@@ -807,6 +807,19 @@ module.exports = {
 
 <h3 id="b-2">  ☑️ Step 2:  Setting up the API in <code>server.js</code> </h3>
 
+First, we'll import our Database module into `server.js`, and a module to let us encrypt user passwords:
+
+```javascript
+//  Importing NodeJS libraries.
+var http = require('http');     // listen to HTTP requests
+var path = require('path');     // manage filepath names
+var fs   = require('fs');       // access files on the server
+var crypto = require('crypto'); // encrypt user passwords
+
+//  Importing our custom libraries
+const DataBase = require('./database/database.js');
+```
+
 In `server.js`, we'll set up another conditional, to catch calls with no extension that begin with **/api/**.
 ```javascript
 //  This function will fire upon every request to our server.
