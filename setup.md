@@ -69,7 +69,7 @@ With some code editor, like [emacs](https://www.gnu.org/software/emacs/) or [Vis
 We'll add one line to our file:
 
 ```js
-console.log('Starting the rooftop-media.org server!");
+console.log('Starting the rooftop-media.org server!');
 ```
 
 <br/><br/><br/><br/>
