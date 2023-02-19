@@ -23,7 +23,7 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 0 min. | 19 |
+| [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 17 min. | 19 |
 | [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 0 min. | 0 |
 | [Part C - User sessions and /logout](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
 | [Part D - /login, unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
@@ -96,7 +96,7 @@ Open the html file in a browser to make sure it shows the content correctly.
 
 Let’s go into `server.js` and add some comments to plan our architecture.
 
-Delete the line of code, which was `console.log('Starting the rooftop-media.org server!");`;.
+Delete the line of code, which was `console.log('Starting the rooftop-media.org server!');`.
 We’ll outline 4 sections. Here’s what we’ll write:
 
 ```javascript
@@ -125,9 +125,9 @@ We’ll import three standard libraries from NodeJS.
 ////  SECTION 1: Imports.
 
 //  Importing NodeJS libraries.
-var http = require('http');
-var path = require('path');
-var fs   = require('fs');
+var http = require('http');  // listen to HTTP requests
+var path = require('path');  // manage filepath names
+var fs   = require('fs');    // access files on the server
 ```
 
 <br/><br/><br/><br/>
@@ -157,12 +157,17 @@ function server_request(req, res) {
 This will respond to all requests with the HTML of our page, `index.html`.  
 This is a simple, temporary solution.
 
+*Note that the strange parts of text in that console.log statement (\x1b[36m, for example) are ANSI codes, for coloring terminal text!*
+
 <br/><br/><br/><br/>
 
 
 
 <h3 id="a-5">  ☑️ Step 5.  Boot sequence for <code>server.js</code> </h3>
 
+Here's a function that will run when the server is first started.  
+It listens for HTTP requests, and calls our `server_request` function when they happen.  
+It also logs a message when the program starts, and when it finishes.
 ```javascript
 ////  SECTION 4: Boot.
 
@@ -170,10 +175,10 @@ console.log("\x1b[32m >\x1b[0m Starting the rooftop server, at \x1b[36mlocalhost
 
 //  Creating the server!
 var server = http.createServer(
-	server_request
+  server_request
 );
 server.on('close', () => {
-	console.log("\x1b[31m >\x1b[0m Shutting down server. Bye!")
+  console.log("\x1b[31m >\x1b[0m Shutting down server. Bye!")
 })
 process.on('SIGINT', function() {
   server.close();
@@ -200,7 +205,7 @@ You should see the exit message.
 
 
 
-<h3 id="a-7">  ☑️ Step 7:  Add image and font assets to <code>/asseets/</code> </h3>
+<h3 id="a-7">  ☑️ Step 7:  Add image and font assets to <code>/assets/</code> </h3>
 
 Up next, we're going to make sure our server properly loads non-HTML assets, like images, fonts, and other files. 
 
@@ -224,7 +229,7 @@ I downloaded the font from [Google Fonts](https://fonts.google.com/specimen/Crim
 
 
 
-<h3 id="a-8">  ☑️ Step 8:  Add <code>index.js</code>, <code>index.css</code>, and <code>404.html</code> to <code>/pages/</code> </h3>
+<h3 id="a-8">  ☑️ Step 8:  Add <code>index.js</code>, <code>index.css</code>, and <code>misc/404.html</code> to <code>/pages/</code> </h3>
 
 Next, we'll add two files to our `/pages/` directory.
 
@@ -277,8 +282,6 @@ Finally, create a new folder in `/pages` called `/misc`, create a file `/pages/m
 
 Now, we'll edit `index.html` again, to use those other files.  
 We'll add an image, a favicon, a CSS file, and a JS file. 
-
-~todo
 
 ```html
 <!DOCTYPE html>
@@ -517,7 +520,7 @@ When the user clicks on "internal links" in the website, pages should load insid
 In `index.html`, we'll add three links in the header div: 
 ```html
 <div id="header">
-  <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!" onclick="goto('/')">
+  <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!" onclick="goto('/landing')">
   <div id="user-buttons">
     <button onclick="goto('/login')">Log in</button>
     <button onclick="goto('/register')">Register</button>
@@ -585,17 +588,14 @@ function goto(page_route) {
   //  Changing the page's URL without triggering HTTP call...
   window.history.pushState({page: "/"}, "Rooftop Media", page_route);
   _current_page = page_route;
-  if (page == '/') {
-    page = '/misc/landing';
-  }
   
   //  Now we'll do the HTTP call here, to keep the SPA frame...
   const http = new XMLHttpRequest();
-  http.open("GET", page + ".html");
+  http.open("GET", page_route + ".html");
   http.send();
   http.onreadystatechange = (e) => {
     if (http.readyState == 4 && http.status == 200) {
-      var page_content = JSON.parse(http.responseText);
+      var page_content = http.responseText;
       document.getElementById('content').innerHTML = page_content;
     }
   }
