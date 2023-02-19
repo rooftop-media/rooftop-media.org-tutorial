@@ -25,8 +25,8 @@ Click a part title to jump down to it, in this file.
 | --------------------------- | ------ | ---------- |
 | [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 17 min. | 19 |
 | [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 0 min. | 0 |
-| [Part C - User sessions and /logout](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
-| [Part D - /login, unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
+| [Part C - User sessions, /login, /logout](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
+| [Part D - Unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
 | [Part E - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 0 min. | 0 |
 | [Part F - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
 | [Part G - Password reset](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-g) | 0 min. | 0 |
@@ -845,7 +845,64 @@ function server_request(req, res) {
 }
 ```
 
-Then, we'll add some API functions...
+Then, we'll add some functions to the API section: 
+ - `api_GET_routes(url, res)` will route API calls that use the GET method. We'll leave it empty for now. 
+ - `api_POST_routes(url, req, res)` will route API calls that use the POST method. 
+ - `POST_register(new_user, res)` will be our first API route.  It registers a user in the database, IF the user's email, phone number and username are unique. 
+
+```javascript
+////  SECTION 3: API.
+
+function api_GET_routes(url, res) {
+
+}
+
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req_data = JSON.parse(req_data);
+
+  if (url == "/api/register") {
+    POST_register(req_data, res);
+  } 
+}
+
+function POST_register(new_user, res) {
+  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8')
+  let response = {
+    error: false,
+    msg: '',
+    session_id: ''
+  }
+  for (let i = 0; i < user_data.length; i++) {
+    if (user_data[i].username == new_user.username) {
+      response.error = true;
+      response.msg = 'Username already taken.';
+      break;
+    } else if (user_data[i].email == new_user.email) {
+      response.error = true;
+      response.msg = 'Email already taken.';
+      break;
+    } else if (user_data[i].phone == new_user.phone) {
+      response.error = true;
+      response.msg = 'Phone number already taken.';
+      break;
+    }
+  }
+  //  If it's not a duplicate, encrypt the pass, and save it. 
+  if (!response.error) {
+    new_user.salt = crypto.randomBytes(16).toString('hex');
+    new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
+    //  Add the user to the db.
+    let user_id = DataBase.table('users').insert(new_user);
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
+```
 
 <br/><br/><br/><br/>
 
@@ -853,7 +910,54 @@ Then, we'll add some API functions...
 
 <h3 id="b-3">  ☑️ Step 3:  Calling the API in <code>register.html</code> </h3>
 
+First, in `/pages/misc`, we'll add a Javascript file called `auth.js`.  It will handle registration, login, etc.  
+Here's what our `auth.js` will contain for now:  
 
+```javascript
+function register() {
+  alert('Incorrect admin pass')
+  return;
+  var username = document.getElementById('username').value;
+  var display_name = document.getElementById('display_name').value;
+  var email = document.getElementById('email').value;
+  var phone = document.getElementById('phone').value;
+  var password = document.getElementById('password').value;
+  var password_confirm = document.getElementById('password_confirm').value;
+  if (password != password_confirm) {
+    document.getElementById('error').innerHTML = 'Passwords must match.';
+    return;
+  }
+  if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Valid username required.';
+    return;
+  }
+
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/register");
+  http.send(JSON.stringify({
+    username: username,
+    display_name,
+    email,
+    phone,
+    password
+  }));
+  http.onreadystatechange = (e) => {
+    console.log(http.responseText)
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText)
+      if (!response.error) {
+        console.log("Response recieved! Logging you in.")
+        goto('/')
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    } else {
+      document.getElementById('error').innerHTML = "Error registering this user.";
+    }
+  }
+}
+```
 
 <br/><br/><br/><br/>
 
