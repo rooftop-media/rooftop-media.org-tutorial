@@ -1054,7 +1054,15 @@ We'll want to test for a few different things:
  - Now use a phone number that's already been saved to the database. 
    - An error should display in browser. 
 
-<br/><br/><br/><br/>
+<br/><br/><br/>c<br/>
+
+
+
+<h3 id="b-5">  ☑️ Step 5:  Validating user input in <code>register.html</code> </h3>
+
+
+
+<br/><br/><br/>c<br/>
 
 
 
