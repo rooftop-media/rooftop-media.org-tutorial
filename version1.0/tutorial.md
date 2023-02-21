@@ -691,7 +691,11 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 <h2 id="part-b" align="center">  Part B:  /register, API & DB basics </h2>
 
 In Part B, we'll register new users, and securely store their data in a database.  
-Along the way, we'll set up our API and our database, and hash user passwords. 
+Along the way, we'll:
+ - Set up our API
+ - Set up our database
+ - Hash user passwords
+ - Validate input from new users who want to register
 
 *Estimated time: ?? minutes*
 
@@ -699,7 +703,7 @@ Along the way, we'll set up our API and our database, and hash user passwords.
 
 
 
-<h3 id="b-1">  ☑️ Step 1:  Setting up <code>database.js</code> </h3>
+<h3 id="b-1">  ☑️ Step 1:  Setting up database columns and rows </h3>
 
 We're going to need a database that can save, update, and retrieve user's profile data.  
 We'll do this by reading and writing from JSON files.  
@@ -709,7 +713,69 @@ Then, add two more folders inside that one:
  - `/server/database/table_columns` - a folder for JSON files *describing* data tables.
  - `/server/database/table_rows` - a folder for JSON files containing the data for those tables.
 
-Then, create a new JS file, `/server/database/database.js`.  
+Our first database **table** will store *users* who register.  
+Add the file `/server/database/table_rows/users.json`.  
+For now, we have no users, so write an empty array:
+
+```json
+[]
+```
+
+Now, we want to describe the **columns** in our user table.  
+Most data in this file will remain constant, unless we want to edit the data structure that stores our user.   
+An exception is the `max_id` field, which we'll increment every time we add a new user, so everyone gets a unique id.   
+
+Add the file `/server/database/table_columns/users.json`, and add all this:
+```json
+{
+  "name": "Users",
+  "snakecase": "users",
+  "max_id": 0,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "Username",
+      "snakecase": "username",
+      "unique": true
+    },
+    {
+      "name": "Display Name",
+      "snakecase": "display_name",
+      "unique": true
+    },
+    {
+      "name": "Email",
+      "snakecase": "email",
+      "unique": true
+    },
+    {
+      "name": "Phone",
+      "snakecase": "phone",
+      "unique": true
+    },
+    {
+      "name": "Password hash",
+      "snakecase": "password"
+    },
+    {
+      "name": "Password salt",
+      "snakecase": "salt"
+    }
+  ]
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-2">  ☑️ Step 2:  Setting up <code>database.js</code> </h3>
+
+Now, create a new JS file, `/server/database/database.js`.  
 This file will be a [NodeJS module](https://nodejs.org/api/modules.html#modules-commonjs-modules).
 It provides a Javascript class deescribing a `Table` data object, with these properties:
  - `name` (string) - The table's name
@@ -808,60 +874,10 @@ module.exports = {
 }
 ```
 
-We'll also add the file `/server/database/table_rows/users.json`, and add empty square brackets:
-
-```json
-[]
-```
-
-And finally, we'll add the file `/server/database/table_columns/users.json`, and add all this:
-```json
-{
-  "name": "Users",
-  "snakecase": "users",
-  "max_id": 0,
-  "columns": [
-    {
-      "name": "Id",
-      "snakecase": "id",
-      "unique": true
-    },
-    {
-      "name": "Username",
-      "snakecase": "username",
-      "unique": true
-    },
-    {
-      "name": "Display Name",
-      "snakecase": "display_name",
-      "unique": true
-    },
-    {
-      "name": "Email",
-      "snakecase": "email",
-      "unique": true
-    },
-    {
-      "name": "Phone",
-      "snakecase": "phone",
-      "unique": true
-    },
-    {
-      "name": "Password hash",
-      "snakecase": "password"
-    },
-    {
-      "name": "Password salt",
-      "snakecase": "salt"
-    }
-  ]
-}
-```
-
 <br/><br/><br/><br/>
 
 
-<h3 id="b-2">  ☑️ Step 2:  Setting up the API in <code>server.js</code> </h3>
+<h3 id="b-3">  ☑️ Step 3:  Setting up the API in <code>server.js</code> </h3>
 
 First, we'll import our Database module into `server.js`, and a module to let us encrypt user passwords:
 
@@ -967,7 +983,7 @@ function POST_register(new_user, res) {
 
 
 
-<h3 id="b-3">  ☑️ Step 3:  Calling the API in <code>register.html</code> </h3>
+<h3 id="b-4">  ☑️ Step 4:  Calling the API in <code>register.html</code> </h3>
 
 First, in `/pages/misc`, we'll add a Javascript file called `auth.js`.  It will handle registration, login, etc.  
 Here's what our `auth.js` will contain for now:  
@@ -1038,7 +1054,7 @@ Then, in `pages/index.html`, we'll need to import our `auth.js` script.
 
 
 
-<h3 id="b-4"> ☑️ Step 4. ☞  Test the code!  </h3>
+<h3 id="b-5"> ☑️ Step 5. ☞  Test the code!  </h3>
 
 Now, we can run the server, and navigate to the `/register` page.  
 We'll want to test for a few different things: 
@@ -1058,7 +1074,7 @@ We'll want to test for a few different things:
 
 
 
-<h3 id="b-5">  ☑️ Step 5:  Validating user input in <code>register.html</code> </h3>
+<h3 id="b-6">  ☑️ Step 6:  Validating user input in <code>register.html</code> </h3>
 
 
 
@@ -1066,7 +1082,7 @@ We'll want to test for a few different things:
 
 
 
-<h3 id="b-6"> ☑️ Step 6. ☞  Test the code!  </h3>
+<h3 id="b-7"> ☑️ Step 7. ☞  Test the code!  </h3>
 
 
 
