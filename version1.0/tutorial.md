@@ -1054,7 +1054,7 @@ We'll want to test for a few different things:
  - Now use a phone number that's already been saved to the database. 
    - An error should display in browser. 
 
-<br/><br/><br/>c<br/>
+<br/><br/><br/><br/>
 
 
 
@@ -1062,7 +1062,7 @@ We'll want to test for a few different things:
 
 
 
-<br/><br/><br/>c<br/>
+<br/><br/><br/><br/>
 
 
 
