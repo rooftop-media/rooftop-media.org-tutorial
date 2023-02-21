@@ -1066,6 +1066,17 @@ We'll want to test for a few different things:
 
 
 
+<h3 id="b-6"> ☑️ Step 6. ☞  Test the code!  </h3>
+
+
+
+<br/><br/><br/><br/><br/><br/><br/><br/>
+
+
+
+<h2 id="part-c" align="center">  Part C:  User sessions, /login, /logout </h2>
+
+<br/><br/><br/><br/>
 
 
 
