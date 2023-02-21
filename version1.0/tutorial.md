@@ -589,7 +589,7 @@ var _current_page  = window.location.pathname;
 ////  SECTION 2: Page navigation.
 
 function goto(page_route) {
-    console.log('Navigating to ' + page_route);
+  console.log('Navigating to ' + page_route);
 
   //  Changing the page's URL without triggering HTTP call...
   window.history.pushState({page: "/"}, "Rooftop Media", page_route);
@@ -796,22 +796,66 @@ module.exports = {
   },
 
   all_tables: function() {
-    let table_files = fs.readdirSync(__dirname + '/table_columns')
-		let all_tables = [];
-		for (let i = 0; i < table_files.length; i++) {
-			let table_file = table_files[i];
-			let table_data = fs.readFileSync(__dirname + '/table_columns/' + table_file, 'utf8')
-			all_tables.push(JSON.parse(table_data));
-		}
+    let table_files = fs.readdirSync(__dirname + '/table_columns');
+    let all_tables = [];
+    for (let i = 0; i < table_files.length; i++) {
+      let table_file = table_files[i];
+      let table_data = fs.readFileSync(__dirname + '/table_columns/' + table_file, 'utf8')
+      all_tables.push(JSON.parse(table_data));
+    }
     return all_tables;
   }
 }
 ```
 
-Finally, we'll add the file `/server/database/table_rows/users.json`, and add empty square brackets:
+We'll also add the file `/server/database/table_rows/users.json`, and add empty square brackets:
 
 ```json
 []
+```
+
+And finally, we'll add the file `/server/database/table_columns/users.json`, and add all this:
+```json
+{
+  "name": "Users",
+  "snakecase": "users",
+  "max_id": 0,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "Username",
+      "snakecase": "username",
+      "unique": true
+    },
+    {
+      "name": "Display Name",
+      "snakecase": "display_name",
+      "unique": true
+    },
+    {
+      "name": "Email",
+      "snakecase": "email",
+      "unique": true
+    },
+    {
+      "name": "Phone",
+      "snakecase": "phone",
+      "unique": true
+    },
+    {
+      "name": "Password hash",
+      "snakecase": "password"
+    },
+    {
+      "name": "Password salt",
+      "snakecase": "salt"
+    }
+  ]
+}
 ```
 
 <br/><br/><br/><br/>
@@ -874,15 +918,18 @@ function api_POST_routes(url, req, res) {
   req.on('data', chunk => {
     req_data += chunk;
   })
-  req_data = JSON.parse(req_data);
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
 
-  if (url == "/api/register") {
-    POST_register(req_data, res);
-  } 
+    if (url == "/api/register") {
+      POST_register(req_data, res);
+    } 
+  })
 }
 
 function POST_register(new_user, res) {
-  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8')
+  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
+  user_data = JSON.parse(user_data);
   let response = {
     error: false,
     msg: '',
@@ -960,7 +1007,7 @@ function register() {
       response = JSON.parse(http.responseText)
       if (!response.error) {
         console.log("Response recieved! Logging you in.")
-        goto('/')
+        goto('/landing')
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }
@@ -993,7 +1040,19 @@ Then, in `pages/index.html`, we'll need to import our `auth.js` script.
 
 <h3 id="b-4"> ☑️ Step 4. ☞  Test the code!  </h3>
 
-Now, we can run the serve, and navigate to the `/register` page. 
+Now, we can run the server, and navigate to the `/register` page.  
+We'll want to test for a few different things: 
+ - First, fill out the form correctly - a proper username, display name, email, and phone number, and two matching passwords. Then click "register".
+   - The browser console should log a success message.  
+   - In the server's files, check `server/database/table_rows/users.json`.  Your submitted data should be added to the file!
+ - Next, fill out the form, but with two different passwords. 
+   - An error should display on the page.  Nothing should be logged in the database.
+ - Now fill out the form, but with a username already saved to the database.  
+   - An error should display in browser.
+ - Now use an email that's already been saved to the database. 
+   - An error should display in browser. 
+ - Now use a phone number that's already been saved to the database. 
+   - An error should display in browser. 
 
 <br/><br/><br/><br/>
 
