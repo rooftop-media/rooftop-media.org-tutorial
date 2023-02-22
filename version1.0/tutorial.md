@@ -959,7 +959,7 @@ function POST_register(new_user, res) {
 
 
 
-<h3 id="b-4">  ☑️ Step 4:  Calling the API in <code>register.html</code> </h3>
+<h3 id="b-4">  ☑️ Step 4:  Calling the API with client-side script <code>auth.js</code> </h3>
 
 First, in `/pages/misc`, we'll add a Javascript file called `auth.js`.  It will handle registration, login, etc.  
 Here's what our `auth.js` will contain for now:  
