@@ -1072,7 +1072,8 @@ We'll want to test for a few different things:
 
 <h3 id="b-6">  ☑️ Step 6:  Validating user input in <code>register.html</code> </h3>
 
-
+Next, we want to add event listeners to the inputs on `register.html` to validate user input.  
+To do that, we need a script to fire as soon as the user navigates to `/register`.  
 
 <br/><br/><br/><br/>
 
