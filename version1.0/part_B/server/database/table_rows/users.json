@@ -1,0 +1,11 @@
+[
+  {
+    "username": "benh",
+    "display_name": "Ben H",
+    "email": "test@gmail.com",
+    "phone": "3308018401",
+    "password": "72f428a2275ed979cf0def93361c2ce544125bfc69e1fd11660ec327ab1f5875faa521ceaaee93f56a614edbeec8a57284e123de92843971bdf11711ae0b402e",
+    "salt": "507146521959e5649754e0b559b600cd",
+    "id": 0
+  }
+]

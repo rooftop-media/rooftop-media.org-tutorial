@@ -4,7 +4,7 @@ var _current_page  = window.location.pathname;
 ////  SECTION 2: Page navigation.
 
 function goto(page_route) {
-    console.log('Navigating to ' + page_route);
+  console.log('Navigating to ' + page_route);
 
   //  Changing the page's URL without triggering HTTP call...
   window.history.pushState({page: "/"}, "Rooftop Media", page_route);

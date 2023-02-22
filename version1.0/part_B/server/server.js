@@ -4,6 +4,10 @@
 var http = require('http');  // listen to HTTP requests
 var path = require('path');  // manage filepath names
 var fs   = require('fs');    // access files on the server
+var crypto = require('crypto'); // encrypt user passwords
+
+//  Importing our custom libraries
+const DataBase = require('./database/database.js');
 
 ////  SECTION 2: Request response.
 
@@ -41,7 +45,13 @@ function server_request(req, res) {
   console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
   var extname = String(path.extname(url)).toLowerCase();
 
-  if (extname.length == 0) {                   /*  No extension? Respond with index.html.  */
+  if (extname.length == 0 && url.split('/')[1] == 'api') {
+    if (req.method == "GET") {
+      api_GET_routes(url, res);
+    } else if (req.method == "POST") {
+      api_POST_routes(url, req, res);
+    }
+  } else if (extname.length == 0) {                   /*  No extension? Respond with index.html.  */
     respond_with_a_page(res, url);
   } else if (extname == '.html') {       /*  Getting page content ffor inside index.html.  */
     respond_with_page_content(res, url);
@@ -111,6 +121,59 @@ function respond_with_asset(res, url, extname) {
 }
 
 ////  SECTION 3: API.
+
+function api_GET_routes(url, res) {
+
+}
+
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == "/api/register") {
+      POST_register(req_data, res);
+    } 
+  })
+}
+
+function POST_register(new_user, res) {
+  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
+  user_data = JSON.parse(user_data);
+  let response = {
+    error: false,
+    msg: '',
+    session_id: ''
+  }
+  for (let i = 0; i < user_data.length; i++) {
+    if (user_data[i].username == new_user.username) {
+      response.error = true;
+      response.msg = 'Username already taken.';
+      break;
+    } else if (user_data[i].email == new_user.email) {
+      response.error = true;
+      response.msg = 'Email already taken.';
+      break;
+    } else if (user_data[i].phone == new_user.phone) {
+      response.error = true;
+      response.msg = 'Phone number already taken.';
+      break;
+    }
+  }
+  //  If it's not a duplicate, encrypt the pass, and save it. 
+  if (!response.error) {
+    new_user.salt = crypto.randomBytes(16).toString('hex');
+    new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
+    //  Add the user to the db.
+    let user_id = DataBase.table('users').insert(new_user);
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
 
 ////  SECTION 4: Boot.
 
