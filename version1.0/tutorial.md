@@ -66,7 +66,7 @@ Inside the new folder, make a file called `index.html`.
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>&#x2756;  Rooftop Media &#x2756;</title>
     <meta charset="utf-8">
@@ -285,7 +285,7 @@ We'll add an image, a favicon, a CSS file, and a JS file.
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>&#x2756;  Rooftop Media &#x2756;</title>
     <meta charset="utf-8">
@@ -1012,9 +1012,9 @@ function register() {
 
 Then, in `pages/index.html`, we'll need to import our `auth.js` script.  
 
-```javascript
+```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <!--  meta tags, favicon link, css, etc -->
     <script src="/pages/index.js"></script>
@@ -1066,7 +1066,7 @@ We'll want to test for a few different things:
 
 
 
-<h2 id="part-c" align="center">  Part C:  User sessions, /login, /logout </h2>
+<h2 id="part-c" align="center">  Part-C :  User sessions, /login, /logout </h2>
 
 <br/><br/><br/><br/>
 
