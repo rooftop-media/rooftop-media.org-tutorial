@@ -38,6 +38,8 @@ Each tutorial **version** has its own step-by-step tutorial.
 
 To get started, go to the [**initial set up**](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/setup.md), and then continue to the tutorial for version 1.0.
 
+<!--- What if I added "first principles", or similar, here?  --->
+
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
 
