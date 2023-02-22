@@ -777,12 +777,14 @@ Add the file `/server/database/table_columns/users.json`, and add all this:
 
 Now, create a new JS file, `/server/database/database.js`.  
 This file will be a [NodeJS module](https://nodejs.org/api/modules.html#modules-commonjs-modules).
-It provides a Javascript class deescribing a `Table` data object, with these properties:
+It provides a Javascript class describing a `Table` data object, with these properties:
  - `name` (string) - The table's name
  - `columns` (array of objects) - Descriptions of the table's columns
  - `rows` (array of objects) - Description of the table's data
 
-The script also provides a method for getting *all* the tables. 
+A `Table` object also has two methods:
+ - `find(query)` - Returns a set of rows from the table
+ - `insert(row_data)` - Inserts a new row into the table
 
 Here's the code:  
 ```javascript
