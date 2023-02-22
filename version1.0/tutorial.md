@@ -418,32 +418,38 @@ We're going to add three pages to our website.
 Create a new file, `/pages/misc/landing.html`, and add:
 
 ```html
-<h2>Rooftop Media landing page</h2>
-<p>We'll highlight some content here.</p>
+<div class="px-3">
+  <h2>Rooftop Media landing page</h2>
+  <p>We'll highlight some content here.</p>
+</div>
 ```
 
 Create a new file, `/pages/misc/register.html`, and add:
 
 ```html
-<h3>Register</h3>
-<div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
-<div>Display name: <input type="text" id="display_name" placeholder="Mickey Mouse"/></div>
-<div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
-<div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
-<div>Password: <input type="password" id="password"/></div>
-<div>Confirm password: <input type="password" id="confirm_password"/></div>
-<p id="error"></p>
-<button onclick="register()">Register</button>
+<div class="px-3">
+  <h3>Register</h3>
+  <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" id="display_name" placeholder="mickeymouse"/></div>
+  <div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" id="password"/></div>
+  <div>Confirm password: <input type="password" id="confirm_password"/></div>
+  <p id="error"></p>
+  <button onclick="register()">Register</button>
+</div>
 ```
 
 Create another new file, `/pages/misc/login.html`, and add:
 
 ```html
-<h3>Login</h3>
-<div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
-<div>Password: <input type="password" id="password"/></div>
-<p id="error"></p>
-<button onclick="login()">Login</button>
+<div class="px-3">
+  <h3>Login</h3>
+  <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
+  <div>Password: <input type="password" id="password"/></div>
+  <p id="error"></p>
+  <button onclick="login()">Login</button>
+</div>
 ```
 
 
@@ -540,6 +546,20 @@ We'll also restyle our header a bit, in `index.css`.
 We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
 
 ```css
+@font-face {
+  font-family: CrimsonText;
+  src: url(/assets/fonts/CrimsonText-Regular.ttf);
+}
+
+html, body {
+    font-family: CrimsonText;
+    margin: 0;
+}
+
+:root {
+    --spacer: 20px;
+}
+
 /* The header, including the RTM logo and user profile buttons  */
 #header {
     width:           100%;
@@ -569,6 +589,20 @@ We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
     margin-left: 10px;
     padding: 5px 20px;
     cursor: pointer;
+}
+
+/*  Global styles  */
+.px-1 {
+    padding-left: calc(var(--spacer) * 0.25);
+    padding-right: calc(var(--spacer) * 0.25);
+}
+.px-2 {
+    padding-left: calc(var(--spacer) * 0.5);
+    padding-right: calc(var(--spacer) * 0.5);
+}
+.px-3 {
+    padding-left: var(--spacer);
+    padding-right: var(--spacer);
 }
 ```
 
