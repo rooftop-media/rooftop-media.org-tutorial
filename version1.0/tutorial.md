@@ -870,17 +870,6 @@ module.exports = {
   table: function(table_name) {
     return new Table(table_name);
   },
-
-  all_tables: function() {
-    let table_files = fs.readdirSync(__dirname + '/table_columns');
-    let all_tables = [];
-    for (let i = 0; i < table_files.length; i++) {
-      let table_file = table_files[i];
-      let table_data = fs.readFileSync(__dirname + '/table_columns/' + table_file, 'utf8')
-      all_tables.push(JSON.parse(table_data));
-    }
-    return all_tables;
-  }
 }
 ```
 
@@ -1000,8 +989,6 @@ Here's what our `auth.js` will contain for now:
 
 ```javascript
 function register() {
-  alert('Incorrect admin pass')
-  return;
   var username = document.getElementById('username').value;
   var display_name = document.getElementById('display_name').value;
   var email = document.getElementById('email').value;
@@ -1027,7 +1014,6 @@ function register() {
     password
   }));
   http.onreadystatechange = (e) => {
-    console.log(http.responseText)
     let response;      
     if (http.readyState == 4 && http.status == 200) {
       response = JSON.parse(http.responseText)
