@@ -1073,7 +1073,31 @@ We'll want to test for a few different things:
 <h3 id="b-6">  ☑️ Step 6:  Validating user input in <code>register.html</code> </h3>
 
 Next, we want to add event listeners to the inputs on `register.html` to validate user input.  
-To do that, we need a script to fire as soon as the user navigates to `/register`.  
+For example, a username should be only lowercase letters, numbers, and underscores.  
+
+```html
+<div class="px-3">
+  <h3>Register</h3>
+  <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" id="display_name" placeholder="mickeymouse"/></div>
+  <div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" id="password"/></div>
+  <div>Confirm password: <input type="password" id="confirm_password"/></div>
+  <p id="error"></p>
+  <button onclick="register()">Register</button>
+</div>
+<script>
+  //  Username -- lowercase alphanumeric and _ only
+  const username_input = document.getElementById('username');
+  const username_regex = /^[a-z0-9_]*$/;
+  username_input.addEventListener("keydown", event => {
+    if (!username_regex.test(event.key) && event.keyCode != 8) {
+      event.preventDefault();
+    }
+  });
+</script>
+```
 
 <br/><br/><br/><br/>
 
@@ -1081,15 +1105,82 @@ To do that, we need a script to fire as soon as the user navigates to `/register
 
 <h3 id="b-7"> ☑️ Step 7. ☞  Test the code!  </h3>
 
+Run the server again and navigate to `/register`.  
+Click on the `username` input field and try to type any capital letter - input should be prevented.  
+
+<br/><br/><br/><br/>
 
 
-<br/><br/><br/><br/><br/><br/><br/><br/>
+<h3 id="a-8"> ☑️ Step 8. ❖ Part B review. </h3>
+
+The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_B).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
 
 
 
 <h2 id="part-c" align="center">  Part-C :  User sessions, /login, /logout </h2>
 
+In this part, we'll finish user authorization for the website, with features including:
+ - Let existing users log in on the login page. 
+ - Start a *session* to keep a user registered or logged in. 
+ - Let users log out, deleting their session. 
+
 <br/><br/><br/><br/>
+
+
+
+<h3 id="c-1">  ☑️ Step 1:  Adding user & session memory in <code>index.js</code> </h3>
+
+```javascript
+////  SECTION 1: Main website memory.
+var _current_page  = window.location.pathname;
+var _session_id = localStorage.getItem('session_id');
+var _current_user = null;
+```
+
+```javascript
+////  SECTION 4: Boot.
+function boot() {
+  console.log("Welcome to Rooftop Media Dot Org!");
+  //  Log user in if they have a session id. 
+  if (_session_id) {
+    const http = new XMLHttpRequest();
+    http.open("POST", "/api/user-by-session");
+    http.send(_session_id);
+    http.onreadystatechange = (e) => {
+      if (http.readyState == 4 && http.status == 200) {
+        _current_user = JSON.parse(http.responseText);
+        update_app_frame()
+      }
+    }
+  }
+  
+  //  Redirect away from register or login if we're logged in.
+  if ((_current_page == '/register' || _current_page == '/login') && _session_id != '') {
+    _current_page = '/landing';
+  }
+
+  //  Go to the page. 
+  goto(_current_page);
+}
+window.addEventListener('load', (event) => {
+  boot()
+});
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-?"> ☑️ Step ?. ❖ Part C review. </h3>
+
+The complete code for Part C is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_C).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
 
 
 
