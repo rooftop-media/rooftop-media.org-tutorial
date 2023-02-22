@@ -826,32 +826,6 @@ class Table {
     fs.writeFileSync(`${__dirname}/table_columns/${this.name}.json`, JSON.stringify(this.columns, null, 2));
     return row_data.id;
   }
-
-  add_or_update(query, update) {
-    //  Look for row to update...
-    let query_keys = Object.keys(query);
-    console.log('Looking for...')
-    console.log(query);
-    for (let i = 0; i < this.rows.length; i++) {
-      let is_row = true;
-      for (let j = 0; j < query_keys.length; j++) {
-        let key = query_keys[j];
-        if (this.rows[i][key] != query[key]) {
-          is_row = false;
-        }
-      }
-      if (is_row) {
-        let update_keys = Object.keys(update);
-        for (let j = 0; j < update_keys.length; j++) {
-          this.rows[i][update_keys[j]] = update[update_keys[j]];
-        }
-        fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
-        return;
-      }
-    }
-    //  If we didn't find it, insert a new record.
-    this.insert(update);
-  }
   
 }
 
