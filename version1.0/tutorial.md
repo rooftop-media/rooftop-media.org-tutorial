@@ -1070,6 +1070,50 @@ We'll want to test for a few different things:
 
 
 
+<h3 id="b-6">  ☑️ Step 6:  Loading page-specific scripts </h3>
+
+We'll want to run some JS as soon as `register.html` loads, to validate user input.  
+Let's test what happens if we add a script in `register.html` now...  
+
+Open `register.html` and add this:  
+
+```html
+<div class="px-3">
+  <h3>Register</h3>
+  <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" id="display_name" placeholder="mickeymouse"/></div>
+  <div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" id="password"/></div>
+  <div>Confirm password: <input type="password" id="confirm_password"/></div>
+  <p id="error"></p>
+  <button onclick="register()">Register</button>
+</div>
+<script>
+  console.log("Hello from register.html!");
+</script>
+```
+
+Now, go to `/register` and refresh the page.  The message should log to the console!  
+That's because, when refreshed, the entire page is rendered server side.  
+
+Now, go to `/` or `/landing`, and refresh.  Then, click the register button.  
+Notice that our message is *not* logged here.  
+
+<!-- We can fix this by editing the `goto(page_route)` function in `index.js`:   -->
+
+This is actually a pretty complex problem, I'm not sure how to fix yet.  
+It's [possible](https://www.tutorialspoint.com/can-scripts-be-inserted-with-innerhtml) to insert 
+scripts with JS, but doing that would make the script load twice if the page was navigated to again.  
+
+Alternately, I could put the scripts in `auth.js` or something, and call them manually when `/register` is loaded?  
+
+Or, I could give up on the SPA thing, and just have each page load separately when a link is clicked. 
+
+<br/><br/><br/><br/>
+
+
+
 <h3 id="b-6">  ☑️ Step 6:  Validating user input in <code>register.html</code> </h3>
 
 Next, we want to add event listeners to the inputs on `register.html` to validate user input.  
