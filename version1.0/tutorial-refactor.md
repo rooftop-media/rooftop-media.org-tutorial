@@ -354,14 +354,14 @@ function server_request(req, res) {
   var extname = String(path.extname(url)).toLowerCase();
 
   if (extname.length == 0) {                   /*  No extension? Respond with index.html.  */
-    respond_with_a_page(res, url);
+    respond_with_website(res, url);
   } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
     respond_with_asset(res, url, extname);
   }
 
 }
 
-function respond_with_a_page(res, url) {
+function respond_with_website(res, url) {
   res.writeHead(200, {'Content-Type': 'text/html'});
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html');
   res.write(main_page);
@@ -495,7 +495,13 @@ Loading all files right away will let us avoid reloading the site on page change
 Once the browser has the large, bundled file loaded, the user's browser will display pages when requested.  
 This will be done with a JS script, which we'll write next.  
 
+But first, let's write `/server/bundle.js`:  
 
+```javascript
+
+```
+
+Now, create a new folder in your project's folder, called `/dist/`.  
 
 <br/><br/><br/><br/>
 
