@@ -34,7 +34,7 @@ Click a part title to jump down to it, in this file.
 | [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
 
 Proposed change...
- A. Bundle & serve pages
+ A. Serve pages
  B. Database set up
  C. API and user auth
  D. Unit testing
@@ -55,10 +55,10 @@ The steps in Part A will culminate in us serving a website with static pages, in
 
 Along the way, we’ll do several things.  
 We'll create a webserver that can serve up assets. This NodeJS-only server set up is based on the [MDN docs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework).
-We'll make sure our web pages are handicap accessible and mobile friendly.  
-And we'll implement both *server side rendering* and *single page app* design patterns. 
+We'll also create a few pages, and set up a basic routing system, with some server-side rendering.
+And, we'll make sure our web pages are handicap accessible<!-- and mobile friendly-->.  
 
-*Estimated time: ~17 minutes*
+*Estimated time: ?? minutes*
 
 <br/><br/><br/><br/>
 
@@ -164,7 +164,7 @@ function server_request(req, res) {
 This will respond to all requests with the HTML of our page, `index.html`.  
 This is a simple, temporary solution.
 
-*Note that the strange parts of text in that console.log statement (\x1b[36m, for example) are ANSI codes, for coloring terminal text!*
+*Note that the strange parts of text in that console.log statement (\x1b\[36m, for example) are [ANSI codes](https://en.wikipedia.org/wiki/ANSI_escape_code#Colors), for coloring terminal text!*
 
 <br/><br/><br/><br/>
 
@@ -236,7 +236,7 @@ I downloaded the font from [Google Fonts](https://fonts.google.com/specimen/Crim
 
 
 
-<h3 id="a-8">  ☑️ Step 8:  Add <code>index.js</code>, <code>index.css</code>, and <code>misc/404.html</code> to <code>/pages/</code> </h3>
+<h3 id="a-8">  ☑️ Step 8:  Add <code>index.js</code> and <code>index.css</code>to <code>/pages/</code> </h3>
 
 Next, we'll add two files to our `/pages/` directory.
 
@@ -252,10 +252,17 @@ html, body {
     margin: 0;
 }
 
-/* The header, including the RTM logo and user profile button  */
+:root {
+    --spacer: 20px;
+}
+
+/* The header, including the RTM logo and user profile buttons  */
 #header {
     width:           100%;
     height:          105px;
+    align-items:     center;
+    justify-content: space-between;
+    display:         flex;
     background:      #efefef;
     box-shadow:      0px 0px 10px rgba(0,0,0,.5);
     padding:         10px 25px;
@@ -268,17 +275,36 @@ html, body {
     width:           100px;
     margin-top:      15px;
     margin-bottom:   25px;
+    cursor:          pointer;
+}
+
+#user-buttons {
+    display: flex;
+}
+#user-buttons button {
+    margin-left: 10px;
+    padding: 5px 20px;
+    cursor: pointer;
+}
+
+/*  Global styles  */
+.px-1 {
+    padding-left: calc(var(--spacer) * 0.25);
+    padding-right: calc(var(--spacer) * 0.25);
+}
+.px-2 {
+    padding-left: calc(var(--spacer) * 0.5);
+    padding-right: calc(var(--spacer) * 0.5);
+}
+.px-3 {
+    padding-left: var(--spacer);
+    padding-right: var(--spacer);
 }
 ```
 
 Then, create `/pages/index.js`, and add this:
 ```javascript
 console.log("Welcome to Rooftop Media Dot Org!");
-```
-
-Finally, create a new folder in `/pages` called `/misc`, create a file `/pages/misc/404.html` and add this:
-```html
-<h1>404 - page not found!</h1>
 ```
 
 <br/><br/><br/><br/>
@@ -376,10 +402,8 @@ function respond_with_asset(res, url, extname) {
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     if (error) {
         if(error.code == 'ENOENT') {
-          fs.readFile('./404.html', function(error, content) {
-            res.writeHead(404, { 'Content-Type': 'text/html' });
-            res.end(content, 'utf-8');
-          });
+          res.writeHead(404, { 'Content-Type': 'text/html' });
+          res.end('404 -- asset not found', 'utf-8');
         }
         else {
       res.writeHead(500);
@@ -408,19 +432,22 @@ Open the developer console -- the javascript script should have logged our welco
 
 In the developer tools side bar, the "networking" section should have info about all the files we recieved. 
 
+<br/>
+
 We can also test what happens when we request a file that doesn't exist.  
 In `/pages/index.html` change the img tag's source to: 
 `<img id="logo" src="/assets/notlogo.png" alt="Rooftop Media's logo!">`  
-Reload the website.  The logo should be missing, and in our networking tab, we should see the 404.html file loaded.  
+Reload the website.  The logo should be missing, and in our networking tab, we should see the 404 message.  
 Change the logo source back to the correct value before moving on. 
 
 <br/><br/><br/><br/>
 
 
 
+
 <h3 id="a-12"> ☑️ Step 12. Adding pages to <code>/pages</code>  </h3>
 
-We're going to add three pages to our website.  
+We're going to add four pages to our website.  
 
 Create a new file, `/pages/misc/landing.html`, and add:
 
@@ -459,18 +486,25 @@ Create another new file, `/pages/misc/login.html`, and add:
 </div>
 ```
 
+Finally, add one more new file, `/pages/misc/404.html`, and add:
+
+```html
+<h1>404 - page not found!</h1>
+```
+
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-13"> ☑️ Step 13. Using SSR to load pages  </h3>
+<h3 id="a-13"> ☑️ Step 13. Putting together pages in <code>server.js</code>  </h3>
 
-We're going to use "single page app" architecture, allowing us to reuse the header in `index.html` on every page.  
-When pages are loaded initially, they should be rendered with the SSR (server side rendering) pattern.  
+We're going to reuse the header in `index.html` on every page.  
 
 For example, when the `/register` page first loads, we want to respond with `/index.html`, but replace the 
 content inside `<div id="content"></div>` with the HTML from `/register.html`. 
+
+We'll do this in `server.js`.  This technique might be referred to as [server side scripting](https://en.wikipedia.org/wiki/Server-side_scripting).
 
 First, edit `/pages/index.html`, to prepare the content tag:
 ```html
@@ -530,24 +564,53 @@ Any other URL should load the 404 page.
 <br/><br/><br/><br/>
 
 
+<h3 id="a-15"> ☑️ Step 15. HTTP security  </h3>
 
-<h3 id="a-15"> ☑️ Step 15. Set up internal links to load pages  </h3>
+Note that right now, if a user navigates to `http://localhost:8080/server/server.js`,  they can see the code that makes our server run.  
+We don't want to send anything from our `/server` folder.  
+We can fix that by editing `server.js`:  
 
-When the user clicks on "internal links" in the website, pages should load inside `index.html` 
-*without* reloading `index.html` itself. 
+```javascript
+//  This function will fire upon every request to our server.
+function server_request(req, res) {
+  var url = req.url;
+  console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
+  var extname = String(path.extname(url)).toLowerCase();
+
+  if (url.split('/')[1] == 'server') {  /*  Don't send anything from the /server/ folder.  */
+    respond_with_a_page(res, '/404');
+  } else if (extname.length == 0) {            /*  No extension? Respond with index.html.  */
+    respond_with_a_page(res, url);
+  } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
+    respond_with_asset(res, url, extname);
+  }
+
+}
+```
+
+Refresh the server. Now, navigating to  `http://localhost:8080/server/server.js` shows the 404 page.
+
+<br/><br/><br/><br/>
+
+
+
+
+<h3 id="a-16"> ☑️ Step 16. Set up internal links  </h3>
+
+We'll add some links to the website header.  
 
 In `index.html`, we'll add three links in the header div: 
 ```html
 <div id="header">
-  <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!" onclick="goto('/landing')">
+  <a href="/">
+    <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!">
+  </a>
   <div id="user-buttons">
-    <button onclick="goto('/login')">Log in</button>
-    <button onclick="goto('/register')">Register</button>
+    <a href="/login">Log in</a>
+    <a href="/register">Register</a>
   </div>
 </div>
 ```
-
-We'll implement the `goto(page_route)` function in the next step.  
 
 We'll also restyle our header a bit, in `index.css`.  
 We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
@@ -592,10 +655,22 @@ html, body {
 #user-buttons {
     display: flex;
 }
-#user-buttons button {
-    margin-left: 10px;
-    padding: 5px 20px;
-    cursor: pointer;
+#user-buttons a {
+    display:         block;
+    color:         black;
+    text-decoration: none;
+    border:          solid 1px #bbb;
+    background:      #f6f6f6;
+    margin-left:     10px;
+    padding:         5px 20px;
+    cursor:          pointer;
+    border-radius:   4px;
+}
+#user-buttons a:hover {
+  background:      #fafafa;
+}
+#user-buttons a:active {
+  background:      #eaeaea;
 }
 
 /*  Global styles  */
@@ -617,110 +692,16 @@ html, body {
 
 
 
-<h3 id="a-16"> ☑️ Step 16. Editing <code>index.js</code>  </h3>
 
-The `index.js` file will be our main frontend javascript file.  
-Let's outline it as well, and add our `goto(page_route)` function.
-
-```javascript
-
-////  SECTION 1: Main website memory.
-var _current_page  = window.location.pathname;
-
-////  SECTION 2: Page navigation.
-
-function goto(page_route) {
-  console.log('Navigating to ' + page_route);
-
-  //  Changing the page's URL without triggering HTTP call...
-  window.history.pushState({page: "/"}, "Rooftop Media", page_route);
-  _current_page = page_route;
-  
-  //  Now we'll do the HTTP call here, to keep the SPA frame...
-  const http = new XMLHttpRequest();
-  http.open("GET", page_route + ".html");
-  http.send();
-  http.onreadystatechange = (e) => {
-    if (http.readyState == 4 && http.status == 200) {
-      var page_content = http.responseText;
-      document.getElementById('content').innerHTML = page_content;
-    }
-  }
-}
-
-////  SECTION 3: User auth.
-
-////  SECTION 4: Boot.
-
-console.log("Welcome to Rooftop Media Dot Org!");
-
-
-```
-
-Note that, when loading pages from an internal link, we're making an http call ending in `.html`. 
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="a-17"> ☑️ Step 17. Serving SPA pages in <code>server.js</code>  </h3>
-
-First, we'll update `server.js` to add a new option to the server_request function:  files ending in .html. 
-
-```javascript
-//  This function will fire upon every request to our server.
-function server_request(req, res) {
-  var url = req.url;
-  console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
-  var extname = String(path.extname(url)).toLowerCase();
-
-  if (extname.length == 0) {                   /*  No extension? Respond with index.html.  */
-    respond_with_a_page(res, url);
-  } else if (extname == '.html') {       /*  Getting page content ffor inside index.html.  */
-    respond_with_page_content(res, url);
-  } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
-    respond_with_asset(res, url, extname);
-  }
-
-}
-```
-
-Then, we'll add `respond_with_page_content(res, url);`
-
-```javascript
-function respond_with_page_content(res, url) {
-  url = url.split(path.extname(url))[0]; // removing the extension
-  if (pageURLkeys.includes(url)) {
-    url = pageURLs[url];
-  }
-  fs.readFile( __dirname + '/..' + url, function(error, content) {
-    var content_page = "";
-    if (error) {
-      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      content_page = content;
-    }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write(content_page);
-    res.end();
-  });
-}
-```
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="a-18"> ☑️ Step 18. ☞  Test the code!  </h3>
+<h3 id="a-17"> ☑️ Step 17. ☞  Test the code!  </h3>
 
 Restart the server and click the links in the header.  They should all work!  
-Check the console to see if the page changes are being logged, without refreshing the page.
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-19"> ☑️ Step 19. ❖ Part A review. </h3>
+<h3 id="a-18"> ☑️ Step 18. ❖ Part A review. </h3>
 
 The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A).
 
