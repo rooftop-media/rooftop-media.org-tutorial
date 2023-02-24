@@ -418,16 +418,19 @@ Change the logo source back to the correct value before moving on.
 
 We're going to add three pages to our website.  
 
-Create a new file, `/pages/misc/landing.html`, and add:
+Create a new file, `/pages/misc/landing.html`.  
+This page will load an image.  
 
 ```html
 <div class="px-3">
+  <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!">
   <h2>Rooftop Media landing page</h2>
   <p>We'll highlight some content here.</p>
 </div>
 ```
 
-Create a new file, `/pages/misc/register.html`, and add:
+Create a new file, `/pages/misc/register.html`.  
+This page will load a JS script. 
 
 ```html
 <div class="px-3">
@@ -441,9 +444,21 @@ Create a new file, `/pages/misc/register.html`, and add:
   <p id="error"></p>
   <button onclick="register()">Register</button>
 </div>
+<script>
+ console.log("Welcome to /register!");
+ const username_input = document.getElementById('username');
+ username_input.addEventListener("keydown", event => {
+   console.log("Typing new key to the register username input, with keycode: " + event.keyCode);
+ });
+ function register() {
+   console.log("Registering user!");
+ }
+</script>
 ```
 
-Create another new file, `/pages/misc/login.html`, and add:
+Create another new file, `/pages/misc/login.html`.  
+This file will have a different script.  
+Note that this script also references an element with the id "username".  
 
 ```html
 <div class="px-3">
@@ -453,6 +468,16 @@ Create another new file, `/pages/misc/login.html`, and add:
   <p id="error"></p>
   <button onclick="login()">Login</button>
 </div>
+<script>
+ console.log("Welcome to /login!");
+ const username_input = document.getElementById('username');
+ username_input.addEventListener("keydown", event => {
+   console.log("Typing new key to the login username input, with keycode: " + event.keyCode);
+ });
+ function login() {
+   console.log("Logging in user!");
+ }
+</script>
 ```
 
 
@@ -461,6 +486,15 @@ Create another new file, `/pages/misc/login.html`, and add:
 
 
 <h3 id="a-13"> warning⚠️ not done ☑️ Step 13. Creating <code>/server/bundle.js</code>  </h3>
+
+When the user loads the website for the first time, we want to send them the entire website's HTML, CSS, and JS.  
+We'll bundle these files into one large-ish file, which still won't be that big.  
+Loading all files right away will let us avoid reloading the site on page changes.  
+(This approach is inspired by [Webpack](https://en.wikipedia.org/wiki/Webpack), and component-based JS frameworks.)
+
+Once the browser has the large, bundled file loaded, the user's browser will display pages when requested.  
+This will be done with a JS script, which we'll write next.  
+
 
 
 <br/><br/><br/><br/>
