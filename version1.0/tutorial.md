@@ -865,16 +865,7 @@ module.exports = {
 
 
 
-<h3 id="b-3">  ☑️ Step 3:  Testing <code>database.js</code> </h3>
-
-Create a new file, `/server/database/test.js`.  
-
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="b-4">  ☑️ Step 4:  Setting up the API in <code>server.js</code> </h3>
+<h3 id="b-3">  ☑️ Step 3:  Setting up the API in <code>server.js</code> </h3>
 
 First, we'll import our Database module into `server.js`, and a module to let us encrypt user passwords:
 
@@ -897,16 +888,16 @@ function server_request(req, res) {
   console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
   var extname = String(path.extname(url)).toLowerCase();
 
-  if (extname.length == 0 && url.split('/')[1] == 'api') {
+  if (url.split('/')[1] == 'server') {  /*  Don't send anything from the /server/ folder.  */
+    respond_with_a_page(res, '/404');
+  } else if (extname.length == 0 && url.split('/')[1] == 'api') {     /*  API routes.      */
     if (req.method == "GET") {
       api_GET_routes(url, res);
     } else if (req.method == "POST") {
       api_POST_routes(url, req, res);
     }
-  } else if (extname.length == 0) {                   /*  No extension? Respond with index.html.  */
+  } else if (extname.length == 0) {            /*  No extension? Respond with index.html.  */
     respond_with_a_page(res, url);
-  } else if (extname == '.html') {       /*  Getting page content ffor inside index.html.  */
-    respond_with_page_content(res, url);
   } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
     respond_with_asset(res, url, extname);
   }
@@ -982,10 +973,22 @@ function POST_register(new_user, res) {
 
 <h3 id="b-5">  ☑️ Step 5:  Calling the API with client-side script <code>auth.js</code> </h3>
 
-First, in `/pages/misc`, we'll add a Javascript file called `auth.js`.  It will handle registration, login, etc.  
-Here's what our `auth.js` will contain for now:  
+Open `register.html` and add this:  
 
-```javascript
+```html
+<div class="px-3">
+  <h3>Register</h3>
+  <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" id="display_name" placeholder="mickeymouse"/></div>
+  <div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" id="password"/></div>
+  <div>Confirm password: <input type="password" id="confirm_password"/></div>
+  <p id="error"></p>
+  <button onclick="register()">Register</button>
+</div>
+
+<script>
 function register() {
   var username = document.getElementById('username').value;
   var display_name = document.getElementById('display_name').value;
@@ -1026,23 +1029,8 @@ function register() {
     }
   }
 }
-```
-
-Then, in `pages/index.html`, we'll need to import our `auth.js` script.  
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <!--  meta tags, favicon link, css, etc -->
-    <script src="/pages/index.js"></script>
-    <script src="/pages/misc/auth.js"></script>
-  </head>
-  <body>
-    <!-- all the body HTML content -->
-  </body>
-</html>
-```
+</script>
+``` 
 
 <br/><br/><br/><br/>
 
@@ -1090,7 +1078,7 @@ Open `register.html` and add this:
 <script>
   console.log("Hello from register.html!");
 </script>
-```
+``` 
 
 Now, go to `/register` and refresh the page.  The message should log to the console!  
 That's because, when refreshed, the entire page is rendered server side.  
