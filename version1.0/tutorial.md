@@ -33,6 +33,13 @@ Click a part title to jump down to it, in this file.
 | [Part H - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |
 | [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
 
+Proposed change...
+ A. Bundle & serve pages
+ B. Database set up
+ C. API and user auth
+ D. Unit testing
+ 
+
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
 
@@ -876,7 +883,17 @@ module.exports = {
 <br/><br/><br/><br/>
 
 
-<h3 id="b-3">  ☑️ Step 3:  Setting up the API in <code>server.js</code> </h3>
+
+<h3 id="b-3">  ☑️ Step 3:  Testing <code>database.js</code> </h3>
+
+Create a new file, `/server/database/test.js`.  
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-4">  ☑️ Step 4:  Setting up the API in <code>server.js</code> </h3>
 
 First, we'll import our Database module into `server.js`, and a module to let us encrypt user passwords:
 
@@ -982,7 +999,7 @@ function POST_register(new_user, res) {
 
 
 
-<h3 id="b-4">  ☑️ Step 4:  Calling the API with client-side script <code>auth.js</code> </h3>
+<h3 id="b-5">  ☑️ Step 5:  Calling the API with client-side script <code>auth.js</code> </h3>
 
 First, in `/pages/misc`, we'll add a Javascript file called `auth.js`.  It will handle registration, login, etc.  
 Here's what our `auth.js` will contain for now:  
@@ -1103,12 +1120,16 @@ Notice that our message is *not* logged here.
 <!-- We can fix this by editing the `goto(page_route)` function in `index.js`:   -->
 
 This is actually a pretty complex problem, I'm not sure how to fix yet.  
-It's [possible](https://www.tutorialspoint.com/can-scripts-be-inserted-with-innerhtml) to insert 
+Here are some possible options: 
+
+ 1. It's [possible](https://www.tutorialspoint.com/can-scripts-be-inserted-with-innerhtml) to insert 
 scripts with JS, but doing that would make the script load twice if the page was navigated to again.  
 
-Alternately, I could put the scripts in `auth.js` or something, and call them manually when `/register` is loaded?  
+ 2. Alternately, I could put the scripts in `auth.js` or something, and call them manually when `/register` is loaded?  
 
-Or, I could give up on the SPA thing, and just have each page load separately when a link is clicked. 
+ 3. Or, I could give up on the SPA thing, and just have each page load separately when a link is clicked. 
+
+ 4. Ideally, I would do what other frameworks do -- have JS bundled with pages, "component" style,  & loaded/unloaded appropriately on th frontend.
 
 <br/><br/><br/><br/>
 
