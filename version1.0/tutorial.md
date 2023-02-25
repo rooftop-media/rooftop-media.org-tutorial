@@ -1024,8 +1024,6 @@ function register() {
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }
-    } else {
-      document.getElementById('error').innerHTML = "Error registering this user.";
     }
   }
 }
@@ -1073,15 +1071,93 @@ For example, a username should be only lowercase letters, numbers, and underscor
   <p id="error"></p>
   <button onclick="register()">Register</button>
 </div>
+
 <script>
-  //  Username -- lowercase alphanumeric and _ only
-  const username_input = document.getElementById('username');
-  const username_regex = /^[a-z0-9_]*$/;
-  username_input.addEventListener("keydown", event => {
-    if (!username_regex.test(event.key) && event.keyCode != 8) {
-      event.preventDefault();
+
+const utility_keys = [8, 39, 37, 224];
+
+//  Username -- lowercase alphanumeric and _ only
+const username_input = document.getElementById('username');
+const username_regex = /^[a-z0-9_]*$/;
+username_input.addEventListener("keydown", event => {
+  if (!username_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    event.preventDefault();
+    document.getElementById('error').innerHTML = "Username can only contain lowercase letters, numbers, and underscores.";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Email
+const email_input = document.getElementById('email');
+const email_regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+var email_val = email_input.value;
+email_input.addEventListener("input", event => {
+  email_val = email_input.value;
+  if (!email_regex.test(email_val) && !utility_keys.includes(event.keyCode)) {
+    document.getElementById('error').innerHTML = "Invalid email format";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Phone
+const phone_input = document.getElementById('phone');
+const phone_regex = /^[0-9\-]{0,12}$/;
+var phone_val = "";
+phone_input.addEventListener("keydown", event => {
+  phone_val = phone_input.value
+  if (!phone_regex.test(phone_val + event.key) && !utility_keys.includes(event.keyCode) || event.keyCode == 173) {
+    event.preventDefault();
+  } else if (event.keyCode != 8) {
+    if (phone_val.length == 3 || phone_val.length == 7) {
+      phone_input.value = phone_input.value + "-";
     }
-  });
+  } else {
+    if (phone_val.length == 5 || phone_val.length == 9) {
+      phone_input.value = phone_input.value.slice(0,-1);
+    }
+  }
+});
+
+function register() {
+  var username = document.getElementById('username').value;
+  var display_name = document.getElementById('display_name').value;
+  var email = document.getElementById('email').value;
+  var phone = document.getElementById('phone').value;
+  var password = document.getElementById('password').value;
+  var confirm_password = document.getElementById('confirm_password').value;
+  if (password != confirm_password) {
+    document.getElementById('error').innerHTML = 'Passwords must match.';
+    return;
+  }
+  if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Valid username required.';
+    return;
+  }
+
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/register");
+  http.send(JSON.stringify({
+    username: username,
+    display_name,
+    email,
+    phone,
+    password
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Logging you in.");
+        window.location.href = '/';
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
 </script>
 ```
 
@@ -1093,6 +1169,7 @@ For example, a username should be only lowercase letters, numbers, and underscor
 
 Run the server again and navigate to `/register`.  
 Click on the `username` input field and try to type any capital letter - input should be prevented.  
+The `email` and `phone` inputs should be nicely validated as well.  
 
 <br/><br/><br/><br/>
 
