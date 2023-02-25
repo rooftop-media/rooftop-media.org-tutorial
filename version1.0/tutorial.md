@@ -463,12 +463,12 @@ Create a new file, `/pages/misc/register.html`, and add:
 ```html
 <div class="px-3">
   <h3>Register</h3>
-  <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
-  <div>Display name: <input type="text" id="display_name" placeholder="mickeymouse"/></div>
-  <div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
-  <div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
-  <div>Password: <input type="password" id="password"/></div>
-  <div>Confirm password: <input type="password" id="confirm_password"/></div>
+  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" tabindex="5" id="password"/></div>
+  <div>Confirm password: <input type="password" tabindex="6" id="confirm_password"/></div>
   <p id="error"></p>
   <button onclick="register()">Register</button>
 </div>
@@ -978,12 +978,12 @@ Open `register.html` and add this:
 ```html
 <div class="px-3">
   <h3>Register</h3>
-  <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
-  <div>Display name: <input type="text" id="display_name" placeholder="mickeymouse"/></div>
-  <div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
-  <div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
-  <div>Password: <input type="password" id="password"/></div>
-  <div>Confirm password: <input type="password" id="confirm_password"/></div>
+  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" tabindex="5" id="password"/></div>
+  <div>Confirm password: <input type="password" tabindex="6" id="confirm_password"/></div>
   <p id="error"></p>
   <button onclick="register()">Register</button>
 </div>
@@ -1062,12 +1062,12 @@ For example, a username should be only lowercase letters, numbers, and underscor
 ```html
 <div class="px-3">
   <h3>Register</h3>
-  <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
-  <div>Display name: <input type="text" id="display_name" placeholder="mickeymouse"/></div>
-  <div>Email: <input type="text" id="email" placeholder="mickey@mouse.org"/></div>
-  <div>Phone #: <input type="text" id="phone" placeholder="555-555-5555"/></div>
-  <div>Password: <input type="password" id="password"/></div>
-  <div>Confirm password: <input type="password" id="confirm_password"/></div>
+  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" tabindex="5" id="password"/></div>
+  <div>Confirm password: <input type="password" tabindex="6" id="confirm_password"/></div>
   <p id="error"></p>
   <button onclick="register()">Register</button>
 </div>
