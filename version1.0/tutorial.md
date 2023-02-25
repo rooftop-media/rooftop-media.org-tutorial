@@ -25,7 +25,7 @@ Click a part title to jump down to it, in this file.
 | --------------------------- | ------ | ---------- |
 | [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 17 min. | 19 |
 | [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 0 min. | 0 |
-| [Part C - User sessions, /login, /logout](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
+| [Part C - User sessions, logout, and /login](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
 | [Part D - Unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
 | [Part E - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 0 min. | 0 |
 | [Part F - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
@@ -1183,7 +1183,7 @@ The complete code for Part B is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-c" align="center">  Part-C :  User sessions, /login, /logout </h2>
+<h2 id="part-c" align="center">  Part-C :  User sessions, logout, and /login </h2>
 
 In this part, we'll finish user authorization for the website, with features including:
  - Let existing users log in on the login page. 
@@ -1413,7 +1413,8 @@ function boot() {
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
-        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`
+        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
+        document.getElementById('user-buttons').innerHTML += `<a href="#">Log out</a>`
       }
     }
   }
@@ -1435,6 +1436,17 @@ window.addEventListener('load', (event) => {
 
 <h3 id="c-5"> ☑️ Step 5. ☞  Test the code!  </h3>
 
+Refresh the server.  Go to the register page and add a new user.  
+You should be redirected to the landing page, with your display name replacing the register/login buttons.  
+Refresh the page, and you should stay logged in.  
+
+Check the file `/server/database/table_rows/sessions.json`.  There should be a new session!  
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-6"> ☑️ Step 6.  Logout  </h3>
 
 
 <br/><br/><br/><br/>
