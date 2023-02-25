@@ -1419,7 +1419,7 @@ function boot() {
   }
   
   //  Redirect away from register or login if we're logged in.
-  if ((_current_page == '/register' || _current_page == '/login') && _session_id != '') {
+  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
     window.location.href = '/';
   }
   
