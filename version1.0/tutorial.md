@@ -1074,7 +1074,7 @@ For example, a username should be only lowercase letters, numbers, and underscor
 
 <script>
 
-const utility_keys = [8, 39, 37, 224];
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
 
 //  Username -- lowercase alphanumeric and _ only
 const username_input = document.getElementById('username');
@@ -1196,17 +1196,18 @@ In this part, we'll finish user authorization for the website, with features inc
 
 <h3 id="c-1">  ☑️ Step 1:  Adding user & session memory in <code>index.js</code> </h3>
 
+It's finally time to actually use `index.html`. Here's what we'll add:
+
 ```javascript
 ////  SECTION 1: Main website memory.
 var _current_page  = window.location.pathname;
 var _session_id = localStorage.getItem('session_id');
 var _current_user = null;
-```
 
-```javascript
-////  SECTION 4: Boot.
+////  SECTION 2: Boot.
 function boot() {
   console.log("Welcome to Rooftop Media Dot Org!");
+  
   //  Log user in if they have a session id. 
   if (_session_id) {
     const http = new XMLHttpRequest();
@@ -1215,18 +1216,15 @@ function boot() {
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
-        update_app_frame()
       }
     }
   }
   
   //  Redirect away from register or login if we're logged in.
   if ((_current_page == '/register' || _current_page == '/login') && _session_id != '') {
-    _current_page = '/landing';
+    window.location.href = '/';
   }
-
-  //  Go to the page. 
-  goto(_current_page);
+  
 }
 window.addEventListener('load', (event) => {
   boot()
