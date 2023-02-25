@@ -1,0 +1,38 @@
+[
+  {
+    "username": "bb",
+    "display_name": "B B",
+    "email": "b@b.org",
+    "phone": "4567890-=",
+    "password": "b11c73c021bb7aff37b95ee345969762c097135fe445547bc7e18e49f6c82f11690ee7321618f0170aeb6acf9d2a6264481a08982f20135b9373d089abd12f63",
+    "salt": "7477f591fe14f8a1abee6fbea73c3d14",
+    "id": 0
+  },
+  {
+    "username": "larry",
+    "display_name": "Larry Q",
+    "email": "l@l.com",
+    "phone": "494949",
+    "password": "79651958d1ce35795a7023569d00a122e73c1bf803999c4dfe3608d7360d0be01d0529b7390303b5b939695f8f2532580d1f3ff3f044474957c6fe9265f046bc",
+    "salt": "ad15c884a2cdb1f61c84ffcdce1eec94",
+    "id": 1
+  },
+  {
+    "username": "tester",
+    "display_name": "Tester",
+    "email": "test@test.com",
+    "phone": "789-789-7899",
+    "password": "74795a443a3951cd5b2e6e39547c9d967b8f55eb4b83120ada6b4705d460aff263393591b45bf33613a1b3b2f5b97411c059a57b8e32d4c4781fe7a5604cceed",
+    "salt": "3986ed9699d0a8ae1485d67d645be67b",
+    "id": 2
+  },
+  {
+    "username": "jamesbrown",
+    "display_name": "James B",
+    "email": "james@jazz.org",
+    "phone": "234-234-2342",
+    "password": "50d5c606e36d2600a55cc62795f2cd31bc2050b9c81b0846e53b7950799dc813ad8c1d5eb24cf5fde61b2b7334f433f76d8ee7526e2301f419574b2c9458802f",
+    "salt": "4454d1698c4e7be030aef2b7d852c839",
+    "id": 3
+  }
+]
