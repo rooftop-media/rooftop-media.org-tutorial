@@ -1401,7 +1401,9 @@ var _current_page  = window.location.pathname;
 var _session_id = localStorage.getItem('session_id');
 var _current_user = null;
 
-////  SECTION 2: Boot.
+////  SECTION 2: Functions.
+
+////  SECTION 3: Boot.
 function boot() {
   console.log("Welcome to Rooftop Media Dot Org!");
   
@@ -1414,7 +1416,7 @@ function boot() {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
         document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
-        document.getElementById('user-buttons').innerHTML += `<a href="#">Log out</a>`
+        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
       }
     }
   }
@@ -1428,6 +1430,29 @@ function boot() {
 window.addEventListener('load', (event) => {
   boot()
 });
+```
+
+We'll also edit `index.css`.  
+Change `#user-buttons a`, and that selector with `:hover` and `:active`, to:  
+
+```css
+#user-buttons a, #user-buttons button {
+    display:         block;
+    color:         black;
+    text-decoration: none;
+    border:          solid 1px #bbb;
+    background:      #f6f6f6;
+    margin-left:     10px;
+    padding:         5px 20px;
+    cursor:          pointer;
+    border-radius:   4px;
+}
+#user-buttons a:hover, #user-buttons button:hover {
+  background:      #fafafa;
+}
+#user-buttons a:active, #user-buttons button:active {
+  background:      #eaeaea;
+}
 ```
 
 <br/><br/><br/><br/>
@@ -1446,8 +1471,119 @@ Check the file `/server/database/table_rows/sessions.json`.  There should be a n
 
 
 
-<h3 id="c-6"> ☑️ Step 6.  Logout  </h3>
+<h3 id="c-6"> ☑️ Step 6.  Adding a delete function to <code>database.js</code>  </h3>
 
+Next up is the logout function.  
+Logging out will delete a Session record in the database, so we'll need a `delete` function.  
+The delete function takes an id for a table row, and deletes it if found.
+
+In `/server/database/database.js`, add this after our `insert` function:
+
+```javascript
+  delete(id_to_delete) {
+    for (let i = 0; i < this.rows.length; i++) {
+      if (this.rows[i].id == id_to_delete) {
+        this.rows.splice(i, 1);
+        return ``;
+      }
+    }
+    return `No row found with id ${id_to_delete}`;
+  }
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-7"> ☑️ Step 7.  Add a logout API route to <code>server.js</code>  </h3>
+
+We'll edit `server/server.js` in two places.  
+First, in `api_POST_routes`, add a call to `POST_logout`:  
+
+```javascript
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/logout') {
+      POST_logout(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    }
+  })
+}
+```
+
+Then, between `POST_register` and `POST_user_by_session`, add this:  
+
+```javascript
+function POST_logout(session_id, res) {
+  let success_msg = DataBase.table('sessions').delete(session_id);
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(success_msg);
+  res.end();
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-8"> ☑️ Step 8.  Add a logout function to <code>index.js</code>  </h3>
+
+In `index.js`, add this:
+
+```javascript
+////  SECTION 2: Functions.
+
+//  Log out
+function logout() {
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/logout");
+  http.send(_session_id);
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      localStorage.removeItem('session_id'); //  sets to null
+      window.location.href = '/login';
+    }
+  }
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-9"> ☑️ Step 9. ☞  Test the code!  </h3>
+
+Refresh the server, and make sure you're logged in -- if not, register a new user.  
+Try the logout button.  You should be logged out and directed to `/login`. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-10"> ☑️ Step 10.  Add API route login to <code>server.js</code>  </h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-11"> ☑️ Step 11.  Edit <code>login.html</code>  </h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-12"> ☑️ Step 12. ☞  Test the code!  </h3>
 
 <br/><br/><br/><br/>
 
