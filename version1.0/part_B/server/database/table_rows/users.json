@@ -1,11 +1,20 @@
 [
   {
-    "username": "benh",
-    "display_name": "Ben H",
-    "email": "test@gmail.com",
-    "phone": "3308018401",
-    "password": "72f428a2275ed979cf0def93361c2ce544125bfc69e1fd11660ec327ab1f5875faa521ceaaee93f56a614edbeec8a57284e123de92843971bdf11711ae0b402e",
-    "salt": "507146521959e5649754e0b559b600cd",
+    "username": "bb",
+    "display_name": "B B",
+    "email": "b@b.org",
+    "phone": "4567890-=",
+    "password": "b11c73c021bb7aff37b95ee345969762c097135fe445547bc7e18e49f6c82f11690ee7321618f0170aeb6acf9d2a6264481a08982f20135b9373d089abd12f63",
+    "salt": "7477f591fe14f8a1abee6fbea73c3d14",
     "id": 0
+  },
+  {
+    "username": "larry",
+    "display_name": "Larry Q",
+    "email": "l@l.com",
+    "phone": "494949",
+    "password": "79651958d1ce35795a7023569d00a122e73c1bf803999c4dfe3608d7360d0be01d0529b7390303b5b939695f8f2532580d1f3ff3f044474957c6fe9265f046bc",
+    "salt": "ad15c884a2cdb1f61c84ffcdce1eec94",
+    "id": 1
   }
 ]

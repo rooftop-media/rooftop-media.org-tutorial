@@ -11,14 +11,15 @@
     
     <link rel="stylesheet" href="/pages/index.css">
     <script src="/pages/index.js"></script>
-    <script src="/pages/misc/auth.js"></script>
   </head>
   <body>
     <div id="header">
-      <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!" onclick="goto('/landing')">
+      <a href="/">
+        <img id="logo" src="/assets/logo.png" alt="Rooftop Media's logo!">
+      </a>
       <div id="user-buttons">
-        <button onclick="goto('/login')">Log in</button>
-        <button onclick="goto('/register')">Register</button>
+        <a href="/login">Log in</a>
+        <a href="/register">Register</a>
       </div>
     </div>
     <div id="content">

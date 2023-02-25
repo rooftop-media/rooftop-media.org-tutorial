@@ -41,10 +41,10 @@ function server_request(req, res) {
   console.log(`\x1b[36m >\x1b[0m New ${req.method} request: \x1b[34m${url}\x1b[0m`);
   var extname = String(path.extname(url)).toLowerCase();
 
-  if (extname.length == 0) {                   /*  No extension? Respond with index.html.  */
+  if (url.split('/')[1] == 'server') {  /*  Don't send anything from the /server/ folder.  */
+    respond_with_a_page(res, '/404');
+  } else if (extname.length == 0) {            /*  No extension? Respond with index.html.  */
     respond_with_a_page(res, url);
-  } else if (extname == '.html') {       /*  Getting page content ffor inside index.html.  */
-    respond_with_page_content(res, url);
   } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
     respond_with_asset(res, url, extname);
   }
@@ -71,32 +71,12 @@ function respond_with_a_page(res, url) {
   });
 }
 
-function respond_with_page_content(res, url) {
-  url = url.split(path.extname(url))[0]; // removing the extension
-  if (pageURLkeys.includes(url)) {
-    url = pageURLs[url];
-  }
-  fs.readFile( __dirname + '/..' + url, function(error, content) {
-    var content_page = "";
-    if (error) {
-      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      content_page = content;
-    }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write(content_page);
-    res.end();
-  });
-}
-
 function respond_with_asset(res, url, extname) {
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     if (error) {
         if(error.code == 'ENOENT') {
-          fs.readFile('./404.html', function(error, content) {
-            res.writeHead(404, { 'Content-Type': 'text/html' });
-            res.end(content, 'utf-8');
-          });
+          res.writeHead(404, { 'Content-Type': 'text/html' });
+          res.end('404 -- asset not found', 'utf-8');
         }
         else {
       res.writeHead(500);
@@ -118,10 +98,10 @@ console.log("\x1b[32m >\x1b[0m Starting the rooftop server, at \x1b[36mlocalhost
 
 //  Creating the server!
 var server = http.createServer(
-	server_request
+  server_request
 );
 server.on('close', () => {
-	console.log("\x1b[31m >\x1b[0m Shutting down server. Bye!")
+  console.log("\x1b[31m >\x1b[0m Shutting down server. Bye!")
 })
 process.on('SIGINT', function() {
   server.close();
