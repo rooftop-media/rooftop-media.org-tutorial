@@ -1194,10 +1194,207 @@ In this part, we'll finish user authorization for the website, with features inc
 
 
 
-<h3 id="c-1">  ☑️ Step 1:  Adding user & session memory in <code>index.js</code> </h3>
+<h3 id="c-1">  ☑️ Step 1:  Adding a table to store session data </h3>
 
-It's finally time to actually use `index.html`. Here's what we'll add:
+When a user logs in on a computer, a *session* will begin.  
+The session will let the user stay signed in on their browser, until they log out, or the session expires.  
 
+We'll start by adding the file `/server/database/table_columns/sessions.json`, to describe session data.
+
+```json
+{
+  "name": "Sessions",
+  "snakecase": "sessions",
+  "max_id": 6,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "User Id",
+      "snakecase": "user_id"
+    },
+    {
+      "name": "Expiration Date",
+      "snakecase": "expiration"
+    }
+  ]
+}
+```
+
+And we'll also make `/server/database/table_rows.json`, with an empty array:
+```json
+[]
+```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="c-2">  ☑️ Step 2:  Create a session when registering in <code>server.js</code> </h3>
+
+We'll edit the function `function POST_register(new_user, res)` in `server.js`, to this:
+
+```javascript
+function POST_register(new_user, res) {
+  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
+  user_data = JSON.parse(user_data);
+  let response = {
+    error: false,
+    msg: '',
+    session_id: ''
+  }
+  for (let i = 0; i < user_data.length; i++) {
+    if (user_data[i].username == new_user.username) {
+      response.error = true;
+      response.msg = 'Username already taken.';
+      break;
+    } else if (user_data[i].email == new_user.email) {
+      response.error = true;
+      response.msg = 'Email already taken.';
+      break;
+    } else if (user_data[i].phone == new_user.phone) {
+      response.error = true;
+      response.msg = 'Phone number already taken.';
+      break;
+    }
+  }
+  //  If it's not a duplicate, encrypt the pass, and save it. 
+  if (!response.error) {
+    new_user.salt = crypto.randomBytes(16).toString('hex');
+    new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
+    //  Add the user to the db.
+    let user_id = DataBase.table('users').insert(new_user);
+    //  Add a session to the db.
+    let expire_date = new Date()
+    expire_date.setDate(expire_date.getDate() + 30);
+    response.session_id = DataBase.table('sessions').insert({
+      user_id: user_id,
+      expires: expire_date
+    })
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
+```
+
+Note that we're finally using the `user_id` we get from the database.  
+Also note that this function is now 40 lines long, which is longer than I'd like...  
+<!--  TODO  -->
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-3">  ☑️ Step 3:  Starting a session in <code>register.html</code> </h3>
+
+We'll edit the register function in `register.html`, to store our session id data as a cookie. 
+
+```javascript
+function register() {
+  var username = document.getElementById('username').value;
+  var display_name = document.getElementById('display_name').value;
+  var email = document.getElementById('email').value;
+  var phone = document.getElementById('phone').value;
+  var password = document.getElementById('password').value;
+  var confirm_password = document.getElementById('confirm_password').value;
+  if (password != confirm_password) {
+    document.getElementById('error').innerHTML = 'Passwords must match.';
+    return;
+  }
+  if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Valid username required.';
+    return;
+  }
+
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/register");
+  http.send(JSON.stringify({
+    username: username,
+    display_name,
+    email,
+    phone,
+    password
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Logging you in.");
+        localStorage.setItem('session_id', response.session_id);
+        _session_id = response.session_id;
+        window.location.href = '/';
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+```
+
+This function is also about 40 lines long.  I'll need to fix that later.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-3">  ☑️ Step 3:  New API route: <code>user-by-session</code> </h3>
+
+We'll edit `server/server.js` in two places.  
+First, in `api_POST_routes`, add a call to `POST_user_by_session`:  
+
+```javascript
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    }
+  })
+}
+```
+
+and, below `POST_register`, add:  
+
+```javascript
+function POST_user_by_session(session_id, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  let session_data = DataBase.table('sessions').find({ id: req_data });
+  if (session_data.length < 1) {
+    res.write("No session found.");
+    res.end();
+    return;
+  }
+  let user_data = DataBase.table('users').find({ id: session_data[0].user_id });
+  if (user_data.length < 1) {
+    res.write(`No user found for session ${session_data[0].id}.`);
+    res.end();
+  } else {
+    res.write(JSON.stringify(user_data[0]));
+    res.end();
+  }
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-4">  ☑️ Step 4:  Adding user & session memory in <code>index.js</code> </h3>
+
+It's finally time to actually use `index.js`.  
+When *any* page loads, we want to check the `_session_id`, and get a user's data by session id.  
+If the user is logged in, we'll also display the user's name in place of the register or login buttons.  
 ```javascript
 ////  SECTION 1: Main website memory.
 var _current_page  = window.location.pathname;
@@ -1216,6 +1413,7 @@ function boot() {
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
+        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`
       }
     }
   }
@@ -1230,6 +1428,14 @@ window.addEventListener('load', (event) => {
   boot()
 });
 ```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-5"> ☑️ Step 5. ☞  Test the code!  </h3>
+
+
 
 <br/><br/><br/><br/>
 
