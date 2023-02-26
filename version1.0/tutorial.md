@@ -33,8 +33,13 @@ Click a part title to jump down to it, in this file.
 | [Part H - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |
 | [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
 
-Proposed change...
- D. Email confirmation
+Proposals...  
+ D. Unit testing - Mocha? DIY will take brain power, not just copying
+ E. Email confirmation - Nodemailer? Diy will take brain power
+ F. Phone confirmation - Twilio? "Courier" could do this and E. 
+ G. Pass reset - Nodemailer again
+ H. This part could be done diy
+ 
  
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
