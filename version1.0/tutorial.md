@@ -26,19 +26,20 @@ Click a part title to jump down to it, in this file.
 | [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 17 min. | 19 |
 | [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 0 min. | 0 |
 | [Part C - User sessions, logout, and /login](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
-| [Part D - Unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
+| [Part D - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
+<!--
 | [Part E - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 0 min. | 0 |
 | [Part F - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
 | [Part G - Password reset](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-g) | 0 min. | 0 |
-| [Part H - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |
+| [Part H - Unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |-->
 | [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
-
+<!--
 Proposals...  
  D. Unit testing - Mocha? DIY will take brain power, not just copying
  E. Email confirmation - Nodemailer? Diy will take brain power
  F. Phone confirmation - Twilio? "Courier" could do this and E. 
  G. Pass reset - Nodemailer again
- H. This part could be done diy
+ H. This part could be done diy-->
  
  
 
@@ -1727,11 +1728,436 @@ The complete code for Part C is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-d" align="center">  Part D :  Unit testing </h2>
+<h2 id="part-d" align="center">  Part D :  User settings </h2>
 
-In this part, we'll create automatic tests for user registration, 
+In this part, we'll create a new page called `/profile`, where the user can edit their profile data.
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="d-1"> ☑️ Step 1.  Add an update function to <code>database.js</code>  </h3>
+
+In `/server/database/database.js`, add this after our `insert` function:
+```javascript
+  update(id, update) {
+    //  Look for row to update...
+    for (let i = 0; i < this.rows.length; i++) {
+      if (this.rows[i].id == id) {
+        let update_keys = Object.keys(update);
+        for (let j = 0; j < update_keys.length; j++) {
+          if (update_keys[i] != 'id') {
+            this.rows[i][update_keys[j]] = update[update_keys[j]];
+          }
+        }
+        fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
+        return this.rows[i];
+      }
+    }
+    return null;
+  }
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-2"> ☑️ Step 2.  Add POST_update_user and a URL route to <code>server.js</code>  </h3>
+
+
+First, update this:  
+
+```javascript
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/login') {
+      POST_login(req_data, res);
+    } else if (url == '/api/logout') {
+      POST_logout(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    } else if (url == '/api/update-user') {
+      POST_update_user(req_data, res);
+    }
+  })
+}
+```
+
+Then, add this beneath POST_user_by_session:  
+
+```javascript
+function POST_update_user(user_update, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+
+  //  Make sure the username, email, and phone are unique. 
+  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
+  user_data = JSON.parse(user_data);
+  let response = {
+    error: false,
+    msg: '',
+    updated_user: ''
+  }
+  for (let i = 0; i < user_data.length; i++) {
+    if (user_data[i].id != user_update.id) {
+      if (user_data[i].username == user_update.username) {
+        response.error = true;
+        response.msg = 'Username already taken.';
+        break;
+      } else if (user_data[i].email == user_update.email) {
+        response.error = true;
+        response.msg = 'Email already taken.';
+        break;
+      } else if (user_data[i].phone == user_update.phone) {
+        response.error = true;
+        response.msg = 'Phone number already taken.';
+        break;
+      }
+    }
+  }
+
+  //  If it's not a duplicate, encrypt the pass, and save it. 
+  if (!response.error) {
+    response.updated_user = DataBase.table('users').update(user_update.id, user_update);
+    if (response.updated_user == null) {
+      response.error = true;
+      response.msg = `No user found for ${user_update.id}.`
+    }
+  }
+
+  res.write(JSON.stringify(response));
+  res.end();
+}
+```
+
+While we're in `server.js`, let's add a URL route:
+
+```javascript
+//  Mapping URLs to pages
+var pageURLs = {
+  '/': '/pages/misc/landing.html',
+  '/landing': '/pages/misc/landing.html',
+  '/register': '/pages/misc/register.html',
+  '/login': '/pages/misc/login.html',
+  '/profile': '/pages/misc/profile.html'
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-3"> ☑️ Step 3.  Edit <code>/index.js</code>  </h3>
+
+We're going to add a new mechanism in `index.js`, which we'll use in `/profile.html`.  
+We'll need an empty function called `current_user_loaded`:  
+
+```javascript
+////  SECTION 2: Functions.
+
+//  Log out
+function logout() {
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/logout");
+  http.send(_session_id);
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      localStorage.removeItem('session_id'); //  sets to null
+      window.location.href = '/login';
+    }
+  }
+}
+
+function current_user_loaded() {}
+```
+
+Then, we'll call `current_user_loaded` in `boot()`, right after we get the session and load the user.  
+
+```javascript
+function boot() {
+  console.log("Welcome to Rooftop Media Dot Org!!");
+
+  //  Log user in if they have a session id. 
+  if (_session_id) {
+    const http = new XMLHttpRequest();
+    http.open("POST", "/api/user-by-session");
+    http.send(_session_id);
+    http.onreadystatechange = (e) => {
+      if (http.readyState == 4 && http.status == 200) {
+        _current_user = JSON.parse(http.responseText);
+        current_user_loaded();
+        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
+        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+      }
+    }
+  }
+  
+  //  Redirect away from register or login if we're logged in.
+  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
+    window.location.href = '/';
+  }
+  
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-4"> ☑️ Step 4.  Add the file <code>/pages/misc/profile.html</code>  </h3>
+
+This page provides a form to update the user's information.  
+We'll write the function to update the user's password in the next few steps.  
+
+```html
+<div class="px-3">
+  <h3><span id="user_display_name"></span> - Profile</h3>
+  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
+  <p id="error"></p>
+  <button onclick="update_profile()">Update profile</button>
+
+  <br/>
+  <h4>Change your password:</h4>
+  <div>Old password: <input type="password" tabindex="5" id="old_password"/></div>
+  <div>New password: <input type="password" tabindex="6" id="new_password"/></div>
+  <div>Confirm new password: <input type="password" tabindex="7" id="confirm_new_password"/></div>
+  <p id="pass_error"></p>
+  <button onclick="update_password()">Update password</button>
+</div>
+
+<script>
+//  Fire this when the user's data loads 
+function update_form() {
+  document.getElementById('username').value = _current_user.username;
+  document.getElementById('display_name').value = _current_user.display_name;
+  document.getElementById('email').value = _current_user.email;
+  document.getElementById('phone').value = _current_user.phone;
+}
+current_user_loaded = function() {
+  update_form();
+}
+
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+//  Username -- lowercase alphanumeric and _ only
+const username_input = document.getElementById('username');
+const username_regex = /^[a-z0-9_]*$/;
+username_input.addEventListener("keydown", event => {
+  if (!username_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    event.preventDefault();
+    document.getElementById('error').innerHTML = "Username can only contain lowercase letters, numbers, and underscores.";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Email
+const email_input = document.getElementById('email');
+const email_regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+var email_val = email_input.value;
+email_input.addEventListener("input", event => {
+  email_val = email_input.value;
+  if (!email_regex.test(email_val) && !utility_keys.includes(event.keyCode)) {
+    document.getElementById('error').innerHTML = "Invalid email format";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Phone
+const phone_input = document.getElementById('phone');
+const phone_regex = /^[0-9\-]{0,12}$/;
+var phone_val = "";
+phone_input.addEventListener("keydown", event => {
+  phone_val = phone_input.value
+  if (!phone_regex.test(phone_val + event.key) && !utility_keys.includes(event.keyCode) || event.keyCode == 173) {
+    event.preventDefault();
+  } else if (event.keyCode != 8) {
+    if (phone_val.length == 3 || phone_val.length == 7) {
+      phone_input.value = phone_input.value + "-";
+    }
+  } else {
+    if (phone_val.length == 5 || phone_val.length == 9) {
+      phone_input.value = phone_input.value.slice(0,-1);
+    }
+  }
+});
+
+function update_profile() {
+  var username = document.getElementById('username').value;
+  var display_name = document.getElementById('display_name').value;
+  var email = document.getElementById('email').value;
+  var phone = document.getElementById('phone').value;
+  if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Valid username required.';
+    return;
+  }
+
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/update-user");
+  http.send(JSON.stringify({
+    id: _current_user.id,
+    username: username,
+    display_name,
+    email,
+    phone
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = 'Profile updated!';
+        _current_user = response.updated_user;
+        update_form();
+        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
+        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+function update_password() {
+  
+}
+</script>
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-5"> ☑️ Step 5. ☞  Test the code!  </h3>
+
+Restart the server, and go to `/profile`.  Try updating your user profile info.  It should work!  
+Try providing a username, email, and phone that are already taken.  An error should display!  
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-6"> ☑️ Step 6. Adding POST_update_passsword to <code>server.js</code>  </h3>
+
+Let's add a new api route to `server.js`
+
+```javascript
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/login') {
+      POST_login(req_data, res);
+    } else if (url == '/api/logout') {
+      POST_logout(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    } else if (url == '/api/update-user') {
+      POST_update_user(req_data, res);
+    } else if (url == '/api/update-password') {
+      POST_update_password(req_data, res);
+    }
+  })
+}
+```
+
+And we'll add `POST_update_password` as well, below `POST_update_user`:  
+
+```javascript
+function POST_update_password(password_update, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+
+  let user_data = DataBase.table('users').find({ id: password_update.id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (user_data.length < 1) {
+    response.error = true;
+    response.msg = 'No user found.';
+    res.write(JSON.stringify(response));
+    res.end();
+    return;
+  }
+  let password = crypto.pbkdf2Sync(password_update.old_password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
+  let new_pass = '';
+  if (password != user_data[0].password) {
+    response.error = true;
+    response.msg = 'Incorrect password.';
+  } else {
+    new_pass = crypto.pbkdf2Sync(password_update.new_password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
+  }
+
+  if (!response.error) {
+    response.updated_user = DataBase.table('users').update(password_update.id, {password: new_pass});
+    if (response.updated_user == null) {
+      response.error = true;
+      response.msg = `No user found for session ${password_update.id}.`
+    }
+  }
+
+  res.write(JSON.stringify(response));
+  res.end();
+}
+```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="d-7"> ☑️ Step 7. Adding update_password to <code>profile.html</code>  </h3>
+
+
+```javascript
+function update_password() {
+  var old_password = document.getElementById('old_password').value;
+  var new_password = document.getElementById('new_password').value;
+  var confirm_new_password = document.getElementById('confirm_new_password').value;
+  if (new_password != confirm_new_password) {
+    document.getElementById('error').innerHTML = 'New passwords must match.';
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/update-password");
+  http.send(JSON.stringify({
+    id: _current_user.id,
+    old_password,
+    new_password
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('pass_error').innerHTML = 'Password updated!';
+        _current_user = response.updated_user;
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+```
+
+<br/><br/><br/><br/>
+
 
 
 
