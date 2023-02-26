@@ -34,10 +34,7 @@ Click a part title to jump down to it, in this file.
 | [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
 
 Proposed change...
- A. Serve pages
- B. Database set up
- C. API and user auth
- D. Unit testing
+ D. Email confirmation
  
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
@@ -479,8 +476,8 @@ Create another new file, `/pages/misc/login.html`, and add:
 ```html
 <div class="px-3">
   <h3>Login</h3>
-  <div>Username: <input type="text" id="username" placeholder="mickeymouse"/></div>
-  <div>Password: <input type="password" id="password"/></div>
+  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
+  <div>Password: <input type="password" tabindex="2" id="password"/></div>
   <p id="error"></p>
   <button onclick="login()">Login</button>
 </div>
@@ -1183,7 +1180,7 @@ The complete code for Part B is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-c" align="center">  Part-C :  User sessions, logout, and /login </h2>
+<h2 id="part-c" align="center">  Part C :  User sessions, logout, and /login </h2>
 
 In this part, we'll finish user authorization for the website, with features including:
  - Let existing users log in on the login page. 
@@ -1571,6 +1568,69 @@ Try the logout button.  You should be logged out and directed to `/login`.
 
 <h3 id="c-10"> ☑️ Step 10.  Add API route login to <code>server.js</code>  </h3>
 
+We'll edit `server/server.js` in two places.  
+First, in `api_POST_routes`, add a call to `POST_login`:  
+
+```javascript
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/login') {
+      POST_login(req_data, res);
+    } else if (url == '/api/logout') {
+      POST_logout(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    }
+  })
+}
+```
+
+Then, between `POST_register` and `POST_logout`, add this:  
+
+```javascript
+function POST_login(login_info, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  let user_data = DataBase.table('users').find({ username: login_info.username });
+  let response = {
+    error: false,
+    msg: '',
+    user_data: '',
+    session_id: ''
+  }
+  if (user_data.length < 1) {
+    response.error = true;
+    response.msg = 'No user found.';
+    res.write(JSON.stringify(response));
+    res.end();
+    return;
+  }
+  let password = crypto.pbkdf2Sync(login_info.password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
+  if (password != user_data[0].password) {
+    response.error = true;
+    response.msg = 'Incorrect password.';
+  } else {
+    response.user_data = user_data[0];
+    let expire_date = new Date()
+    expire_date.setDate(expire_date.getDate() + 30);
+    response.session_id = DataBase.table('sessions').insert({
+      user_id: user_data[0].id,
+      expires: expire_date
+    })
+  }
+  res.write(JSON.stringify(response));
+  res.end();
+}
+```
+
+Another 40 line function! :/ 
 
 <br/><br/><br/><br/>
 
@@ -1578,12 +1638,76 @@ Try the logout button.  You should be logged out and directed to `/login`.
 
 <h3 id="c-11"> ☑️ Step 11.  Edit <code>login.html</code>  </h3>
 
+Now that we have our API route, we can call it in `login.html`.  
+We'll also add validation for the form fields.  
+
+```html
+<div class="px-3">
+  <h3>Login</h3>
+  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
+  <div>Password: <input type="password" tabindex="2" id="password"/></div>
+  <p id="error"></p>
+  <button onclick="login()">Login</button>
+</div>
+
+<script>
+  const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+  //  Username -- lowercase alphanumeric and _ only
+  const username_input = document.getElementById('username');
+  const username_regex = /^[a-z0-9_]*$/;
+  username_input.addEventListener("keydown", event => {
+    if (!username_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+      event.preventDefault();
+      document.getElementById('error').innerHTML = "Username can only contain lowercase letters, numbers, and underscores.";
+    } else {
+      document.getElementById('error').innerHTML = "";
+    }
+  });
+
+  function login() {
+    var username = document.getElementById('username').value;
+    var password = document.getElementById('password').value;
+
+    if (username.length < 2) {
+      document.getElementById('error').innerHTML = 'Valid username required.';
+      return;
+    }
+
+    const http = new XMLHttpRequest();
+    http.open("POST", "/api/login");
+    http.send(JSON.stringify({
+      username: username,
+      password
+    }));
+    http.onreadystatechange = (e) => {
+      let response;      
+      if (http.readyState == 4 && http.status == 200) {
+        response = JSON.parse(http.responseText);
+        if (!response.error) {
+          console.log("Response recieved! Logging you in.");
+          localStorage.setItem('session_id', response.session_id);
+          _session_id = response.session_id;
+          window.location.href = '/';
+        } else {
+          document.getElementById('error').innerHTML = response.msg;
+        }
+      }
+    }
+  }
+</script>
+```
 
 <br/><br/><br/><br/>
 
 
 
 <h3 id="c-12"> ☑️ Step 12. ☞  Test the code!  </h3>
+
+Restart the server!  
+Go to `/login`!  
+Login as an existing user -- or if you forget a username/password pair, register a new user, log out, and log in.  
+Log in should start a new session.  Refresh to make sure you stay logged in. 
 
 <br/><br/><br/><br/>
 
@@ -1597,6 +1721,12 @@ The complete code for Part C is available [here](https://github.com/rooftop-medi
 <br/><br/><br/><br/>
 
 
+
+<h2 id="part-d" align="center">  Part D :  Unit testing </h2>
+
+In this part, we'll create automatic tests for user registration, 
+
+<br/><br/><br/><br/>
 
 
 
