@@ -116,6 +116,8 @@ function api_POST_routes(url, req, res) {
 
     if (url == '/api/register') {
       POST_register(req_data, res);
+    } else if (url == '/api/login') {
+      POST_login(req_data, res);
     } else if (url == '/api/logout') {
       POST_logout(req_data, res);
     } else if (url == '/api/user-by-session') {
@@ -162,6 +164,39 @@ function POST_register(new_user, res) {
     })
   }
   res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
+
+function POST_login(login_info, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  let user_data = DataBase.table('users').find({ username: login_info.username });
+  let response = {
+    error: false,
+    msg: '',
+    user_data: '',
+    session_id: ''
+  }
+  if (user_data.length < 1) {
+    response.error = true;
+    response.msg = 'No user found.';
+    res.write(JSON.stringify(response));
+    res.end();
+    return;
+  }
+  let password = crypto.pbkdf2Sync(login_info.password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
+  if (password != user_data[0].password) {
+    response.error = true;
+    response.msg = 'Incorrect password.';
+  } else {
+    response.user_data = user_data[0];
+    let expire_date = new Date()
+    expire_date.setDate(expire_date.getDate() + 30);
+    response.session_id = DataBase.table('sessions').insert({
+      user_id: user_data[0].id,
+      expires: expire_date
+    })
+  }
   res.write(JSON.stringify(response));
   res.end();
 }
