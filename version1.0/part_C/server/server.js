@@ -35,7 +35,8 @@ var pageURLs = {
   '/': '/pages/misc/landing.html',
   '/landing': '/pages/misc/landing.html',
   '/register': '/pages/misc/register.html',
-  '/login': '/pages/misc/login.html'
+  '/login': '/pages/misc/login.html',
+  '/profile': '/pages/misc/profile.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -52,6 +53,9 @@ function server_request(req, res) {
       api_GET_routes(url, res);
     } else if (req.method == "POST") {
       api_POST_routes(url, req, res);
+    }
+    else if (req.method == "PUT") {
+      api_PUT_routes(url, req, res);
     }
   } else if (extname.length == 0) {            /*  No extension? Respond with index.html.  */
     respond_with_a_page(res, url);
@@ -122,6 +126,10 @@ function api_POST_routes(url, req, res) {
       POST_logout(req_data, res);
     } else if (url == '/api/user-by-session') {
       POST_user_by_session(req_data, res);
+    } else if (url == '/api/update-user') {
+      POST_update_user(req_data, res);
+    } else if (url == '/api/update-password') {
+      POST_update_password(req_data, res);
     }
   })
 }
@@ -224,6 +232,84 @@ function POST_user_by_session(session_id, res) {
     res.write(JSON.stringify(user_data[0]));
     res.end();
   }
+}
+
+function POST_update_user(user_update, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+
+  //  Make sure the username, email, and phone are unique. 
+  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
+  user_data = JSON.parse(user_data);
+  let response = {
+    error: false,
+    msg: '',
+    updated_user: ''
+  }
+  for (let i = 0; i < user_data.length; i++) {
+    if (user_data[i].id != user_update.id) {
+      if (user_data[i].username == user_update.username) {
+        response.error = true;
+        response.msg = 'Username already taken.';
+        break;
+      } else if (user_data[i].email == user_update.email) {
+        response.error = true;
+        response.msg = 'Email already taken.';
+        break;
+      } else if (user_data[i].phone == user_update.phone) {
+        response.error = true;
+        response.msg = 'Phone number already taken.';
+        break;
+      }
+    }
+  }
+
+  //  If it's not a duplicate, encrypt the pass, and save it. 
+  if (!response.error) {
+    response.updated_user = DataBase.table('users').update(user_update.id, user_update);
+    if (response.updated_user == null) {
+      response.error = true;
+      response.msg = `No user found for ${user_update.id}.`
+    }
+  }
+
+  res.write(JSON.stringify(response));
+  res.end();
+}
+
+function POST_update_password(password_update, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+
+  let user_data = DataBase.table('users').find({ id: password_update.id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (user_data.length < 1) {
+    response.error = true;
+    response.msg = 'No user found.';
+    res.write(JSON.stringify(response));
+    res.end();
+    return;
+  }
+  let password = crypto.pbkdf2Sync(password_update.old_password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
+  let new_pass = '';
+  if (password != user_data[0].password) {
+    response.error = true;
+    response.msg = 'Incorrect password.';
+  } else {
+    new_pass = crypto.pbkdf2Sync(password_update.new_password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
+  }
+
+  if (!response.error) {
+    response.updated_user = DataBase.table('users').update(password_update.id, {password: new_pass});
+    if (response.updated_user == null) {
+      response.error = true;
+      response.msg = `No user found for session ${password_update.id}.`
+    }
+  }
+
+  res.write(JSON.stringify(response));
+  res.end();
 }
 
 ////  SECTION 4: Boot.

@@ -18,6 +18,8 @@ function logout() {
   }
 }
 
+function current_user_loaded() {}
+
 
 ////  SECTION 3: Boot.
 function boot() {
@@ -31,6 +33,7 @@ function boot() {
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
+        current_user_loaded();
         document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
         document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
       }
