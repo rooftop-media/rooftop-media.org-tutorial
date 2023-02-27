@@ -27,11 +27,10 @@ Click a part title to jump down to it, in this file.
 | [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 0 min. | 0 |
 | [Part C - User sessions, logout, and /login](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
 | [Part D - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
-<!--
-| [Part E - Unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 0 min. | 0 |
-| [Part F - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
+| [Part E - Mobile design](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 0 min. | 0 |
+<!--| [Part F - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
 | [Part G - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-g) | 0 min. | 0 |
-| [Part H - mobilev  design](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |-->
+| [Part H - Unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |-->
 | [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
 <!--
 Proposals...  
@@ -2170,11 +2169,23 @@ Log out and log back in again to make sure the password is changed.
 
 
 
-<h3 id="c-9"> ☑️ Step 9. ❖ Part D review. </h3>
+<h3 id="d-9"> ☑️ Step 9. ❖ Part D review. </h3>
 
 The complete code for Part D is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_D).
 
 <br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+<h2 id="part-e" align="center">  Part E :  Mobile Design </h2>
+
+In this part, we'll edit our website to make sure it looks good on phone browsers.  
+
+Changes will include:
+ - A "hamburger" menu for the login and logout buttons
+ - A smaller logo for smaller screens
+
 <br/><br/><br/><br/>
 
 
