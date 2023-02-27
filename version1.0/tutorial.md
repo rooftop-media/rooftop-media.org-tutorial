@@ -23,7 +23,7 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 17 min. | 19 |
+| [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 15 min. | 18 |
 | [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 0 min. | 0 |
 | [Part C - User sessions, logout, and /login](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
 | [Part D - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
@@ -973,7 +973,7 @@ function POST_register(new_user, res) {
 
 
 
-<h3 id="b-5">  ☑️ Step 5:  Calling the API with client-side script <code>auth.js</code> </h3>
+<h3 id="b-5">  ☑️ Step 5:  Calling the API in the browser, in <code>register.html</code> </h3>
 
 Open `register.html` and add this:  
 
@@ -1003,7 +1003,11 @@ function register() {
     return;
   }
   if (username.length < 2) {
-    document.getElementById('error').innerHTML = 'Valid username required.';
+    document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
+    return;
+  }
+  if (password.length < 8) {
+    document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
     return;
   }
 
@@ -1134,7 +1138,11 @@ function register() {
     return;
   }
   if (username.length < 2) {
-    document.getElementById('error').innerHTML = 'Valid username required.';
+    document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
+    return;
+  }
+  if (password.length < 8) {
+    document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
     return;
   }
 
