@@ -1719,7 +1719,7 @@ Log in should start a new session.  Refresh to make sure you stay logged in.
 
 
 
-<h3 id="c-?"> ☑️ Step ?. ❖ Part C review. </h3>
+<h3 id="c-13"> ☑️ Step 13. ❖ Part C review. </h3>
 
 The complete code for Part C is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_C).
 
@@ -2122,7 +2122,7 @@ function POST_update_password(password_update, res) {
 <br/><br/><br/><br/>
 
 
-<h3 id="d-7"> ☑️ Step 7. Adding update_password to <code>profile.html</code>  </h3>
+<h3 id="d-7"> ☑️ Step 7. Adding <code>update_password</code> to <code>profile.html</code>  </h3>
 
 
 ```javascript
@@ -2160,6 +2160,30 @@ function update_password() {
 
 
 
+<h3 id="d-8"> ☑️ Step 8. ☞  Test the code!  </h3>
+
+While logged in, try changing the password of a user.  
+Log out and log back in again to make sure the password is changed.
+
+<br/><br/><br/><br/>
+
+
+
+
+<h3 id="c-9"> ☑️ Step 9. ❖ Part D review. </h3>
+
+The complete code for Part D is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_D).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+<h2 id="v2" align="center">  Version 2: The CMS </h2>
+
+With this section complete, you're ready to move on to the tutorial for [version 2.0](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md)!
+
+<br/><br/><br/><br/><br/><br/><br/><br/>
 
 
 
