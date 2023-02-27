@@ -1,38 +1,38 @@
 [
   {
-    "username": "bb",
-    "display_name": "B B",
-    "email": "b@b.org",
-    "phone": "4567890-=",
-    "password": "b11c73c021bb7aff37b95ee345969762c097135fe445547bc7e18e49f6c82f11690ee7321618f0170aeb6acf9d2a6264481a08982f20135b9373d089abd12f63",
-    "salt": "7477f591fe14f8a1abee6fbea73c3d14",
+    "username": "mickeymouse",
+    "display_name": "Mickey Mouse",
+    "email": "mickey@mouse.org",
+    "phone": "234234q",
+    "password": "1dec7d3ada98e9b52f80ac1a6282850f4c5d52aff7b8a93e3abe91c0c0d376610fc3fc6d31e30a40e73a4c5a8c97a63a3142f77fec79866218982464220858ec",
+    "salt": "2c07788e65fa05f8da74bf3a7990055b",
     "id": 0
   },
   {
-    "username": "larry",
-    "display_name": "Larry Q",
-    "email": "l@l.com",
-    "phone": "494949",
-    "password": "79651958d1ce35795a7023569d00a122e73c1bf803999c4dfe3608d7360d0be01d0529b7390303b5b939695f8f2532580d1f3ff3f044474957c6fe9265f046bc",
-    "salt": "ad15c884a2cdb1f61c84ffcdce1eec94",
+    "username": "donaldduck",
+    "display_name": "Donald Duck",
+    "email": "donald@disney.org",
+    "phone": "233-333-3333",
+    "password": "7c09b27b8d4d20c817781b76c3457d613e58775402ed5933672fc961aebe4a058984e7201b2ea2111d71eba4e2cdfafe987ab92b2b876ccda15931cbce6ad394",
+    "salt": "714223d98c1ca19d47f9c8bbc7a2ff3f",
     "id": 1
   },
   {
-    "username": "jerry_2",
-    "display_name": "Jerry",
-    "email": "jer@test.com",
-    "phone": "789-789-7899",
-    "password": "7ce146df00e2cde8da28be2108c37bf6618d724aa7741e428b319c0cc8e39264abbba5370232691e519335b3f2d0f33e94ac897d61cb968558b3af5b0ebac844",
-    "salt": "3986ed9699d0a8ae1485d67d645be67b",
+    "username": "josie",
+    "display_name": "Josie H",
+    "email": "",
+    "phone": "",
+    "password": "c4a60765c8982b6a4594eddbdc3f816299dd9da69158903b61bab80233c9b919ca909d40e43e86139ad8c0a4a9cd412f8e24f115c6f389ef1f2a7ff88255f0f9",
+    "salt": "ca820cb9733f5f85f967c42603dd93d1",
     "id": 2
   },
   {
-    "username": "jamesbrown",
-    "display_name": "James B",
-    "email": "james@jazz.org",
-    "phone": "234-234-2342",
-    "password": "50d5c606e36d2600a55cc62795f2cd31bc2050b9c81b0846e53b7950799dc813ad8c1d5eb24cf5fde61b2b7334f433f76d8ee7526e2301f419574b2c9458802f",
-    "salt": "4454d1698c4e7be030aef2b7d852c839",
+    "username": "sans",
+    "display_name": "",
+    "email": "nothing@blank.com",
+    "phone": "444-444-4444",
+    "password": "34827dbeadec2a127b40f8423c56040fc41a3714e04ae9c0240ef30426c5c44642084228cf93b3e0c12c8974c1cec1a78755747c14263dfc6a236e4de0780471",
+    "salt": "19b35389acfab9dac1a06712b9157a6e",
     "id": 3
   }
 ]

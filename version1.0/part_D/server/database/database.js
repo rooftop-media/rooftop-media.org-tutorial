@@ -48,6 +48,23 @@ class Table {
     }
     return `No row found with id ${id_to_delete}`;
   }
+
+  update(id, update) {
+    //  Look for row to update...
+    for (let i = 0; i < this.rows.length; i++) {
+      if (this.rows[i].id == id) {
+        let update_keys = Object.keys(update);
+        for (let j = 0; j < update_keys.length; j++) {
+          if (update_keys[i] != 'id') {
+            this.rows[i][update_keys[j]] = update[update_keys[j]];
+          }
+        }
+        fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
+        return this.rows[i];
+      }
+    }
+    return null;
+  }
   
 }
 

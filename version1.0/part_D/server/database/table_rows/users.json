@@ -18,12 +18,21 @@
     "id": 1
   },
   {
-    "username": "tester",
-    "display_name": "",
+    "username": "josie",
+    "display_name": "Josie H",
     "email": "",
     "phone": "",
-    "password": "94837269fd301043f7078aaaa2e578e3adcc68baa9f690a9a56cab83ecca3fe8b8537789ce44e6ba9994e95751168fc29f1040f9dfbd827577379a5146c926f7",
-    "salt": "672371620146c5708e366980b2f30ee4",
+    "password": "c4a60765c8982b6a4594eddbdc3f816299dd9da69158903b61bab80233c9b919ca909d40e43e86139ad8c0a4a9cd412f8e24f115c6f389ef1f2a7ff88255f0f9",
+    "salt": "ca820cb9733f5f85f967c42603dd93d1",
     "id": 2
+  },
+  {
+    "username": "sans",
+    "display_name": "Sans Buckalew",
+    "email": "nothing@blank.com",
+    "phone": "444-444-4444",
+    "password": "f97f4deade4b2a72e5f45c6e12419bc14ef8f4d2f47abed8a8bd63c6389272f7e8a056ffce87724cc9d73cc9c1b37ab703a888aa979b9b2b29417bda9f8fe5de",
+    "salt": "19b35389acfab9dac1a06712b9157a6e",
+    "id": 3
   }
 ]
