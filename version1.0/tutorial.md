@@ -355,7 +355,7 @@ Running the server also won't load our new assets properly *yet*.  We'll set tha
 <h3 id="a-10">  ☑️ Step 10:  Editing the request response in <code>/server/server.js</code> </h3>
 
 In our request response section, we'll add a dictionary of [mime types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_Types).  
-Then, in our response function, we'll respond with index.html, an asset, or the 404 page.
+Then, in our response function, we'll respond with index.html, an asset, or a 404 message.
 
 ```javascript
 ////  SECTION 2: Request response.
