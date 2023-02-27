@@ -24,9 +24,9 @@ Click a part title to jump down to it, in this file.
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
 | [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 15 min. | 18 |
-| [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 0 min. | 0 |
-| [Part C - User sessions, logout, and /login](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 0 min.  | 0 |
-| [Part D - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 0 min. | 0 |
+| [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 15 min. | 8 |
+| [Part C - User sessions, logout, and /login](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 20 min.  | 13 |
+| [Part D - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 10 min. | 9 |
 | [Part E - Mobile design](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 0 min. | 0 |
 <!--| [Part F - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
 | [Part G - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-g) | 0 min. | 0 |
@@ -721,7 +721,7 @@ Along the way, we'll:
  - Hash user passwords
  - Validate input from new users who want to register
 
-*Estimated time: ?? minutes*
+*Estimated time: 15 minutes*
 
 <br/><br/><br/><br/>
 
@@ -998,15 +998,14 @@ function register() {
   var phone = document.getElementById('phone').value;
   var password = document.getElementById('password').value;
   var confirm_password = document.getElementById('confirm_password').value;
+ 
   if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
-  }
-  if (username.length < 2) {
+  } else if (username.length < 2) {
     document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
     return;
-  }
-  if (password.length < 8) {
+  } else if (password.length < 8) {
     document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
     return;
   }
@@ -1133,15 +1132,14 @@ function register() {
   var phone = document.getElementById('phone').value;
   var password = document.getElementById('password').value;
   var confirm_password = document.getElementById('confirm_password').value;
+  
   if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
-  }
-  if (username.length < 2) {
+  } else if (username.length < 2) {
     document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
     return;
-  }
-  if (password.length < 8) {
+  } else if (password.length < 8) {
     document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
     return;
   }
@@ -1184,7 +1182,7 @@ The `email` and `phone` inputs should be nicely validated as well.
 <br/><br/><br/><br/>
 
 
-<h3 id="a-8"> ☑️ Step 8. ❖ Part B review. </h3>
+<h3 id="b-8"> ☑️ Step 8. ❖ Part B review. </h3>
 
 The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_B).
 
@@ -1199,6 +1197,8 @@ In this part, we'll finish user authorization for the website, with features inc
  - Let existing users log in on the login page. 
  - Start a *session* to keep a user registered or logged in. 
  - Let users log out, deleting their session. 
+
+*Estimated time: 20 minutes*
 
 <br/><br/><br/><br/>
 
@@ -1234,7 +1234,7 @@ We'll start by adding the file `/server/database/table_columns/sessions.json`, t
 }
 ```
 
-And we'll also make `/server/database/table_rows.json`, with an empty array:
+And we'll also make `/server/database/table_rows/sessions.json`, with an empty array:
 ```json
 []
 ```
@@ -1291,8 +1291,8 @@ function POST_register(new_user, res) {
 ```
 
 Note that we're finally using the `user_id` we get from the database.  
-Also note that this function is now 40 lines long, which is longer than I'd like...  
-<!--  TODO  -->
+<!--  Also note that this function is now 40 lines long, which is longer than I'd like...  
+TODO  -->
 
 <br/><br/><br/><br/>
 
@@ -1300,7 +1300,8 @@ Also note that this function is now 40 lines long, which is longer than I'd like
 
 <h3 id="c-3">  ☑️ Step 3:  Starting a session in <code>register.html</code> </h3>
 
-We'll edit the register function in `register.html`, to store our session id data as a cookie. 
+We'll edit the register function in `register.html`, to store our session id data in [localstorage](https://developer.mozilla.org/en-US/docs/Web/API/Storage/setItem).  
+This means the data will be saved with the browser accessing our website.  
 
 ```javascript
 function register() {
@@ -1320,7 +1321,7 @@ function register() {
   }
 
   const http = new XMLHttpRequest();
-  http.open("POST", "/api/register");
+  http.open('POST', '/api/register');
   http.send(JSON.stringify({
     username: username,
     display_name,
@@ -1345,7 +1346,7 @@ function register() {
 }
 ```
 
-This function is also about 40 lines long.  I'll need to fix that later.
+<!--  TODO: This function is also about 40 lines long.  I'll need to fix that later. -->
 
 <br/><br/><br/><br/>
 
@@ -1378,18 +1379,20 @@ and, below `POST_register`, add:
 
 ```javascript
 function POST_user_by_session(session_id, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  let session_data = DataBase.table('sessions').find({ id: req_data });
+  let session_data = DataBase.table('sessions').find({ id: session_id });
   if (session_data.length < 1) {
+    res.writeHead(404, {'Content-Type': 'text/html'});
     res.write("No session found.");
     res.end();
     return;
   }
   let user_data = DataBase.table('users').find({ id: session_data[0].user_id });
   if (user_data.length < 1) {
+    res.writeHead(404, {'Content-Type': 'text/html'});
     res.write(`No user found for session ${session_data[0].id}.`);
     res.end();
   } else {
+    res.writeHead(200, {'Content-Type': 'text/html'});
     res.write(JSON.stringify(user_data[0]));
     res.end();
   }
@@ -1427,6 +1430,9 @@ function boot() {
         _current_user = JSON.parse(http.responseText);
         document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
         document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+      } else if (http.readyState == 4 && http.status == 404) {
+        console.log('No session found.');
+        localStorage.removeItem('session_id');
       }
     }
   }
@@ -1643,7 +1649,7 @@ function POST_login(login_info, res) {
 }
 ```
 
-Another 40 line function! :/ 
+<!-- Another 40 line function! :/ TODO -->
 
 <br/><br/><br/><br/>
 
@@ -1798,7 +1804,7 @@ function api_POST_routes(url, req, res) {
 }
 ```
 
-Then, add this beneath POST_user_by_session:  
+Then, add this beneath `POST_user_by_session`:  
 
 ```javascript
 function POST_update_user(user_update, res) {
@@ -1830,7 +1836,7 @@ function POST_update_user(user_update, res) {
     }
   }
 
-  //  If it's not a duplicate, encrypt the pass, and save it. 
+  //  If the update is valid, save it.
   if (!response.error) {
     response.updated_user = DataBase.table('users').update(user_update.id, user_update);
     if (response.updated_user == null) {
@@ -1844,7 +1850,7 @@ function POST_update_user(user_update, res) {
 }
 ```
 
-While we're in `server.js`, let's add a URL route:
+While we're in `server.js`, let's add a URL route to our `pageURLs` dictionary.  
 
 ```javascript
 //  Mapping URLs to pages
@@ -1855,6 +1861,7 @@ var pageURLs = {
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html'
 }
+var pageURLkeys = Object.keys(pageURLs);
 ```
 
 <br/><br/><br/><br/>
@@ -1902,6 +1909,9 @@ function boot() {
         current_user_loaded();
         document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
         document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+      } else if (http.readyState == 4 && http.status == 404) {
+        console.log('No session found.');
+        localStorage.removeItem('session_id');
       }
     }
   }
@@ -1920,6 +1930,7 @@ function boot() {
 
 <h3 id="d-4"> ☑️ Step 4.  Add the file <code>/pages/misc/profile.html</code>  </h3>
 
+Add a file, `/pages/misc/profile.html`.  
 This page provides a form to update the user's information.  
 We'll write the function to update the user's password in the next few steps.  
 
@@ -2131,6 +2142,7 @@ function POST_update_password(password_update, res) {
 
 <h3 id="d-7"> ☑️ Step 7. Adding <code>update_password</code> to <code>profile.html</code>  </h3>
 
+In `profile.html`, add this to our `update_password()` function:  
 
 ```javascript
 function update_password() {
@@ -2185,7 +2197,7 @@ The complete code for Part D is available [here](https://github.com/rooftop-medi
 <br/><br/><br/><br/>
 
 
-
+<!--
 <h2 id="part-e" align="center">  Part E :  Mobile Design </h2>
 
 In this part, we'll edit our website to make sure it looks good on phone browsers.  
@@ -2195,6 +2207,10 @@ Changes will include:
  - A smaller logo for smaller screens
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="e-1"> ☑️ Step 1.   </h3>-->
 
 
 
