@@ -125,21 +125,49 @@ function create_page() {
 <br/><br/><br/><br/>
 
 
-<h3 id="a-2">  ☑️ Step 2: Edit <code>/server/server.js</code>  </h3>
 
-```javascript
-//  Mapping URLs to pages
-var pageURLs = {
-  '/': '/pages/misc/landing.html',
-  '/landing': '/pages/misc/landing.html',
-  '/register': '/pages/misc/register.html',
-  '/login': '/pages/misc/login.html',
-  '/profile': '/pages/misc/profile.html',
-  '/create-page': '/pages/cms/create-page.html',
-  '/all-pages': '/pages/cms/all-pages.html',
+<h3 id="a-2">  ☑️ Step 2: Adding a Pages table to the database  </h3>
+
+To add a new table, we'll first add a set of table columns.  
+Add the file `/server/database/table_columns/pages.json`:  
+
+```json
+{
+  "name": "Pages",
+  "snakecase": "pages",
+  "max_id": 0,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "Page Title",
+      "snakecase": "page_title"
+    },
+    {
+      "name": "Page Route",
+      "snakecase": "page_route",
+      "unique": true
+    }
+  ]
 }
-var pageURLkeys = Object.keys(pageURLs);
 ```
+
+Then, add the file `/server/database/table_rows/pages.json`.  Add an empty array:  
+
+```json
+[]
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-3">  ☑️ Step 3: Add <code>POST_create_page</code> to <code>/server/server.js</code>  </h3>
+
+First, add `/api/create-page` to `api_POST_routes`:  
 
 ```javascript
 function api_POST_routes(url, req, res) {
@@ -169,7 +197,37 @@ function api_POST_routes(url, req, res) {
 }
 ```
 
+Then, after the function `POST_update_password`, add this function:  
+
+```javascript
+function POST_create_page(page_data, res) {
+  
+}
+```
+
 <br/><br/><br/><br/>
+
+
+<h3 id="a-3">  ☑️ Step 3: Add new URL routes to <code>/server/server.js</code>  </h3>
+
+We're also going to add our new static page URL routes to `server.js`:  
+
+```javascript
+//  Mapping URLs to pages
+var pageURLs = {
+  '/': '/pages/misc/landing.html',
+  '/landing': '/pages/misc/landing.html',
+  '/register': '/pages/misc/register.html',
+  '/login': '/pages/misc/login.html',
+  '/profile': '/pages/misc/profile.html',
+  '/create-page': '/pages/cms/create-page.html',
+  '/all-pages': '/pages/cms/all-pages.html',
+}
+var pageURLkeys = Object.keys(pageURLs);
+```
+
+<br/><br/><br/><br/>
+
 
 
 
