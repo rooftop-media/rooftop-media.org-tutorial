@@ -141,6 +141,34 @@ var pageURLs = {
 var pageURLkeys = Object.keys(pageURLs);
 ```
 
+```javascript
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/login') {
+      POST_login(req_data, res);
+    } else if (url == '/api/logout') {
+      POST_logout(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    } else if (url == '/api/update-user') {
+      POST_update_user(req_data, res);
+    } else if (url == '/api/update-password') {
+      POST_update_password(req_data, res);
+    } else if (url == '/api/create-page') {
+      POST_create_page(req_data, res);
+    }
+  })
+}
+```
+
 <br/><br/><br/><br/>
 
 
