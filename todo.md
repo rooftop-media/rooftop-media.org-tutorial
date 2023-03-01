@@ -6,6 +6,10 @@ v1 part B:
  - [ ] explain salting and hashing passwords in a separate step? Or provide link?
  - [ ] allow no email and no phone on registration (allow duplicate "blank" number, email)
  - [ ] "ENTER" key to submit register and login forms
+ - [ ] Ensure phone number input works even when the cursor is moved...
+
+v1 part C I think
+ - [ ] Make "user profile" and "logout" buttons a section with a toggleable display, instead of new code
 
 v1 part D:
  - [ ] "Delete account" button in user settings
