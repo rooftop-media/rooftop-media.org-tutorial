@@ -253,21 +253,86 @@ var pageURLkeys = Object.keys(pageURLs);
 
 
 
-<h3 id="a-5">  ☑️ Step 5: Adding links to <code>/create-page</code> and <code>/all-pages</code> in <code>/pages/index.html</code>  </h3>
+<h3 id="a-5">  ☑️ Step 5: Using <code>/pages/index.js</code> to reroute and update the header </h3>
 
+First, we'll add two more functions, right below `current_user_loaded`:  
+
+```javascript
+// Reroute the user if their log in status doesn't match the page
+function reroute_if_needed() {
+  if (_current_user == null) {
+    if (_current_page == '/create-page' || _current_page == '/all-pages') {
+      window.location.href = '/';
+    }
+  } else {
+    if (_current_page == '/register' || _current_page == '/login') {
+      window.location.href = '/';
+    }
+  }
+}
+
+// Update the "user buttons" in the header
+function update_header() {
+  if (_current_user != null) {
+    document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
+    document.getElementById('user-buttons').innerHTML += `<a href="/create-page">New page</a>`;
+    document.getElementById('user-buttons').innerHTML += `<a href="/all-pages">All pages</a>`;
+    document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+  }
+}
+
+```
+
+Then, we'll edit the `boot` function, to call our new functions:  
+
+```javascript
+////  SECTION 3: Boot.
+function boot() {
+  console.log("Welcome to Rooftop Media Dot Org!");
+
+  //  Log user in if they have a session id. 
+  if (_session_id) {
+    const http = new XMLHttpRequest();
+    http.open("POST", "/api/user-by-session");
+    http.send(_session_id);
+    http.onreadystatechange = (e) => {
+      if (http.readyState == 4 && http.status == 200) {
+        _current_user = JSON.parse(http.responseText);
+        current_user_loaded();
+        reroute_if_needed()
+        update_header()
+      } else if (http.readyState == 4 && http.status == 404) {
+        console.log('No session found.');
+        localStorage.removeItem('session_id');
+        reroute_if_needed();
+      }
+    }
+  } else {
+    reroute_if_needed();
+  }
+  
+}
+window.addEventListener('load', (event) => {
+  boot()
+});
+```
 
 <br/><br/><br/><br/>
 
 
-<h3 id="a-6">  ☑️ Step 6: Ensuring user is logged in for <code>/create-page</code> and <code>/all-pages</code>, in <code>/pages/index.js</code>  </h3>
 
+<h3 id="a-6"> ☑️ Step 6:  ☞ Test the code! </h3>
 
-<br/><br/><br/><br/>
+Restart the server!  
 
+If you're logged in and on `/login` or `/register`, you should be rerouted to `/`.  
+If you're *not* logged in and on `/create-page`, you should be rerouted to `/`.  
 
+On `/create-page`, add a page name and page route.  
+The page info should appear in the `/server/database/page_rows/pages.json` file.  
+You should be rerouted to the page route, displaying the 404 page -- for now.  
 
-<h3 id="a-7"> ☑️ Step 7:  ☞ Test the code! </h3>
-
+Go back to `/create-page` to try creating the same page route.  You should get an error.  
 
 <br/><br/><br/><br/>
 
