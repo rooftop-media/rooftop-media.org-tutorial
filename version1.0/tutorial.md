@@ -491,7 +491,9 @@ Create another new file, `/pages/misc/login.html`, and add:
 Finally, add one more new file, `/pages/misc/404.html`, and add:
 
 ```html
-<h1>404 - page not found!</h1>
+<div class="px-3">
+  <h1>404 - page not found!</h1>
+</div>
 ```
 
 
