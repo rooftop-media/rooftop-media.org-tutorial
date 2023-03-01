@@ -22,7 +22,6 @@ function logout() {
 function boot() {
   console.log("Welcome to Rooftop Media Dot Org!");
 
-  console.log(_session_id)
   //  Log user in if they have a session id. 
   if (_session_id) {
     const http = new XMLHttpRequest();

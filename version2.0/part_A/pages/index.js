@@ -20,6 +20,29 @@ function logout() {
 
 function current_user_loaded() {}
 
+// Reroute the user if their log in status doesn't match the page
+function reroute_if_needed() {
+  if (_current_user == null) {
+    if (_current_page == '/create-page' || _current_page == '/all-pages') {
+      window.location.href = '/';
+    }
+  } else {
+    if (_current_page == '/register' || _current_page == '/login') {
+      window.location.href = '/';
+    }
+  }
+}
+
+// Update the "user buttons" in the header
+function update_header() {
+  if (_current_user != null) {
+    document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
+    document.getElementById('user-buttons').innerHTML += `<a href="/create-page">New page</a>`;
+    document.getElementById('user-buttons').innerHTML += `<a href="/all-pages">All pages</a>`;
+    document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+  }
+}
+
 ////  SECTION 3: Boot.
 function boot() {
   console.log("Welcome to Rooftop Media Dot Org!");
@@ -33,18 +56,16 @@ function boot() {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
         current_user_loaded();
-        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
-        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+        reroute_if_needed()
+        update_header()
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
+        reroute_if_needed();
       }
     }
-  }
-  
-  //  Redirect away from register or login if we're logged in.
-  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
-    window.location.href = '/';
+  } else {
+    reroute_if_needed();
   }
   
 }
