@@ -150,6 +150,10 @@ Add the file `/server/database/table_columns/pages.json`:
       "name": "Page Route",
       "snakecase": "page_route",
       "unique": true
+    },
+    {
+      "name": "Is Public?",
+      "snakecase": "is_public"
     }
   ]
 }
@@ -200,15 +204,34 @@ function api_POST_routes(url, req, res) {
 Then, after the function `POST_update_password`, add this function:  
 
 ```javascript
-function POST_create_page(page_data, res) {
-  
+function POST_create_page(new_page_data, res) {
+  let page_data = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
+  page_data = JSON.parse(page_data);
+  let response = {
+    error: false,
+    msg: '',
+  }
+  for (let i = 0; i < page_data.length; i++) {
+    if (page_data[i].route_name == new_page_data.username) {
+      response.error = true;
+      response.msg = 'Route name already taken.';
+      break;
+    } 
+  }
+  //  If it's a valid page, save it
+  if (!response.error) {
+    DataBase.table('pages').insert(new_page_data);
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
 }
 ```
 
 <br/><br/><br/><br/>
 
 
-<h3 id="a-3">  ☑️ Step 3: Add new URL routes to <code>/server/server.js</code>  </h3>
+<h3 id="a-4">  ☑️ Step 4: Add new URL routes to <code>/server/server.js</code>  </h3>
 
 We're also going to add our new static page URL routes to `server.js`:  
 
@@ -227,6 +250,27 @@ var pageURLkeys = Object.keys(pageURLs);
 ```
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="a-5">  ☑️ Step 5: Adding links to <code>/create-page</code> and <code>/all-pages</code> in <code>/pages/index.html</code>  </h3>
+
+
+<br/><br/><br/><br/>
+
+
+<h3 id="a-6">  ☑️ Step 6: Ensuring user is logged in for <code>/create-page</code> and <code>/all-pages</code>, in <code>/pages/index.js</code>  </h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-7"> ☑️ Step 7:  ☞ Test the code! </h3>
+
+
+<br/><br/><br/><br/>
+
 
 
 
