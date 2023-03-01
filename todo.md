@@ -8,5 +8,8 @@ v1 part B:
  - [ ] "ENTER" key to submit register and login forms
  - [ ] Ensure phone number input works even when the cursor is moved...
 
+v1 part C I think
+ - [ ] Make "user profile" and "logout" buttons a section with a toggleable display, instead of new code
+
 v1 part D:
  - [ ] "Delete account" button in user settings
