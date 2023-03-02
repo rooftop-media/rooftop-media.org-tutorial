@@ -88,7 +88,7 @@ page_route_input.addEventListener("keydown", event => {
 function create_page() {
   var page_title = document.getElementById('page_title').value;
   var page_route = document.getElementById('page_route').value;
-  var is_public = document.getElementById('is_public').value;
+  var is_public = document.getElementById('is_public').checked;
   
   if (page_route.length < 2) {
     document.getElementById('error').innerHTML = 'Page route must be at least 2 characters..';
@@ -212,7 +212,7 @@ function POST_create_page(new_page_data, res) {
     msg: '',
   }
   for (let i = 0; i < page_data.length; i++) {
-    if (page_data[i].route_name == new_page_data.username) {
+    if (page_data[i].page_route == new_page_data.page_route) {
       response.error = true;
       response.msg = 'Route name already taken.';
       break;
@@ -335,6 +335,20 @@ You should be rerouted to the page route, displaying the 404 page -- for now.
 Go back to `/create-page` to try creating the same page route.  You should get an error.  
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="a-7">  ☑️ Step 7: Creating dynamic pages in <code>server/server.js</code> </h3>
+
+We are going to edit the function `respond_with_a_page`, and then add one more function right below it, `respond_with_a_dynamic_page`.  
+
+```javascript
+
+```
+
+<br/><br/><br/><br/>
+
+
 
 
 
