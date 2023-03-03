@@ -340,7 +340,9 @@ Go back to `/create-page` to try creating the same page route.  You should get a
 
 <h3 id="a-7">  ☑️ Step 7: Creating dynamic pages in <code>server/server.js</code> </h3>
 
-We are going to edit the function `respond_with_a_page`, and then add one more function right below it, `respond_with_a_dynamic_page`.  
+First, we're going to edit the function `respond_with_a_page`.  
+Then, add one more function right below it, `respond_with_a_dynamic_page`.  
+For now, this function will generate a page that just shows the page title.  
 
 ```javascript
 
