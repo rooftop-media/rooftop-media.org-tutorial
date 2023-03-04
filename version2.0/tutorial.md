@@ -384,6 +384,13 @@ function respond_with_a_dynamic_page(res, url) {
 }
 ```
 
+There's some repeated code that could be factored into a new function, here.  
+(Dividing the page at `<!--  Insert page content here!  -->`, inserting the content.)  
+For now, I've decided to leave it as two functions.  
+
+<!-- This would be a good opportunity to factor out repeated code...
+But is it worth adding a new function? Could it even be named clearly? -->
+
 <br/><br/><br/><br/>
 
 
