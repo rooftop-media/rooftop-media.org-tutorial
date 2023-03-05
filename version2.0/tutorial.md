@@ -23,13 +23,13 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - /create-page, /all-pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-a) | 0 min. | 0 |
+| [Part A - /create-page, /all-pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-a) | 0 min. | 12 |
 | [Part B - Page element editing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-b) | 0 min. | 0 |
 | [Part C - Page formatting](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-c) | 0 min. | 0 |
 | [Part D - Image & file upload](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-d) | 0 min. | 0 |
 | [Part E - User permissions](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-e) | 0 min. | 0 |
 | [Part F - Drafting & previewing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-f) | 0 min. | 0 |
-| [Part G - Links](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-g) | 0 min. | 0 |
+| [Part G - Edit history](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-g) | 0 min. | 0 |
 | [Part H - Page styling](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-h) | 0 min. | 0 |
 | [Version 3.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#v2) | Todo | ? |
 
@@ -509,12 +509,20 @@ You should see a table of all the created pages! Wonderful.
 
 <h3 id="a-12">☑️ Step 12. ❖ Part A review. </h3>
 
-The complete code for Part A is available here.
+The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_A).
 
+<br/><br/><br/><br/>
 <br/><br/><br/><br/>
 
 
 
+
+<h2 id="part-b" align="center">  Part B:  Page element editing </h2>
+
+In this section, we'll create a new dynamic route, `/edit/:page-route`.  
+On this page, users can edit a page's title, add elements to the page, and edit those element's properties. 
+
+<br/><br/><br/><br/>
 
 
 
