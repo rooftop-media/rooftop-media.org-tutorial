@@ -406,12 +406,115 @@ URLs that are neither in the `pages` database, nor hardcoded, static pagess, sho
 <br/><br/><br/><br/>
 
 
-<h3 id="a-9"> ☑️ Step 9:  Creating <code>/all-pages</code> </h3>
 
-This page will allow us to view all pages created in our database. 
+<h3 id="a-9"> ☑️ Step 9:  Making an API route for getting all pages, in <code>server.js</code> </h3>
 
+Finally, we'll add an API route using the GET protocol!  
+First, edit `api_GET_routes`:
+
+```javascript
+function api_GET_routes(url, res) {
+  if (url == '/api/all-pages') {
+    GET_all_pages(res);
+  }
+}
+```
+
+Then, right under `api_POST_routes`, add a new function, `GET_all_pages`:
+```javascript
+function GET_all_pages(res) {
+  let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(all_pages));
+  res.end();
+}
+```
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="a-10"> ☑️ Step 10:  Creating <code>/all-pages</code> </h3>
+
+This page will allow us to view all pages created in our database.  
+Create a new page, `/pages/cms/all-pages.html`, and add this:
+
+```html
+<div class="px-3">
+  <h3>All dynamic pages:</h3>
+  <table id="page-table">
+    <tr>
+      <th>Page title</th>
+      <th>Page route</th>
+    </tr>
+    <tr>
+      <td>Alfreds Futterkiste</td>
+      <td>Maria Anders</td>
+      <td>Germany</td>
+    </tr>
+  </table>
+</div>
+
+<script>
+  let pageTable = document.getElementById('page-table');
+  get_all_pages();
+
+  function get_all_pages() {
+    pageTable.innerHTML = `<tr>
+      <th>Page title</th>
+      <th>Page route</th>
+    </tr>`;
+    const http = new XMLHttpRequest();
+    http.open('GET', '/api/all-pages');
+    http.send();
+    http.onreadystatechange = (e) => {
+      let response;      
+      if (http.readyState == 4 && http.status == 200) {
+        response = JSON.parse(JSON.parse(http.responseText)); // gotta run it twice 
+        console.log("Pages loaded!");
+        for (var i = 0; i < response.length; i++) {
+          pageTable.innerHTML += `<tr>
+            <td>${response[i].page_title}</td>
+            <td><a href="/${response[i].page_route}">/${response[i].page_route}</a></td>
+          </tr>`;
+        }
+      }
+    }
+  }
+  
+</script>
+
+<style>
+  table, th, td {
+    border: solid 1px gray;
+    border-collapse: collapse;
+  }
+  th, td {
+    min-width: 100px;
+    padding: 5px;
+  }
+</style>
+```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="a-11"> ☑️ Step 11:   ☞ Test the code!  </h3>
+
+Restart the server, and go to `/all-pages`.  
+You should see a table of all the created pages! Wonderful.   
+
+<br/><br/><br/><br/>
+
+
+<h3 id="a-12">☑️ Step 12. ❖ Part A review. </h3>
+
+The complete code for Part A is available here.
+
+<br/><br/><br/><br/>
+
+
+
 
 
 
