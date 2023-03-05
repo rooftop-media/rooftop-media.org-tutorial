@@ -26,7 +26,9 @@ page_route_input.addEventListener("keydown", event => {
 function create_page() {
   var page_title = document.getElementById('page_title').value;
   var page_route = document.getElementById('page_route').value;
-  var is_public = document.getElementById('is_public').value;
+  var is_public = document.getElementById('is_public').checked;
+
+  console.log(page_route)
   
   if (page_route.length < 2) {
     document.getElementById('error').innerHTML = 'Page route must be at least 2 characters..';

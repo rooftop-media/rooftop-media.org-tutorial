@@ -66,6 +66,8 @@ function server_request(req, res) {
 function respond_with_a_page(res, url) {
   if (pageURLkeys.includes(url)) {
     url = pageURLs[url];
+  } else {
+    return respond_with_a_dynamic_page(res, url);
   }
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     var content_page = "";
@@ -81,6 +83,22 @@ function respond_with_a_page(res, url) {
     res.write(rendered);
     res.end();
   });
+}
+
+function respond_with_a_dynamic_page(res, url) {
+  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });
+  let content_page = "";
+  if (page_data.length < 1) {
+    content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+  } else {
+    content_page = `<div class="px-3"><h2>${page_data[0].page_title}</h2></div>`
+  }
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+  var page_halves = main_page.split('<!--  Insert page content here!  -->');
+  content_page = page_halves[0] + content_page + page_halves[1];
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(content_page);
+  res.end();
 }
 
 function respond_with_asset(res, url, extname) {
@@ -105,7 +123,9 @@ function respond_with_asset(res, url, extname) {
 ////  SECTION 3: API.
 
 function api_GET_routes(url, res) {
-
+  if (url == '/api/all-pages') {
+    GET_all_pages(res);
+  }
 }
 
 function api_POST_routes(url, req, res) {
@@ -132,6 +152,13 @@ function api_POST_routes(url, req, res) {
       POST_create_page(req_data, res);
     }
   })
+}
+
+function GET_all_pages(res) {
+  let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(all_pages));
+  res.end();
 }
 
 function POST_register(new_user, res) {
@@ -322,7 +349,7 @@ function POST_create_page(new_page_data, res) {
     msg: '',
   }
   for (let i = 0; i < page_data.length; i++) {
-    if (page_data[i].route_name == new_page_data.username) {
+    if (page_data[i].page_route == new_page_data.page_route) {
       response.error = true;
       response.msg = 'Route name already taken.';
       break;
