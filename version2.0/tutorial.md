@@ -368,7 +368,7 @@ function respond_with_a_page(res, url) {
 }
 
 function respond_with_a_dynamic_page(res, url) {
-  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });
+  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
   let content_page = "";
   if (page_data.length < 1) {
     content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
@@ -390,6 +390,26 @@ For now, I've decided to leave it as two functions.
 
 <!-- This would be a good opportunity to factor out repeated code...
 But is it worth adding a new function? Could it even be named clearly? -->
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-8"> ☑️ Step 8:  ☞ Test the code! </h3>
+
+Restart the server.  
+Go to your browser and navigate to one of the `page_route`s you created.  
+You should see that page's title, as stored in the database, displayed.  
+
+URLs that are neither in the `pages` database, nor hardcoded, static pagess, should result in the 404 page.  
+
+<br/><br/><br/><br/>
+
+
+<h3 id="a-9"> ☑️ Step 9:  Creating <code>/all-pages</code> </h3>
+
+This page will allow us to view all pages created in our database. 
+
 
 <br/><br/><br/><br/>
 
