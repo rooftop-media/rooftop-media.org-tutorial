@@ -15,8 +15,7 @@
     },
     {
       "name": "Display Name",
-      "snakecase": "display_name",
-      "unique": true
+      "snakecase": "display_name"
     },
     {
       "name": "Email",

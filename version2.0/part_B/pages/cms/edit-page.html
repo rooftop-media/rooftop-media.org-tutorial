@@ -1,0 +1,81 @@
+<div class="px-3" id="dynamic-page">
+  <i>Loading page...</i>
+</div>
+
+<script>
+
+//  Page memory
+let page_route = _current_page.split('/edit/')[1];
+let page_buffer = [];
+let edit_el_index = -1;
+load_page_elements();
+
+//  Load all page elements from API
+function load_page_elements() {
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/get-page');
+  http.send(JSON.stringify({ page_route: page_route }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Creating page.");
+        console.log(response);
+        document.getElementById('dynamic-page').innerHTML = `<div id="new-el">
+          <button onclick="add_new_element()">+ add new element</button>
+        </div>`;
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+//  Add a new element, in "editable" state
+function add_new_element() {
+  console.log("whee")
+  page_buffer.push({ 
+    type: null, 
+    text: ""
+  })
+  edit_el_index = page_buffer.length -1;
+  render_buffer();
+}
+
+//  Render the buffer as editable elements
+function render_buffer() {
+  document.getElementById('dynamic-page').innerHTML = "";
+  for (var i = 0; i < page_buffer.length; i++) {
+    if (i == edit_el_index) {
+      document.getElementById('dynamic-page').innerHTML += `New element type: 
+      <select id="new-el-type" onchange="update_el(${i})">
+        <option value="p">p</option>
+        <option value="h1">h1</option>
+        <option value="img">img</option>
+        <option value="div">div</option>
+        <option value="a">a</option>
+        <option value="i">i</option>
+      </select>`;
+    } else {
+      document.getElementById('dynamic-page').innerHTML += `<div>
+        <input type="text" value="${page_buffer[i].text}" id="el-${i}"/>
+      </div>`
+    }
+  }
+  document.getElementById('dynamic-page').innerHTML += `<div id="new-el">
+    <button onclick="add_new_element()">+ add new element</button>
+  </div>`;
+}
+
+function update_el(index) {
+  page_buffer[index].type = document.getElementById('new-el-type').value;
+  edit_el_index = -1;
+  render_buffer();
+}
+
+function save_buffer() {
+
+}
+
+</script>

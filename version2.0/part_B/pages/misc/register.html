@@ -1,0 +1,104 @@
+<div class="px-3">
+  <h3>Register</h3>
+  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" tabindex="5" id="password"/></div>
+  <div>Confirm password: <input type="password" tabindex="6" id="confirm_password"/></div>
+  <p id="error"></p>
+  <button onclick="register()">Register</button>
+</div>
+
+<script>
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+//  Username -- lowercase alphanumeric and _ only
+const username_input = document.getElementById('username');
+const username_regex = /^[a-z0-9_]*$/;
+username_input.addEventListener("keydown", event => {
+  if (!username_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    event.preventDefault();
+    document.getElementById('error').innerHTML = "Username can only contain lowercase letters, numbers, and underscores.";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Email
+const email_input = document.getElementById('email');
+const email_regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+var email_val = email_input.value;
+email_input.addEventListener("input", event => {
+  email_val = email_input.value;
+  if (!email_regex.test(email_val) && !utility_keys.includes(event.keyCode)) {
+    document.getElementById('error').innerHTML = "Invalid email format";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Phone
+const phone_input = document.getElementById('phone');
+const phone_regex = /^[0-9\-]{0,12}$/;
+var phone_val = "";
+phone_input.addEventListener("keydown", event => {
+  phone_val = phone_input.value
+  if (!phone_regex.test(phone_val + event.key) && !utility_keys.includes(event.keyCode) || event.keyCode == 173) {
+    event.preventDefault();
+  } else if (event.keyCode != 8) {
+    if (phone_val.length == 3 || phone_val.length == 7) {
+      phone_input.value = phone_input.value + "-";
+    }
+  } else {
+    if (phone_val.length == 5 || phone_val.length == 9) {
+      phone_input.value = phone_input.value.slice(0,-1);
+    }
+  }
+});
+
+function register() {
+  var username = document.getElementById('username').value;
+  var display_name = document.getElementById('display_name').value;
+  var email = document.getElementById('email').value;
+  var phone = document.getElementById('phone').value;
+  var password = document.getElementById('password').value;
+  var confirm_password = document.getElementById('confirm_password').value;
+  
+  if (password != confirm_password) {
+    document.getElementById('error').innerHTML = 'Passwords must match.';
+    return;
+  } else if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
+    return;
+  } else if (password.length < 8) {
+    document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
+    return;
+  }
+
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/register');
+  http.send(JSON.stringify({
+    username: username,
+    display_name,
+    email,
+    phone,
+    password
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Logging you in.");
+        localStorage.setItem('session_id', response.session_id);
+        _session_id = response.session_id;
+        window.location.href = '/';
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+</script>
