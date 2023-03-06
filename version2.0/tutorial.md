@@ -519,10 +519,134 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 
 <h2 id="part-b" align="center">  Part B:  Page element editing </h2>
 
-In this section, we'll create a new dynamic route, `/edit/:page-route`.  
+In this section, we'll create a new dynamic route, `/edit/:page_route`.  
 On this page, users can edit a page's title, add elements to the page, and edit those element's properties. 
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="a-1">  ☑️ Step 1: Adding <code>/edit/:page_route</code> to <code>/server/server.js</code>  </h3>
+
+First, we'll edit `respond_with_a_page` to check for URLs starting with `/edit/`: 
+
+```js
+function respond_with_a_page(res, url) {
+  if (pageURLkeys.includes(url)) {
+    url = pageURLs[url];
+  } else if (url.substring(0, 6) == '/edit/') {
+    url = '/pages/cms/edit-page.html';
+  } else  {
+    return respond_with_a_dynamic_page(res, url);
+  }
+  fs.readFile( __dirname + '/..' + url, function(error, content) {
+    var content_page = "";
+    if (error) {
+      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+    } else {
+      content_page = content;
+    }
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+    var page_halves = main_page.split('<!--  Insert page content here!  -->');
+    var rendered = page_halves[0] + content_page + page_halves[1];
+    res.write(rendered);
+    res.end();
+  });
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-2">  ☑️ Step 2: Adding <code>POST_get_page</code> to <code>/server/server.js</code>  </h3>
+
+This route will return a page's details and content, given a page's route.  
+
+First, we'll add the API route:
+
+```javascript
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/login') {
+      POST_login(req_data, res);
+    } else if (url == '/api/logout') {
+      POST_logout(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    } else if (url == '/api/update-user') {
+      POST_update_user(req_data, res);
+    } else if (url == '/api/update-password') {
+      POST_update_password(req_data, res);
+    } else if (url == '/api/create-page') {
+      POST_create_page(req_data, res);
+    } else if (url == '/api/get-page') {
+      POST_get_page(req_data, res)
+    }
+  })
+}
+```
+
+Then, below `POST_create_page`, we'll write the function, `POST_get_page`:  
+
+```javascript
+function POST_get_page(route_data, res) {
+  let page_data = DataBase.table('pages').find({ page_route: route_data.page_route });
+  let response = {
+    error: false,
+    data: null
+  }
+  if (page_data.length < 1) {
+    response.error = true;
+  } else {
+    response.data =  page_data[0];
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-3">  ☑️ Step 3: Create <code>/pages/cms/edit-page.html</code>  </h3>
+
+This is another dynamic page. It will get a page's details via an API call to `POST_get_page`.  
+Then, it will load the page's content into editable input boxes.  
+
+A "draft" of the page's elements and their contents can then be edited, added or deleted.  
+Finally, pages can be "saved", updating the published page.  
+
+Create the file `/pages/cms/edit-page.html`, with the following code:  
+
+```html
+
+```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="a-4">  ☑️ Step 4: Adding <code>POST_update_page</code> to <code>/server/server.js</code>  </h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+
+
+
 
 
 
