@@ -302,6 +302,9 @@ html, body {
     padding-left: var(--spacer);
     padding-right: var(--spacer);
 }
+.p-3 {
+    padding: var(--spacer);
+}
 ```
 
 Then, create `/pages/index.js`, and add this:
