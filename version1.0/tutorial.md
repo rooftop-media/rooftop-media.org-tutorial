@@ -252,6 +252,7 @@ First, create `/pages/index.css`, and add this:
 html, body {
     font-family: CrimsonText;
     margin: 0;
+    min-height: 100vh;
 }
 
 :root {
@@ -631,6 +632,7 @@ We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
 html, body {
     font-family: CrimsonText;
     margin: 0;
+    min-height: 100vh;
 }
 
 :root {
