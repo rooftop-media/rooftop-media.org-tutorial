@@ -23,7 +23,7 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - /create-page, /all-pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-a) | 0 min. | 12 |
+| [Part A - /create-page, /all-pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-a) | 20 min. | 13 |
 | [Part B - Page element editing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-b) | 0 min. | 0 |
 | [Part C - Page formatting](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-c) | 0 min. | 0 |
 | [Part D - Image & file upload](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-d) | 0 min. | 0 |
@@ -693,7 +693,7 @@ Finally, pages can be "saved", updating the published page.
 Create the file `/pages/cms/edit-page.html`, with the following code:  
 
 ```html
-<<div class="p-3" id="dynamic-page">
+<div class="p-3" id="dynamic-page">
   <i>Loading page...</i>
 </div>
 
@@ -727,7 +727,7 @@ function load_page_elements() {
   }
 }
 
-//  Add a new element, in "editable" state
+//  Add a new element
 function add_new_element() {
   page_buffer.push({ 
     type: 'p', 
@@ -788,7 +788,7 @@ function update_el(index) {
   render_buffer();
 }
 
-//  Fires when "edit type" is clicked in the context menu1
+//  Fires when "edit type" is clicked in the context menu
 function edit_el(index) {
   edit_el_index = index;
   render_buffer();
