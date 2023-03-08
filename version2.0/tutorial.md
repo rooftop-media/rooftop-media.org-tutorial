@@ -719,6 +719,7 @@ function load_page_elements() {
         console.log("Response recieved! Creating page.");
         console.log(response);
         page_data = response.data;
+        page_buffer = page_data.content;
         render_buffer();
       } else {
         document.getElementById('error').innerHTML = response.msg;
@@ -829,10 +830,9 @@ function save_buffer() {
   console.log("saving...")
   const http = new XMLHttpRequest();
   http.open('POST', '/api/update-page');
-  let string_page_buffer = page_buffer; //JSON.stringify(page_buffer);
   http.send(JSON.stringify({ 
     id: page_data.id,
-    content: string_page_buffer
+    content: page_buffer
   }));
   http.onreadystatechange = (e) => {
     let response;      
