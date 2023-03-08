@@ -135,7 +135,7 @@ Add the file `/server/database/table_columns/pages.json`:
 {
   "name": "Pages",
   "snakecase": "pages",
-  "max_id": 0,
+  "max_id": 2,
   "columns": [
     {
       "name": "Id",
@@ -154,6 +154,10 @@ Add the file `/server/database/table_columns/pages.json`:
     {
       "name": "Is Public?",
       "snakecase": "is_public"
+    },
+    {
+      "name": "Content",
+      "snakecase": "content"
     }
   ]
 }
@@ -446,11 +450,7 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
     <tr>
       <th>Page title</th>
       <th>Page route</th>
-    </tr>
-    <tr>
-      <td>Alfreds Futterkiste</td>
-      <td>Maria Anders</td>
-      <td>Germany</td>
+      <th>Edit link</th>
     </tr>
   </table>
 </div>
@@ -476,6 +476,7 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
           pageTable.innerHTML += `<tr>
             <td>${response[i].page_title}</td>
             <td><a href="/${response[i].page_route}">/${response[i].page_route}</a></td>
+            <td><a href="/edit/${response[i].page_route}">Edit</a></td>
           </tr>`;
         }
       }
@@ -526,7 +527,7 @@ On this page, users can edit a page's title, add elements to the page, and edit 
 
 
 
-<h3 id="a-1">  ☑️ Step 1: Adding <code>/edit/:page_route</code> to <code>/server/server.js</code>  </h3>
+<h3 id="b-1">  ☑️ Step 1: Adding <code>/edit/:page_route</code> to <code>/server/server.js</code>  </h3>
 
 First, we'll edit `respond_with_a_page` to check for URLs starting with `/edit/`: 
 
@@ -560,7 +561,7 @@ function respond_with_a_page(res, url) {
 
 
 
-<h3 id="a-2">  ☑️ Step 2: Adding <code>POST_get_page</code> to <code>/server/server.js</code>  </h3>
+<h3 id="b-2">  ☑️ Step 2: Adding <code>POST_get_page</code> to <code>/server/server.js</code>  </h3>
 
 This route will return a page's details and content, given a page's route.  
 
@@ -607,6 +608,7 @@ function POST_get_page(route_data, res) {
   }
   if (page_data.length < 1) {
     response.error = true;
+    response.msg = `The page ${route_data.page_route} was not found.`;
   } else {
     response.data =  page_data[0];
   }
@@ -620,7 +622,7 @@ function POST_get_page(route_data, res) {
 
 
 
-<h3 id="a-3">  ☑️ Step 3: Create <code>/pages/cms/edit-page.html</code>  </h3>
+<h3 id="b-3">  ☑️ Step 3: Create <code>/pages/cms/edit-page.html</code>  </h3>
 
 This is another dynamic page. It will get a page's details via an API call to `POST_get_page`.  
 Then, it will load the page's content into editable input boxes.  
@@ -631,18 +633,282 @@ Finally, pages can be "saved", updating the published page.
 Create the file `/pages/cms/edit-page.html`, with the following code:  
 
 ```html
+<<div class="p-3" id="dynamic-page">
+  <i>Loading page...</i>
+</div>
 
+<script>
+
+//  Page memory
+let page_route = _current_page.split('/edit/')[1];
+let page_buffer = [];
+let page_data = {};
+let edit_el_index = -1;
+load_page_elements();
+
+//  Load all page elements from API
+function load_page_elements() {
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/get-page');
+  http.send(JSON.stringify({ page_route: page_route }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Creating page.");
+        console.log(response);
+        page_data = response.data;
+        render_buffer();
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+//  Add a new element, in "editable" state
+function add_new_element() {
+  page_buffer.push({ 
+    type: 'p', 
+    text: ""
+  })
+  render_buffer();
+}
+
+//  Render the buffer as editable elements
+function render_buffer() {
+  document.getElementById('dynamic-page').innerHTML = "";
+  for (var i = 0; i < page_buffer.length; i++) {
+    if (i == edit_el_index) {
+      document.getElementById('dynamic-page').innerHTML += `
+      <div id="element-type-select">
+        Element type: 
+        <select id="new-el-type" onchange="update_el(${i})">
+          <option value="p">p</option>
+          <option value="h1">h1</option>
+          <option value="img">img</option>
+          <option value="div">div</option>
+          <option value="a">a</option>
+          <option value="i">i</option>
+        </select>
+      </div>`;
+    } else {
+      document.getElementById('dynamic-page').innerHTML += `<div>
+        <input 
+        type="text" 
+        value="${page_buffer[i].text}" 
+        id="el-${i}" 
+        class="${page_buffer[i].type}"
+        oninput="update_text(${i})"
+        oncontextmenu="context_menu(${i})"
+      />
+      </div>`
+    }
+  }
+  document.getElementById('dynamic-page').innerHTML += `<div id="new-el">
+    <button onclick="add_new_element()">+ add new element</button>
+  </div>`;
+  document.getElementById('dynamic-page').innerHTML += `<br/>`;
+  document.getElementById('dynamic-page').innerHTML += `<div id="save">
+    <button onclick="save_buffer()">Save page changes</button>
+  </div>`;
+  document.getElementById('dynamic-page').innerHTML += `<div id="error"></div>`;
+}
+
+//  Fires when text of a given input is changed.
+function update_text(index) {
+  page_buffer[index].text = document.getElementById(`el-${index}`).value;
+}
+
+//  Fires when "type" of a given input is selected
+function update_el(index) {
+  page_buffer[index].type = document.getElementById('new-el-type').value;
+  edit_el_index = -1;
+  render_buffer();
+}
+
+//  Fires when "edit type" is clicked in the context menu1
+function edit_el(index) {
+  edit_el_index = index;
+  render_buffer();
+  let ctx_menu = document.getElementById("ctx_menu");
+  ctx_menu.remove();
+}
+
+//  Fires when the user right clicks on an input
+function context_menu(index) {
+  document.getElementById("ctx_menu") != null ? document.getElementById("ctx_menu").remove() : null;
+  let e = window.event;
+  e.preventDefault();
+  
+  document.body.innerHTML += `<div id="ctx_menu" style="left: ${e.clientX}px; top: ${e.clientY}px">
+    <div class="ctx_choice" onclick="edit_el(${index})">Edit type</div>
+    <div class="ctx_choice" onclick="document.getElementById('ctx_menu').remove()">Close</div>
+  </div>`;
+}
+
+//  Fires whenever the user clicks on the page, to remove the custom ctx menu
+document.body.addEventListener('mousedown', function(ev) {
+  //  Don't remove ctx menu on right click
+  if (ev.which == 3) { 
+    return;
+  }
+  //  Don't remove ctx menu when clicking the ctx menu (let the ctx menu handle that)
+  if (ev.target.id == 'ctx_menu' || ev.target.className == 'ctx_choice' ) {
+    return;
+  }
+  let ctx_menu = document.getElementById("ctx_menu");
+  if (ctx_menu != null) {
+    ctx_menu.remove();
+  }
+}, true);
+
+//  Fires when "Save page changes" is clicked.
+function save_buffer() {
+  console.log("saving...")
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/update-page');
+  let string_page_buffer = page_buffer; //JSON.stringify(page_buffer);
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    content: string_page_buffer
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Page updated.");
+        console.log(response);
+        render_buffer();
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+</script>
+
+<style> 
+  #dynamic-page, body {
+    position: relative;
+  }
+  input {
+    font-family: CrimsonText;
+  }
+  input.h1 {
+    font-size: 38px;
+  }
+
+  #ctx_menu {
+    position: absolute;
+    background: #efefef;
+    border: solid 1px #bfbfbf;
+    border-radius: 2px;
+    width: 100px;
+    min-height: 20px;
+  }
+  .ctx_choice {
+    padding: 5px;
+    cursor: pointer;
+  }
+  .ctx_choice:hover {
+    background: #dfdfdf;
+  }
+  #element-type-select {
+    border: solid 1px gray;
+    padding: 5px;
+    display: inline-block;
+  }
+</style>
 ```
 
 <br/><br/><br/><br/>
 
 
-<h3 id="a-4">  ☑️ Step 4: Adding <code>POST_update_page</code> to <code>/server/server.js</code>  </h3>
+<h3 id="b-4">  ☑️ Step 4: Adding <code>POST_update_page</code> to <code>/server/server.js</code>  </h3>
 
+Another API route, here we go.  First, update `api_POST_routes`...
+
+```javascript
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/login') {
+      POST_login(req_data, res);
+    } else if (url == '/api/logout') {
+      POST_logout(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    } else if (url == '/api/update-user') {
+      POST_update_user(req_data, res);
+    } else if (url == '/api/update-password') {
+      POST_update_password(req_data, res);
+    } else if (url == '/api/create-page') {
+      POST_create_page(req_data, res);
+    } else if (url == '/api/get-page') {
+      POST_get_page(req_data, res);
+    } else if (url == '/api/update-page') {
+      POST_update_page(req_data, res);
+    }
+  })
+}
+```
+
+Then add the new function, `POST_update_page`:  
+
+```javascript
+function POST_update_page(page_update, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  
+  let response = {
+    error: false,
+    msg: '',
+    updated_page: ''
+  }
+
+  //  If the update is valid, save it.
+  if (!response.error) {
+    response.updated_page = DataBase.table('pages').update(page_update.id, page_update);
+    if (response.updated_page == null) {
+      response.error = true;
+      response.msg = `No page found for ${page_update.id}.`
+    }
+  }
+
+  res.write(JSON.stringify(response));
+  res.end();
+}
+```
 
 <br/><br/><br/><br/>
 
 
+<h3 id="b-5"> ☑️ Step 5:   ☞ Test the code!  </h3>
+
+Restart the server and go to `localhost:8080/edit/` followed by a dynamic page route name.  
+If it's a saved page rouute, you should see two buttons: One to add new elements, another to save the page.  
+
+Add a few elements to the page, with some text.  Right click on the elements to change their "type".  
+
+Then, save the page, and ensure the content saves in the database.  
+Refresh the page -- the saved changes should reload.
+
+<br/>
+
+Finally, go to `localhost:8080/edit/not-a-route` to display an error message.
+
+<br/><br/><br/><br/>
 
 
 
