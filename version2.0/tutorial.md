@@ -259,13 +259,30 @@ var pageURLkeys = Object.keys(pageURLs);
 
 <h3 id="a-5">  ☑️ Step 5: Using <code>/pages/index.js</code> to reroute and update the header </h3>
 
-First, we'll add two more functions, right below `current_user_loaded`:  
+In this step, we'll do a few things:
+ - If the user is logged in on `/login` or `/register`, redirect them to the home page. 
+ - If the user _isn't_ logged in on a dynamic page management page, redirect them to the home page. 
+   - This will include any route that starts with `/edit/...`, which we'll code in part B. 
+ - We'll also change the header for logged in users, to a single button that says the user's name. 
+   - When the user clicks on this "user button", a drop down menu will display. 
+
+Open up `/pages/index.js`.  First, we'll add another variable in the memory section, `_show_user_menu`:
+
+```javascript
+////  SECTION 1: Main website memory.
+var _current_page  = window.location.pathname;
+var _session_id = localStorage.getItem('session_id');
+var _current_user = null;
+var _show_user_menu = false;
+```
+
+Then, we'll add two more functions, right below `current_user_loaded`:  
 
 ```javascript
 // Reroute the user if their log in status doesn't match the page
 function reroute_if_needed() {
   if (_current_user == null) {
-    if (_current_page == '/create-page' || _current_page == '/all-pages') {
+    if (_current_page == '/create-page' || _current_page == '/all-pages' || _current_page.split('/')[1] == 'edit') {
       window.location.href = '/';
     }
   } else {
@@ -277,11 +294,19 @@ function reroute_if_needed() {
 
 // Update the "user buttons" in the header
 function update_header() {
+  let userButtonsEl = document.getElementById('user-buttons');
   if (_current_user != null) {
-    document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
-    document.getElementById('user-buttons').innerHTML += `<a href="/create-page">New page</a>`;
-    document.getElementById('user-buttons').innerHTML += `<a href="/all-pages">All pages</a>`;
-    document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+    userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">
+      ${_current_user.display_name}
+    </button>`;
+    if (_show_user_menu) {
+      let userMenuHTML = `<div id="user-menu">`;
+      userMenuHTML += `<a href="/profile">Your profile</a>`;
+      userMenuHTML += `<a href="/create-page">New page</a>`;
+      userMenuHTML += `<a href="/all-pages">All pages</a>`;
+      userMenuHTML += `<button onclick="logout()">Log out</button>`;
+      userButtonsEl.innerHTML += userMenuHTML + `</div>`;
+    }
   }
 }
 
@@ -325,7 +350,42 @@ window.addEventListener('load', (event) => {
 
 
 
-<h3 id="a-6"> ☑️ Step 6:  ☞ Test the code! </h3>
+<h3 id="a-6">  ☑️ Step 6: Edit <code>/pages/index.css</code> to style the header </h3>
+
+First, we'll edit this section: 
+
+```css
+#user-buttons {
+    position: relative;
+    display: flex;
+}
+```
+
+Then, we'll add this, right below the #user-buttons section:
+
+```css
+#user-menu {
+    position:        absolute;
+    top:             30px;
+    right:           0px;
+    min-width:       120px;
+    border:          solid 1px #bbb;
+    background:      #f6f6f6;
+    overflow-x:      hidden;
+    border-radius:   4px;
+}
+#user-menu a, #user-menu button {
+    border:          none;
+    width:           100%;
+    margin:          0px;
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-7"> ☑️ Step 7:  ☞ Test the code! </h3>
 
 Restart the server!  
 
@@ -342,7 +402,7 @@ Go back to `/create-page` to try creating the same page route.  You should get a
 
 
 
-<h3 id="a-7">  ☑️ Step 7: Creating dynamic pages in <code>server/server.js</code> </h3>
+<h3 id="a-8">  ☑️ Step 8: Creating dynamic pages in <code>server/server.js</code> </h3>
 
 First, we're going to edit the function `respond_with_a_page`.  
 Then, add one more function right below it, `respond_with_a_dynamic_page`.  
@@ -399,7 +459,7 @@ But is it worth adding a new function? Could it even be named clearly? -->
 
 
 
-<h3 id="a-8"> ☑️ Step 8:  ☞ Test the code! </h3>
+<h3 id="a-9"> ☑️ Step 9:  ☞ Test the code! </h3>
 
 Restart the server.  
 Go to your browser and navigate to one of the `page_route`s you created.  
@@ -411,7 +471,7 @@ URLs that are neither in the `pages` database, nor hardcoded, static pagess, sho
 
 
 
-<h3 id="a-9"> ☑️ Step 9:  Making an API route for getting all pages, in <code>server.js</code> </h3>
+<h3 id="a-10"> ☑️ Step 10:  Making an API route for getting all pages, in <code>server.js</code> </h3>
 
 Finally, we'll add an API route using the GET protocol!  
 First, edit `api_GET_routes`:
@@ -438,7 +498,7 @@ function GET_all_pages(res) {
 
 
 
-<h3 id="a-10"> ☑️ Step 10:  Creating <code>/all-pages</code> </h3>
+<h3 id="a-11"> ☑️ Step 11:  Creating <code>/all-pages</code> </h3>
 
 This page will allow us to view all pages created in our database.  
 Create a new page, `/pages/cms/all-pages.html`, and add this:
@@ -500,7 +560,7 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
 <br/><br/><br/><br/>
 
 
-<h3 id="a-11"> ☑️ Step 11:   ☞ Test the code!  </h3>
+<h3 id="a-12"> ☑️ Step 12:   ☞ Test the code!  </h3>
 
 Restart the server, and go to `/all-pages`.  
 You should see a table of all the created pages! Wonderful.   
@@ -508,7 +568,7 @@ You should see a table of all the created pages! Wonderful.
 <br/><br/><br/><br/>
 
 
-<h3 id="a-12">☑️ Step 12. ❖ Part A review. </h3>
+<h3 id="a-13">☑️ Step 13. ❖ Part A review. </h3>
 
 The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_A).
 
