@@ -1766,7 +1766,7 @@ In `/server/database/database.js`, add this after our `insert` function:
       if (this.rows[i].id == id) {
         let update_keys = Object.keys(update);
         for (let j = 0; j < update_keys.length; j++) {
-          if (update_keys[i] != 'id') {
+          if (update_keys[j] != 'id') {
             this.rows[i][update_keys[j]] = update[update_keys[j]];
           }
         }
