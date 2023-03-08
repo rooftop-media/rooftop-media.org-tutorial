@@ -35,6 +35,7 @@ html, body {
 }
 
 #user-buttons {
+    position: relative;
     display: flex;
 }
 #user-buttons a, #user-buttons button {
@@ -55,6 +56,22 @@ html, body {
   background:      #eaeaea;
 }
 
+#user-menu {
+    position:        absolute;
+    top:             30px;
+    right:           0px;
+    min-width:       120px;
+    border:          solid 1px #bbb;
+    background:      #f6f6f6;
+    overflow-x:      hidden;
+    border-radius:   4px;
+}
+#user-menu a, #user-menu button {
+    border:          none;
+    width:           100%;
+    margin:          0px;
+}
+
 /*  Global styles  */
 .px-1 {
     padding-left: calc(var(--spacer) * 0.25);
@@ -67,4 +84,7 @@ html, body {
 .px-3 {
     padding-left: var(--spacer);
     padding-right: var(--spacer);
+}
+.p-3 {
+    padding: var(--spacer);
 }

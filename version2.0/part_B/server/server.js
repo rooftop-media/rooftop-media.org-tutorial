@@ -197,7 +197,7 @@ function POST_register(new_user, res) {
       break;
     }
   }
-  //  If the data is valid, encrypt the pass, and save it. 
+  //  If it's not a duplicate, encrypt the pass, and save it. 
   if (!response.error) {
     new_user.salt = crypto.randomBytes(16).toString('hex');
     new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
@@ -396,7 +396,7 @@ function POST_get_page(route_data, res) {
 
 function POST_update_page(page_update, res) {
   res.writeHead(200, {'Content-Type': 'text/html'});
-
+  
   let response = {
     error: false,
     msg: '',

@@ -31,23 +31,6 @@ class Table {
   }
 
   insert(row_data) {
-    //  Check if the new data has any un-unique rows that must be unique, or is missing required rows
-    for (let i = 0; i < this.columns.columns.length; i++) {
-      let col = this.columns.columns[i];
-      if (col.required && typeof row_data[col.snakecase] == 'string' && row_data[col.snakecase].length == 0) {
-        return { error: true, msg: `The column ${col.snakecase} cannot be an empty string.`};
-      } else if (col.required && (row_data[col.snakecase] === undefined || row_data[col.snakecase] === null)) {
-        return { error: true, msg: `The column ${col.snakecase} is required.`};
-      }
-      if (col.unique && row_data[col.snakecase] != "") {
-        for (var j = 0; j < this.rows.length; j++) {
-          if (this.rows[j][col.snakecase] == row_data[col.snakecase]) {
-            return { error: true, msg: `The column ${col.snakecase} must be unique, ${row_data[col.snakecase]} is taken.`};
-          }
-        }
-      }
-    }
-    //  Insert the row data.
     row_data.id = this.columns.max_id;
     this.columns.max_id++;
     this.rows.push(row_data);

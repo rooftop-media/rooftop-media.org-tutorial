@@ -1,7 +1,7 @@
 {
   "name": "Pages",
   "snakecase": "pages",
-  "max_id": 2,
+  "max_id": 3,
   "columns": [
     {
       "name": "Id",
@@ -20,6 +20,10 @@
     {
       "name": "Is Public?",
       "snakecase": "is_public"
+    },
+    {
+      "name": "Content",
+      "snakecase": "content"
     }
   ]
 }

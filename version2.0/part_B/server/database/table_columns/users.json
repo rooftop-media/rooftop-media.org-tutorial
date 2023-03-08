@@ -6,14 +6,12 @@
     {
       "name": "Id",
       "snakecase": "id",
-      "unique": true,
-      "required": true
+      "unique": true
     },
     {
       "name": "Username",
       "snakecase": "username",
-      "unique": true,
-      "required": true
+      "unique": true
     },
     {
       "name": "Display Name",
@@ -32,13 +30,11 @@
     },
     {
       "name": "Password hash",
-      "snakecase": "password",
-      "required": true
+      "snakecase": "password"
     },
     {
       "name": "Password salt",
-      "snakecase": "salt",
-      "required": true
+      "snakecase": "salt"
     }
   ]
 }

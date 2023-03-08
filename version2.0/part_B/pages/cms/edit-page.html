@@ -21,18 +21,19 @@ function load_page_elements() {
     if (http.readyState == 4 && http.status == 200) {
       response = JSON.parse(http.responseText);
       if (!response.error) {
-        console.log('Page loaded');
+        console.log("Response recieved! Creating page.");
+        console.log(response);
         page_data = response.data;
         page_buffer = page_data.content;
         render_buffer();
       } else {
-        document.getElementById('dynamic-page').innerHTML = `The page route "<code>/${page_route}</code>" was not found.`;
+        document.getElementById('error').innerHTML = response.msg;
       }
     }
   }
 }
 
-//  Add a new element, in "editable" state
+//  Add a new element
 function add_new_element() {
   page_buffer.push({ 
     type: 'p', 
@@ -93,7 +94,7 @@ function update_el(index) {
   render_buffer();
 }
 
-//  Fires when "edit type" is clicked in the context menu1
+//  Fires when "edit type" is clicked in the context menu
 function edit_el(index) {
   edit_el_index = index;
   render_buffer();
@@ -134,10 +135,9 @@ function save_buffer() {
   console.log("saving...")
   const http = new XMLHttpRequest();
   http.open('POST', '/api/update-page');
-  let string_page_buffer = page_buffer; //JSON.stringify(page_buffer);
   http.send(JSON.stringify({ 
     id: page_data.id,
-    content: string_page_buffer
+    content: page_buffer
   }));
   http.onreadystatechange = (e) => {
     let response;      

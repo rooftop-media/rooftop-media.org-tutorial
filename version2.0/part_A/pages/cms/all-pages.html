@@ -4,11 +4,7 @@
     <tr>
       <th>Page title</th>
       <th>Page route</th>
-    </tr>
-    <tr>
-      <td>Alfreds Futterkiste</td>
-      <td>Maria Anders</td>
-      <td>Germany</td>
+      <th>Edit link</th>
     </tr>
   </table>
 </div>
@@ -34,6 +30,7 @@
           pageTable.innerHTML += `<tr>
             <td>${response[i].page_title}</td>
             <td><a href="/${response[i].page_route}">/${response[i].page_route}</a></td>
+            <td><a href="/edit/${response[i].page_route}">Edit</a></td>
           </tr>`;
         }
       }
