@@ -92,8 +92,15 @@ function respond_with_a_dynamic_page(res, url) {
   let content_page = "";
   if (page_data.length < 1) {
     content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+  } else if (Array.isArray(page_data[0].content) && page_data[0].content.length > 0) {
+    for (let i = 0; i < page_data[0].content.length; i++) {
+      let el = page_data[0].content[i];
+      content_page += `<${el.type}>${el.text}</${el.type}>`
+    }
+    content_page = `<div class="px-3">${content_page}</div>`;
   } else {
-    content_page = `<div class="px-3"><h2>${page_data[0].page_title}</h2></div>`
+    content_page = `<div class="px-3"><h2>${page_data[0].page_title}</h2>`
+    content_page += `<p>This page is still empty.</p></div>`;
   }
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
   var page_halves = main_page.split('<!--  Insert page content here!  -->');
@@ -153,7 +160,9 @@ function api_POST_routes(url, req, res) {
     } else if (url == '/api/create-page') {
       POST_create_page(req_data, res);
     } else if (url == '/api/get-page') {
-      POST_get_page(req_data, res)
+      POST_get_page(req_data, res);
+    } else if (url == '/api/update-page') {
+      POST_update_page(req_data, res);
     }
   })
 }
@@ -376,10 +385,33 @@ function POST_get_page(route_data, res) {
   }
   if (page_data.length < 1) {
     response.error = true;
+    response.msg = `The page ${route_data.page_route} was not found.`;
   } else {
     response.data =  page_data[0];
   }
   res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
+
+function POST_update_page(page_update, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+
+  let response = {
+    error: false,
+    msg: '',
+    updated_page: ''
+  }
+
+  //  If the update is valid, save it.
+  if (!response.error) {
+    response.updated_page = DataBase.table('pages').update(page_update.id, page_update);
+    if (response.updated_page == null) {
+      response.error = true;
+      response.msg = `No page found for ${page_update.id}.`
+    }
+  }
+
   res.write(JSON.stringify(response));
   res.end();
 }

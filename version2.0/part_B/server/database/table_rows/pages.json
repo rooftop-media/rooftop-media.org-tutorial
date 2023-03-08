@@ -4,7 +4,17 @@
     "page_route": "my-blog",
     "is_public": "on",
     "created_by": 2,
-    "id": 0
+    "id": 0,
+    "content": [
+      {
+        "type": "h1",
+        "text": "Hello world!"
+      },
+      {
+        "type": "p",
+        "text": "hi"
+      }
+    ]
   },
   {
     "page_title": "My Blog 2",

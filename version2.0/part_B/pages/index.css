@@ -6,6 +6,7 @@
 html, body {
     font-family: CrimsonText;
     margin: 0;
+    min-height: 100vh;
 }
 
 :root {
@@ -67,4 +68,7 @@ html, body {
 .px-3 {
     padding-left: var(--spacer);
     padding-right: var(--spacer);
+}
+.p-3 {
+    padding: var(--spacer);
 }

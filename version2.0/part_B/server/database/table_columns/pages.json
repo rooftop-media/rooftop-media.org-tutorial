@@ -20,6 +20,10 @@
     {
       "name": "Is Public?",
       "snakecase": "is_public"
+    },
+    {
+      "name": "Content",
+      "snakecase": "content"
     }
   ]
 }
