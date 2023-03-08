@@ -919,11 +919,44 @@ Now that we can add elements to pages, we need to make sure those pages get rend
 In `server.js`, change `respond_with_a_dynamic_page` to this:
 
 ```javascript
-
+function respond_with_a_dynamic_page(res, url) {
+  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });
+  let content_page = "";
+  if (page_data.length < 1) {
+    content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+  } else if (Array.isArray(page_data[0].content) && page_data[0].content.length > 0) {
+    for (let i = 0; i < page_data[0].content.length; i++) {
+      let el = page_data[0].content[i];
+      content_page += `<${el.type}>${el.text}</${el.type}>`
+    }
+    content_page = `<div class="px-3">${content_page}</div>`;
+  } else {
+    content_page = `<div class="px-3"><h2>${page_data[0].page_title}</h2>`
+    content_page += `<p>This page is still empty.</p></div>`;
+  }
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+  var page_halves = main_page.split('<!--  Insert page content here!  -->');
+  content_page = page_halves[0] + content_page + page_halves[1];
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(content_page);
+  res.end();
+}
 ```
 
 <br/><br/><br/><br/>
 
+
+
+<h3 id="b-7"> ☑️ Step 7:   ☞ Test the code!  </h3>
+
+Refresh the server.  
+Open a dynamic page route that has content added.  The page should display!  
+
+Open a dynamic page route that doesn't have content added -- the page title, and a message about no content should display.  
+
+Open a URL that doesn't have a dynamic page.  You should get the 404 page.  
+
+<br/><br/><br/><br/>
 
 
 
