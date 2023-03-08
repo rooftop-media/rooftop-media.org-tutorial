@@ -912,6 +912,20 @@ Finally, go to `localhost:8080/edit/not-a-route` to display an error message.
 
 
 
+<h3 id="b-6">  ☑️ Step 6: Updating <code>respond_with_a_dynamic_page</code> in <code>/server/server.js</code>  </h3>
+
+Now that we can add elements to pages, we need to make sure those pages get rendered correctly. 
+
+In `server.js`, change `respond_with_a_dynamic_page` to this:
+
+```javascript
+
+```
+
+<br/><br/><br/><br/>
+
+
+
 
 
 
