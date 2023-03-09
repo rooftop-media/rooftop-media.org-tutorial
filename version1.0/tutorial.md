@@ -2204,15 +2204,22 @@ The complete code for Part D is available [here](https://github.com/rooftop-medi
 <br/><br/><br/><br/>
 
 
-<!--
+
 <h2 id="part-e" align="center">  Part E :  Mobile Design </h2>
 
 In this part, we'll edit our website to make sure it looks good on phone browsers.  
 
-Changes will include:
- - A "hamburger" menu for the login and logout buttons
- - A smaller logo for smaller screens
+We'll do this by [testing the website on a phone](https://prowe214.medium.com/tip-how-to-view-localhost-web-apps-on-your-phone-ad6b2c883a7c). 
 
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-?"> ☑️ Step ?. ❖ Part E review. </h3>
+
+The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_E).
+
+<br/><br/><br/><br/>
 <br/><br/><br/><br/>
 
 
