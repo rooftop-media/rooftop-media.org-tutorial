@@ -1020,6 +1020,26 @@ Open a URL that doesn't have a dynamic page.  You should get the 404 page.
 
 
 
+<h3 id="b-8">☑️ Step 8. ❖ Part B review. </h3>
+
+The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_B).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+<h2 id="part-c" align="center">  Part C:  Page Formatting </h2>
+
+In this section, we'll add page formatting abilities to our page editor.
+This includes:
+ - Nested elements, like `a` tags in `p` tags in `div` tags in `div` tags.
+ - Element css property editing, like text color, backgrounds, etc.
+
+
+<br/><br/><br/><br/>
+
+
 
 
 
