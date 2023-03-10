@@ -34,5 +34,14 @@
     "password": "f97f4deade4b2a72e5f45c6e12419bc14ef8f4d2f47abed8a8bd63c6389272f7e8a056ffce87724cc9d73cc9c1b37ab703a888aa979b9b2b29417bda9f8fe5de",
     "salt": "19b35389acfab9dac1a06712b9157a6e",
     "id": 3
+  },
+  {
+    "username": "mobile",
+    "display_name": "Mobile",
+    "email": "j@m.org",
+    "phone": "456-456-5555",
+    "password": "c2119292a9b615d3a57060a812731271da5402b7558bc10e83d5bd913aa22bf4370342bc51bdee867232e539ee052a48f703fe9d1b0885369283dc4d487f78b0",
+    "salt": "62a8cf6047fc58ca6b640df828eee7e9",
+    "id": 4
   }
 ]

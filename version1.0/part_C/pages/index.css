@@ -71,3 +71,8 @@ html, body {
 .p-3 {
     padding: var(--spacer);
 }
+
+.center-column {
+    max-width: 800px;
+    margin: 0 auto;
+}
