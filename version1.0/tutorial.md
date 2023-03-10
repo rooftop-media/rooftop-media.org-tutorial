@@ -228,13 +228,15 @@ In `/rooftop-media.org/`, create a folder called `/assets/`, and add the followi
    - `/site.webmanifest`
  - [`/fonts`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/fonts)
    - `/CrimsonText-Regular.ttf`
+ - [`/landing`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/landing)
+   - `/comic.svg`
+   - `/thumb1.svg`
+   - `/thumb2.svg`
+   - `/thumb3.svg`
  - [`/logo.png`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/logo.png)
- - [`/landing_comic.svg`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/landing_comic.svg)
- - [`/landing_thumb1.svg`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/landing_thumb1.svg)
- - [`/landing_thumb2.svg`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/landing_thumb2.svg)
- - [`/landing_thumb3.svg`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/landing_thumb3.svg)
 
-I made the logo in a vector image editor (Affinity Designer).  
+
+I made the logo and images for the landing page in a vector image editor (Affinity Designer).  
 I generated the favicons by uploading the logo to a [favicon generator](https://favicon.io/) website.  
 I downloaded the font from [Google Fonts](https://fonts.google.com/specimen/Crimson+Text/about) -- after checking the license to make sure I could use it!
 
