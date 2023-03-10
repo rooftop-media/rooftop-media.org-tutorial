@@ -2209,13 +2209,21 @@ The complete code for Part D is available [here](https://github.com/rooftop-medi
 
 In this part, we'll edit our website to make sure it looks good on phone browsers.  
 
-We'll do this by [testing the website on a phone](https://prowe214.medium.com/tip-how-to-view-localhost-web-apps-on-your-phone-ad6b2c883a7c). 
+We'll do this by [testing the website on a phone](https://prowe214.medium.com/tip-how-to-view-localhost-web-apps-on-your-phone-ad6b2c883a7c).  
+We'll also add a dark mode in this part.  
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="d-?"> ☑️ Step ?. ❖ Part E review. </h3>
+<h3 id="e-1"> ☑️ Step 1.  ☞  Test the code -- on your phone!! 📲 </h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-?"> ☑️ Step ?. ❖ Part E review. </h3>
 
 The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_E).
 
@@ -2224,7 +2232,6 @@ The complete code for Part E is available [here](https://github.com/rooftop-medi
 
 
 
-<h3 id="e-1"> ☑️ Step 1.   </h3>-->
 
 
 
