@@ -2210,7 +2210,9 @@ The complete code for Part D is available [here](https://github.com/rooftop-medi
 In this part, we'll edit our website to make sure it looks good on phone browsers.  
 
 We'll do this by [testing the website on a phone](https://prowe214.medium.com/tip-how-to-view-localhost-web-apps-on-your-phone-ad6b2c883a7c).  
-We'll also add a dark mode in this part.  
+We'll also add a dark mode in this part, and adding some accessibility tools.  
+
+We want our website to be compliant with standard accessibility requirements, including [ADA](https://www.ada.gov/resources/web-guidance/) and [WCAG](https://www.w3.org/WAI/standards-guidelines/wcag/). 
 
 <br/><br/><br/><br/>
 
