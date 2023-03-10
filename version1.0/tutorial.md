@@ -229,6 +229,10 @@ In `/rooftop-media.org/`, create a folder called `/assets/`, and add the followi
  - [`/fonts`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/fonts)
    - `/CrimsonText-Regular.ttf`
  - [`/logo.png`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/logo.png)
+ - [`/landing_comic.svg`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/landing_comic.svg)
+ - [`/landing_thumb1.svg`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/landing_thumb1.svg)
+ - [`/landing_thumb2.svg`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/landing_thumb2.svg)
+ - [`/landing_thumb3.svg`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/landing_thumb3.svg)
 
 I made the logo in a vector image editor (Affinity Designer).  
 I generated the favicons by uploading the logo to a [favicon generator](https://favicon.io/) website.  
@@ -305,6 +309,11 @@ html, body {
 }
 .p-3 {
     padding: var(--spacer);
+}
+
+.center-column {
+    max-width: 800px;
+    margin: 0 auto;
 }
 ```
 
@@ -455,19 +464,59 @@ Change the logo source back to the correct value before moving on.
 
 We're going to add four pages to our website.  
 
+The landing page will feature a little comic, and some thumbnails to futuree articles.  
 Create a new file, `/pages/misc/landing.html`, and add:
 
 ```html
-<div class="px-3">
-  <h2>Rooftop Media landing page</h2>
-  <p>We'll highlight some content here.</p>
+<div class="px-3 center-column">
+  <img src="/assets/landing_comic.svg"/>
+  <hr/><br/>
+  <h2 style="text-decoration: underline;">Articles</h2>
+  <div class="thumb-container">
+    <a href="/language">
+      <img src="/assets/landing_thumb1.svg"/>
+      <p>Language</p>
+    </a>
+    <a href="/mathematics">
+      <img src="/assets/landing_thumb2.svg"/>
+      <p>Mathematics</p>
+    </a>
+    <a href="/gravity">
+      <img src="/assets/landing_thumb3.svg"/>
+      <p>Gravity</p>
+    </a>
+  </div>
 </div>
+
+<style>
+  .thumb-container {
+    display: flex;
+    justify-content: space-between;
+  }
+  .thumb-container a {
+    display: block;
+    width: 200px;
+    text-align: center;
+    cursor: pointer;
+    color: black;
+    text-decoration: none;
+  }
+  .thumb-container a img {
+    transition: .3s;
+  }
+  .thumb-container a:hover img {
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+  }
+  .thumb-container a:hover p {
+    text-decoration: underline;
+  }
+</style>
 ```
 
 Create a new file, `/pages/misc/register.html`, and add:
 
 ```html
-<div class="px-3">
+<div class="px-3 center-column">
   <h3>Register</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
@@ -483,7 +532,7 @@ Create a new file, `/pages/misc/register.html`, and add:
 Create another new file, `/pages/misc/login.html`, and add:
 
 ```html
-<div class="px-3">
+<div class="px-3 center-column">
   <h3>Login</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Password: <input type="password" tabindex="2" id="password"/></div>
@@ -495,7 +544,7 @@ Create another new file, `/pages/misc/login.html`, and add:
 Finally, add one more new file, `/pages/misc/404.html`, and add:
 
 ```html
-<div class="px-3">
+<div class="px-3 center-column">
   <h1>404 - page not found!</h1>
 </div>
 ```
@@ -694,6 +743,11 @@ html, body {
 .px-3 {
     padding-left: var(--spacer);
     padding-right: var(--spacer);
+}
+
+.center-column {
+    max-width: 800px;
+    margin: 0 auto;
 }
 ```
 
@@ -985,7 +1039,7 @@ function POST_register(new_user, res) {
 Open `register.html` and add this:  
 
 ```html
-<div class="px-3">
+<div class="px-3 center-column">
   <h3>Register</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
@@ -1072,7 +1126,7 @@ Next, we want to add event listeners to the inputs on `register.html` to validat
 For example, a username should be only lowercase letters, numbers, and underscores.  
 
 ```html
-<div class="px-3">
+<div class="px-3 center-column">
   <h3>Register</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
@@ -1668,7 +1722,7 @@ Now that we have our API route, we can call it in `login.html`.
 We'll also add validation for the form fields.  
 
 ```html
-<div class="px-3">
+<div class="px-3 center-column">
   <h3>Login</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Password: <input type="password" tabindex="2" id="password"/></div>
@@ -1942,7 +1996,7 @@ This page provides a form to update the user's information.
 We'll write the function to update the user's password in the next few steps.  
 
 ```html
-<div class="px-3">
+<div class="px-3 center-column">
   <h3><span id="user_display_name"></span> - Profile</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
