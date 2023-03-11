@@ -252,7 +252,11 @@ First, create `/pages/index.css`, and add this:
 ```css
 @font-face {
   font-family: CrimsonText;
-  src: url(/assets/fonts/CrimsonText-Regular.ttf);
+  src: url(/assets/fonts/CrimsonText-Regular.ttf),
+       url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+       url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
+       Times New Roman, serif; /* Safari, Android, iOS */
 }
 
 html, body {
@@ -677,7 +681,11 @@ We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
 ```css
 @font-face {
   font-family: CrimsonText;
-  src: url(/assets/fonts/CrimsonText-Regular.ttf);
+  src: url(/assets/fonts/CrimsonText-Regular.ttf),
+       url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+       url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
+       Times New Roman, serif; /* Safari, Android, iOS */
 }
 
 html, body {
@@ -2266,7 +2274,7 @@ The complete code for Part D is available [here](https://github.com/rooftop-medi
 In this part, we'll edit our website to make sure it looks good on phone browsers.  
 
 We'll do this by [testing the website on a phone](https://prowe214.medium.com/tip-how-to-view-localhost-web-apps-on-your-phone-ad6b2c883a7c).  
-We'll also add a dark mode in this part, and adding some accessibility tools.  
+We'll also add a dark mode in this part. 
 
 We want our website to be compliant with standard accessibility requirements, including [ADA](https://www.ada.gov/resources/web-guidance/) and [WCAG](https://www.w3.org/WAI/standards-guidelines/wcag/). 
 
@@ -2275,6 +2283,73 @@ We want our website to be compliant with standard accessibility requirements, in
 
 
 <h3 id="e-1"> ☑️ Step 1.  ☞  Test the code -- on your phone!! 📲 </h3>
+
+For this step, you'll need a phone that's connected to the same network as your computer, and your computer's local (internal) IP address.  
+Start the server on your computer, and then, on your phone, go to `http://<computer's local IP address>:<port number>`.  
+
+You should see the website's landing page!  
+
+Let's make note of some things we'll need to fix:
+ - The page's content is much too small on a mobile browser. 
+ - The menu bar is also too small. 
+ - Some content, like the landing page's "articles", should collapse into a single column, suitable for the vertical screen.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-2"> ☑️ Step 2.  Adding the <code>viewport</code> meta tag in <code>/pages/index.html</code> </h3>
+
+The [viewport meta tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag) will make our website's fonts and images appear in the correct pixel size for a mobile browser's screen.  
+
+Add one line in the `<head>` tag of `index.html`:
+
+```html
+  <head>
+    <title>&#x2756;  Rooftop Media &#x2756;</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/assets/favicons/site.webmanifest">
+    
+    <link rel="stylesheet" href="/pages/index.css">
+    <script src="/pages/index.js"></script>
+  </head>
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-3"> ☑️ Step 3.  Setting up device breakpoints in <code>/pages/misc/landing.html</code> </h3>
+
+We'll set up a CSS "breakpoint" for mobile devices, to change the landing page's image, and the layout of the thumbnail links.  
+
+Add this to the bottom of the css in `/pages/misc/landing.html`:
+
+```css
+  @media only screen and (max-width: 650px) {
+    .thumb-container {
+      flex-flow: column;
+      align-items: center;
+    }
+    #comic {
+      width: 180vw;
+      margin: auto;
+      object-fit: contain;
+      margin-left: -50vw;
+    }
+  } 
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-4"> ☑️ Step 4.  ☞  Test the code -- on your phone!! 📲 </h3>
 
 
 <br/><br/><br/><br/>
