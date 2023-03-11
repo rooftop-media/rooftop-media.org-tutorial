@@ -2351,6 +2351,21 @@ Add this to the bottom of the css in `/pages/misc/landing.html`:
 
 <h3 id="e-4"> ☑️ Step 4.  ☞  Test the code -- on your phone!! 📲 </h3>
 
+Load the landing page on your phone.  It should look the correct size, with all the changes we made. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-5"> ☑️ Step 5.  Add a dark mode button in <code>/pages/index.html</code> </h3>
+
+
+<br/><br/><br/><br/>
+
+
+<h3 id="e-6"> ☑️ Step 5.  Add dark mode to <code>/pages/index.js</code> </h3>
+
+Adding 
 
 <br/><br/><br/><br/>
 
