@@ -474,7 +474,7 @@ The landing page will feature a little comic, and some thumbnails to futuree art
 Create a new file, `/pages/misc/landing.html`, and add:
 
 ```html
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <img src="/assets/landing_comic.svg"/>
   <hr/><br/>
   <h2 style="text-decoration: underline;">Articles</h2>
@@ -522,7 +522,7 @@ Create a new file, `/pages/misc/landing.html`, and add:
 Create a new file, `/pages/misc/register.html`, and add:
 
 ```html
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <h3>Register</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
@@ -538,7 +538,7 @@ Create a new file, `/pages/misc/register.html`, and add:
 Create another new file, `/pages/misc/login.html`, and add:
 
 ```html
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <h3>Login</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Password: <input type="password" tabindex="2" id="password"/></div>
@@ -550,7 +550,7 @@ Create another new file, `/pages/misc/login.html`, and add:
 Finally, add one more new file, `/pages/misc/404.html`, and add:
 
 ```html
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <h1>404 - page not found!</h1>
 </div>
 ```
@@ -735,10 +735,10 @@ html, body {
     border-radius:   4px;
 }
 #user-buttons a:hover {
-  background:      #fafafa;
+    filter:          brightness(1.05);
 }
 #user-buttons a:active {
-  background:      #eaeaea;
+    filter:          brightness(1.01);
 }
 
 /*  Global styles  */
@@ -1049,7 +1049,7 @@ function POST_register(new_user, res) {
 Open `register.html` and add this:  
 
 ```html
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <h3>Register</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
@@ -1136,7 +1136,7 @@ Next, we want to add event listeners to the inputs on `register.html` to validat
 For example, a username should be only lowercase letters, numbers, and underscores.  
 
 ```html
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <h3>Register</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
@@ -1535,10 +1535,10 @@ Change `#user-buttons a`, and that selector with `:hover` and `:active`, to:
     border-radius:   4px;
 }
 #user-buttons a:hover, #user-buttons button:hover {
-  background:      #fafafa;
+    filter:          brightness(1.05);
 }
 #user-buttons a:active, #user-buttons button:active {
-  background:      #eaeaea;
+    filter:          brightness(1.01);
 }
 ```
 
@@ -1732,7 +1732,7 @@ Now that we have our API route, we can call it in `login.html`.
 We'll also add validation for the form fields.  
 
 ```html
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <h3>Login</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Password: <input type="password" tabindex="2" id="password"/></div>
@@ -2006,7 +2006,7 @@ This page provides a form to update the user's information.
 We'll write the function to update the user's password in the next few steps.  
 
 ```html
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <h3><span id="user_display_name"></span> - Profile</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
@@ -2274,7 +2274,7 @@ The complete code for Part D is available [here](https://github.com/rooftop-medi
 In this part, we'll edit our website to make sure it looks good on phone browsers.  
 
 We'll do this by [testing the website on a phone](https://prowe214.medium.com/tip-how-to-view-localhost-web-apps-on-your-phone-ad6b2c883a7c).  
-We'll also add a dark mode in this part. 
+We'll also add a dark mode in this part, and a drop down menu for the menu bar buttons.
 
 We want our website to be compliant with standard accessibility requirements, including [ADA](https://www.ada.gov/resources/web-guidance/) and [WCAG](https://www.w3.org/WAI/standards-guidelines/wcag/). 
 
@@ -2357,15 +2357,209 @@ Load the landing page on your phone.  It should look the correct size, with all 
 
 
 
-<h3 id="e-5"> ☑️ Step 5.  Add a dark mode button in <code>/pages/index.html</code> </h3>
+<h3 id="e-5"> ☑️ Step 5.  Making a dropdown menu in <code>/pages/index.js</code> </h3>
 
+Open up /pages/index.js. First, we'll add another variable in the memory section, _show_user_menu:
+
+```javascript
+////  SECTION 1: Main website memory.
+var _current_page  = window.location.pathname;
+var _session_id = localStorage.getItem('session_id');
+var _current_user = null;
+var _show_user_menu = false;
+```
+
+Then we'll add a function `update_header`, right below `current_user_loaded`:  
+
+```javascript
+// Update the "user buttons" in the header
+function update_header() {
+  let userButtonsEl = document.getElementById('user-buttons');
+  let buttonText = `Menu`;
+  let menuHTML = `<div id="user-menu">`;
+
+  if (_current_user == null) {
+    menuHTML += `<a href="/register">Register</a>`;
+    menuHTML += `<a href="/login">Login</a>`;
+  } else {
+    buttonText = _current_user.display_name;
+    menuHTML += `<a href="/profile">Your profile</a>`;
+    menuHTML += `<button onclick="logout()">Log out</button>`;
+  }
+
+  userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">${buttonText}</button>`;
+  if (_show_user_menu) {
+    userButtonsEl.innerHTML += menuHTML + `</div>`;
+  }
+
+}
+```
+
+Finally, we'll call our new function in `boot`:
+
+```javascript
+////  SECTION 3: Boot.
+function boot() {
+  console.log("Welcome to Rooftop Media Dot Org!");
+
+  //  Log user in if they have a session id. 
+  if (_session_id) {
+    const http = new XMLHttpRequest();
+    http.open("POST", "/api/user-by-session");
+    http.send(_session_id);
+    http.onreadystatechange = (e) => {
+      if (http.readyState == 4 && http.status == 200) {
+        _current_user = JSON.parse(http.responseText);
+        current_user_loaded();
+      } else if (http.readyState == 4 && http.status == 404) {
+        console.log('No session found.');
+        localStorage.removeItem('session_id');
+      }
+      update_header();
+    }
+  } else {
+    update_header();
+  }
+  
+  //  Redirect away from register or login if we're logged in.
+  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
+    window.location.href = '/';
+  }
+  
+}
+window.addEventListener('load', (event) => {
+  boot()
+});
+```
 
 <br/><br/><br/><br/>
 
 
-<h3 id="e-6"> ☑️ Step 5.  Add dark mode to <code>/pages/index.js</code> </h3>
 
-Adding 
+<h3 id="e-6"> ☑️ Step 6.  Styling the menu bar in <code>/pages/index.css</code> </h3>
+
+First, we'll edit this section:
+
+```css
+#user-buttons {
+    position: relative;
+    display: flex;
+}
+```
+
+Then, we'll add this, right below the `#user-buttons` section:
+
+```css
+#user-menu {
+    position:        absolute;
+    top:             30px;
+    right:           0px;
+    min-width:       120px;
+    border:          solid 1px #bbb;
+    background:      #f6f6f6;
+    overflow-x:      hidden;
+    border-radius:   4px;
+}
+#user-menu a, #user-menu button {
+    border:          none;
+    border-radius:   0px;
+    width:           100%;
+    margin:          0px;
+    text-align:      left;
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+
+<h3 id="e-7"> ☑️ Step 7.  ☞  Test the code -- on your phone!! 📲 </h3>
+
+Load the landing page on your phone.  Try clicking on the dropdown button in the upper corner.  
+If you're logged out, the `log in` and `register` buttons should appear.  
+If you're logged in, the `profile` and `logout` buttons should appear.  
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-8"> ☑️ Step 8.  Add a dark mode button in <code>/pages/index.js</code> </h3>
+
+First we'll add a button to the user menu we just made, to toggle darkmode, in `/pages/index.js`:
+
+```html
+// Update the "user buttons" in the header
+function update_header() {
+  let userButtonsEl = document.getElementById('user-buttons');
+  let buttonText = `Menu`;
+  let menuHTML = `<div id="user-menu">`;
+
+  if (_current_user == null) {
+    menuHTML += `<a href="/register">Register</a>`;
+    menuHTML += `<a href="/login">Login</a>`;
+    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
+  } else {
+    buttonText = _current_user.display_name;
+    menuHTML += `<a href="/profile">Your profile</a>`;
+    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
+    menuHTML += `<button onclick="logout()">Log out</button>`;
+  }
+
+  userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">${buttonText}</button>`;
+  if (_show_user_menu) {
+    userButtonsEl.innerHTML += menuHTML + `</div>`;
+  }
+
+}
+```
+
+Then we'll add a `toggle_darkmode()` function, right below the `update_header` function:
+
+```javascript
+
+```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="e-6"> ☑️ Step 6.  Add dark mode CSS <code>/pages/index.css</code> </h3>
+
+We'll need to update `/pages/index.css` in a few places...  
+
+Under `#header`:  
+```css
+#header.dark {
+    background: #1f1f1f;
+    color: white;
+}
+```
+
+Under `#logo`:  
+```css
+#header.dark #logo {
+    filter: invert(1);
+}
+```
+
+Under `#user-buttons a, #user-buttons button`:  
+```css
+#header.dark #user-buttons a, #header.dark #user-buttons button {
+    background:      #2f2f2f;
+    color:         white;
+}
+```
+
+And, under `#user-menu a, #user-menu button`:  
+```css
+#content {
+    height: calc(100vh - 100px);
+}
+#content.dark {
+    background:    black;
+    color:         white;
+}
+```
 
 <br/><br/><br/><br/>
 
