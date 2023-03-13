@@ -2486,9 +2486,20 @@ If you're logged in, the `profile` and `logout` buttons should appear.
 
 <h3 id="e-8"> ☑️ Step 8.  Add a dark mode button in <code>/pages/index.js</code> </h3>
 
-First we'll add a button to the user menu we just made, to toggle darkmode, in `/pages/index.js`:
+First we'll add a new variable:
 
-```html
+```javascript
+////  SECTION 1: Main website memory.
+var _current_page  = window.location.pathname;
+var _session_id = localStorage.getItem('session_id');
+var _current_user = null;
+var _show_user_menu = false;
+var _dark_mode = localStorage.getItem('dark_mode');
+```
+
+Then we'll add a button to the user menu we just made, to toggle darkmode, in `/pages/index.js`:
+
+```javascript
 // Update the "user buttons" in the header
 function update_header() {
   let userButtonsEl = document.getElementById('user-buttons');
@@ -2517,7 +2528,54 @@ function update_header() {
 Then we'll add a `toggle_darkmode()` function, right below the `update_header` function:
 
 ```javascript
+function toggle_darkmode() {
+  _dark_mode = !_dark_mode;
+  localStorage.setItem('dark_mode', _dark_mode);
+  document.getElementById('header').classList.toggle('dark');
+  document.getElementById('content').classList.toggle('dark');
+}
+```
 
+Finally, we'll update `boot`:  
+
+```javascript
+////  SECTION 3: Boot.
+function boot() {
+  console.log("Welcome to Rooftop Media Dot Org!");
+
+  //  Log user in if they have a session id. 
+  if (_session_id) {
+    const http = new XMLHttpRequest();
+    http.open("POST", "/api/user-by-session");
+    http.send(_session_id);
+    http.onreadystatechange = (e) => {
+      if (http.readyState == 4 && http.status == 200) {
+        _current_user = JSON.parse(http.responseText);
+        current_user_loaded();
+      } else if (http.readyState == 4 && http.status == 404) {
+        console.log('No session found.');
+        localStorage.removeItem('session_id');
+      }
+      update_header();
+    }
+  } else {
+    update_header();
+  }
+
+  if (_dark_mode === 'true') {
+    _dark_mode = false;
+    toggle_darkmode();
+  }
+  
+  //  Redirect away from register or login if we're logged in.
+  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
+    window.location.href = '/';
+  }
+  
+}
+window.addEventListener('load', (event) => {
+  boot()
+});
 ```
 
 <br/><br/><br/><br/>
@@ -2575,6 +2633,13 @@ And, under `#user-menu a, #user-menu button`:
     border: solid 1px #1f1f1f;
 }
 ```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="e-7"> ☑️ Step 7.  ☞  Test the code! </h3>
+
+Refresh the browser and test the new dark mode button!
 
 <br/><br/><br/><br/>
 
