@@ -2559,6 +2559,21 @@ And, under `#user-menu a, #user-menu button`:
     background:    black;
     color:         white;
 }
+#content.dark input {
+    background: #2f2f2f;
+    color: white;
+    border: solid 1px #1f1f1f;
+}
+#content.dark button {
+    background: #2f2f2f;
+    color: white;
+    border: solid 1px #1f1f1f;
+}
+#content.dark button:hover {
+    background: #3f3f3f;
+    color: white;
+    border: solid 1px #1f1f1f;
+}
 ```
 
 <br/><br/><br/><br/>
