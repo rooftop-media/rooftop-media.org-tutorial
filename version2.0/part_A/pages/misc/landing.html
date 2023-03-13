@@ -1,5 +1,5 @@
-<div class="px-3 center-column">
-  <img src="/assets/landing/comic.svg"/>
+<div class="p-3 center-column">
+  <img id="comic" src="/assets/landing/comic.svg"/>
   <hr/><br/>
   <h2 style="text-decoration: underline;">Articles</h2>
   <div class="thumb-container">
@@ -22,6 +22,7 @@
   .thumb-container {
     display: flex;
     justify-content: space-between;
+    width: 100%;
   }
   .thumb-container a {
     display: block;
@@ -40,4 +41,17 @@
   .thumb-container a:hover p {
     text-decoration: underline;
   }
+
+  @media only screen and (max-width: 650px) {
+    .thumb-container {
+      flex-flow: column;
+      align-items: center;
+    }
+    #comic {
+      width: 180vw;
+      margin: auto;
+      object-fit: contain;
+      margin-left: -50vw;
+    }
+  } 
 </style>

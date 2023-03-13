@@ -1,7 +1,7 @@
 {
   "name": "Users",
   "snakecase": "users",
-  "max_id": 5,
+  "max_id": 6,
   "columns": [
     {
       "name": "Id",

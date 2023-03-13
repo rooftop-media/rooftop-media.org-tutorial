@@ -3,6 +3,7 @@ var _current_page  = window.location.pathname;
 var _session_id = localStorage.getItem('session_id');
 var _current_user = null;
 var _show_user_menu = false;
+var _dark_mode = localStorage.getItem('dark_mode');
 
 ////  SECTION 2: Functions.
 
@@ -37,19 +38,27 @@ function reroute_if_needed() {
 // Update the "user buttons" in the header
 function update_header() {
   let userButtonsEl = document.getElementById('user-buttons');
-  if (_current_user != null) {
-    userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">
-      ${_current_user.display_name}
-    </button>`;
-    if (_show_user_menu) {
-      let userMenuHTML = `<div id="user-menu">`;
-      userMenuHTML += `<a href="/profile">Your profile</a>`;
-      userMenuHTML += `<a href="/create-page">New page</a>`;
-      userMenuHTML += `<a href="/all-pages">All pages</a>`;
-      userMenuHTML += `<button onclick="logout()">Log out</button>`;
-      userButtonsEl.innerHTML += userMenuHTML + `</div>`;
-    }
+  let buttonText = `Menu`;
+  let menuHTML = `<div id="user-menu">`;
+
+  if (_current_user == null) {
+    menuHTML += `<a href="/register">Register</a>`;
+    menuHTML += `<a href="/login">Login</a>`;
+    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
+  } else {
+    buttonText = _current_user.display_name;
+    menuHTML += `<a href="/profile">Your profile</a>`;
+    userMenuHTML += `<a href="/create-page">New page</a>`;
+    userMenuHTML += `<a href="/all-pages">All pages</a>`;
+    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
+    menuHTML += `<button onclick="logout()">Log out</button>`;
   }
+
+  userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">${buttonText}</button>`;
+  if (_show_user_menu) {
+    userButtonsEl.innerHTML += menuHTML + `</div>`;
+  }
+
 }
 
 ////  SECTION 3: Boot.
@@ -65,15 +74,15 @@ function boot() {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
         current_user_loaded();
-        reroute_if_needed()
-        update_header()
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
-        reroute_if_needed();
       }
+      update_header();
+      reroute_if_needed();
     }
   } else {
+    update_header();
     reroute_if_needed();
   }
   

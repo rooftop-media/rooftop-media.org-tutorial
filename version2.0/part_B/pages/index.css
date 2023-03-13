@@ -1,7 +1,11 @@
 @font-face {
-  font-family: CrimsonText;
-  src: url(/assets/fonts/CrimsonText-Regular.ttf);
-}
+    font-family: CrimsonText;
+    src: url(/assets/fonts/CrimsonText-Regular.ttf),
+         url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+         url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+         url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
+         Times New Roman, serif; /* Safari, Android, iOS */
+  }
 
 html, body {
     font-family: CrimsonText;

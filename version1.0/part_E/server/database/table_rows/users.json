@@ -1,0 +1,47 @@
+[
+  {
+    "username": "mickeymouse",
+    "display_name": "Mickey Mouse",
+    "email": "mickey@mouse.org",
+    "phone": "234234q",
+    "password": "1dec7d3ada98e9b52f80ac1a6282850f4c5d52aff7b8a93e3abe91c0c0d376610fc3fc6d31e30a40e73a4c5a8c97a63a3142f77fec79866218982464220858ec",
+    "salt": "2c07788e65fa05f8da74bf3a7990055b",
+    "id": 0
+  },
+  {
+    "username": "donaldduck",
+    "display_name": "Donald Duck",
+    "email": "donald@disney.org",
+    "phone": "233-333-3333",
+    "password": "7c09b27b8d4d20c817781b76c3457d613e58775402ed5933672fc961aebe4a058984e7201b2ea2111d71eba4e2cdfafe987ab92b2b876ccda15931cbce6ad394",
+    "salt": "714223d98c1ca19d47f9c8bbc7a2ff3f",
+    "id": 1
+  },
+  {
+    "username": "josie",
+    "display_name": "Josie H",
+    "email": "",
+    "phone": "",
+    "password": "c4a60765c8982b6a4594eddbdc3f816299dd9da69158903b61bab80233c9b919ca909d40e43e86139ad8c0a4a9cd412f8e24f115c6f389ef1f2a7ff88255f0f9",
+    "salt": "ca820cb9733f5f85f967c42603dd93d1",
+    "id": 2
+  },
+  {
+    "username": "sans",
+    "display_name": "Sans Buckalew",
+    "email": "nothing@blank.com",
+    "phone": "444-444-4444",
+    "password": "f97f4deade4b2a72e5f45c6e12419bc14ef8f4d2f47abed8a8bd63c6389272f7e8a056ffce87724cc9d73cc9c1b37ab703a888aa979b9b2b29417bda9f8fe5de",
+    "salt": "19b35389acfab9dac1a06712b9157a6e",
+    "id": 3
+  },
+  {
+    "username": "misao",
+    "display_name": "Misao",
+    "email": "abc@abc.com",
+    "phone": "080-808-0808",
+    "password": "184efa652dd3409bbf811d58317d61463684a8e428fa9fc28092a39b1e1ce9e198ca19486fec5dfc4a6679dd01ce9708dd79941ca85ea3f92806e7ba4c3c9add",
+    "salt": "eea6d848803bb7ea5b5f13f49ae70975",
+    "id": 4
+  }
+]
