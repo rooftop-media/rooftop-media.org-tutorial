@@ -2581,7 +2581,7 @@ window.addEventListener('load', (event) => {
 <br/><br/><br/><br/>
 
 
-<h3 id="e-6"> ☑️ Step 6.  Add dark mode CSS <code>/pages/index.css</code> </h3>
+<h3 id="e-9"> ☑️ Step 9.  Add dark mode CSS <code>/pages/index.css</code> </h3>
 
 We'll need to update `/pages/index.css` in a few places...  
 
@@ -2637,7 +2637,7 @@ And, under `#user-menu a, #user-menu button`:
 <br/><br/><br/><br/>
 
 
-<h3 id="e-7"> ☑️ Step 7.  ☞  Test the code! </h3>
+<h3 id="e-10"> ☑️ Step 10.  ☞  Test the code! </h3>
 
 Refresh the browser and test the new dark mode button!
 
@@ -2645,7 +2645,7 @@ Refresh the browser and test the new dark mode button!
 
 
 
-<h3 id="e-?"> ☑️ Step ?. ❖ Part E review. </h3>
+<h3 id="e-11"> ☑️ Step 11. ❖ Part E review. </h3>
 
 The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_E).
 
