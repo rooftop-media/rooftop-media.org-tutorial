@@ -3,7 +3,7 @@
 This is a tutorial for building rooftop-media.org version 1.0.  
 This version creates a website with a few static pages, and user management.  
 
-*Total estimated time for this tutorial: ADD ESTIMATED TIME*
+*Total estimated time for this tutorial: 1 hour and 15 minutes *
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
@@ -27,11 +27,11 @@ Click a part title to jump down to it, in this file.
 | [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 15 min. | 8 |
 | [Part C - User sessions, logout, and /login](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 20 min.  | 13 |
 | [Part D - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 10 min. | 9 |
-| [Part E - Mobile design](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 0 min. | 0 |
+| [Part E - Mobile design](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 15 min. | 12 |
+| [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
 <!--| [Part F - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
 | [Part G - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-g) | 0 min. | 0 |
 | [Part H - Unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |-->
-| [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
 <!--
 Proposals...  
  D. Unit testing - Mocha? DIY will take brain power, not just copying
@@ -475,7 +475,7 @@ Create a new file, `/pages/misc/landing.html`, and add:
 
 ```html
 <div class="p-3 center-column">
-  <img src="/assets/landing/comic.svg"/>
+  <img id="comic" src="/assets/landing/comic.svg"/>
   <hr/><br/>
   <h2 style="text-decoration: underline;">Articles</h2>
   <div class="thumb-container">
@@ -2395,7 +2395,7 @@ function update_header() {
 }
 ```
 
-Finally, we'll call our new function in `boot`:
+Finally, we'll call our new function in `boot`, and remove the lines that previously updated the header:  
 
 ```javascript
 ////  SECTION 3: Boot.
@@ -2529,7 +2529,7 @@ Then we'll add a `toggle_darkmode()` function, right below the `update_header` f
 
 ```javascript
 function toggle_darkmode() {
-  _dark_mode = !_dark_mode;
+  _dark_mode = _dark_mode == 'false' ? 'true' : false;
   localStorage.setItem('dark_mode', _dark_mode);
   document.getElementById('header').classList.toggle('dark');
   document.getElementById('content').classList.toggle('dark');
@@ -2637,7 +2637,22 @@ And, under `#user-menu a, #user-menu button`:
 <br/><br/><br/><br/>
 
 
-<h3 id="e-10"> ☑️ Step 10.  ☞  Test the code! </h3>
+
+<h3 id="e-10"> ☑️ Step 10.  Add dark mode CSS <code>/pages/misc/landing.html</code> </h3>
+
+In `pages/misc/landing.html`, add this to the  css:
+
+```css
+#content.dark img {
+    filter: invert(1);
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-11"> ☑️ Step 11.  ☞  Test the code! </h3>
 
 Refresh the browser and test the new dark mode button!
 
@@ -2645,7 +2660,7 @@ Refresh the browser and test the new dark mode button!
 
 
 
-<h3 id="e-11"> ☑️ Step 11. ❖ Part E review. </h3>
+<h3 id="e-12"> ☑️ Step 12. ❖ Part E review. </h3>
 
 The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_E).
 
