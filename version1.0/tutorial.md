@@ -2529,7 +2529,7 @@ Then we'll add a `toggle_darkmode()` function, right below the `update_header` f
 
 ```javascript
 function toggle_darkmode() {
-  _dark_mode = _dark_mode == 'false' ? 'true' : false;
+  _dark_mode = _dark_mode != 'true' ? 'true' : false;
   localStorage.setItem('dark_mode', _dark_mode);
   document.getElementById('header').classList.toggle('dark');
   document.getElementById('content').classList.toggle('dark');
