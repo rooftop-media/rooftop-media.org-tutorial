@@ -2563,7 +2563,7 @@ function boot() {
   }
 
   if (_dark_mode === 'true') {
-    _dark_mode = false;
+    _dark_mode = 'false';
     toggle_darkmode();
   }
   
@@ -2611,7 +2611,7 @@ Under `#user-buttons a, #user-buttons button`:
 And, under `#user-menu a, #user-menu button`:  
 ```css
 #content {
-    height: calc(100vh - 100px);
+    min-height: calc(100vh - 100px);
 }
 #content.dark {
     background:    black;
