@@ -60,7 +60,7 @@ We'll create a webserver that can serve up assets. This NodeJS-only server set u
 We'll also create a few pages, and set up a basic routing system, with some server-side rendering.
 And, we'll make sure our web pages are handicap accessible<!-- and mobile friendly-->.  
 
-*Estimated time: ?? minutes*
+*Estimated time: 15 minutes*
 
 <br/><br/><br/><br/>
 
@@ -475,20 +475,20 @@ Create a new file, `/pages/misc/landing.html`, and add:
 
 ```html
 <div class="p-3 center-column">
-  <img src="/assets/landing_comic.svg"/>
+  <img src="/assets/landing/comic.svg"/>
   <hr/><br/>
   <h2 style="text-decoration: underline;">Articles</h2>
   <div class="thumb-container">
     <a href="/language">
-      <img src="/assets/landing_thumb1.svg"/>
+      <img src="/assets/landing/thumb1.svg"/>
       <p>Language</p>
     </a>
     <a href="/mathematics">
-      <img src="/assets/landing_thumb2.svg"/>
+      <img src="/assets/landing/thumb2.svg"/>
       <p>Mathematics</p>
     </a>
     <a href="/gravity">
-      <img src="/assets/landing_thumb3.svg"/>
+      <img src="/assets/landing/thumb3.svg"/>
       <p>Gravity</p>
     </a>
   </div>
@@ -1183,6 +1183,7 @@ const phone_regex = /^[0-9\-]{0,12}$/;
 var phone_val = "";
 phone_input.addEventListener("keydown", event => {
   phone_val = phone_input.value
+  event.target.selectionStart = phone_input.value.length;
   if (!phone_regex.test(phone_val + event.key) && !utility_keys.includes(event.keyCode) || event.keyCode == 173) {
     event.preventDefault();
   } else if (event.keyCode != 8) {
@@ -2221,7 +2222,7 @@ function update_password() {
   var new_password = document.getElementById('new_password').value;
   var confirm_new_password = document.getElementById('confirm_new_password').value;
   if (new_password != confirm_new_password) {
-    document.getElementById('error').innerHTML = 'New passwords must match.';
+    document.getElementById('pass_error').innerHTML = 'New passwords must match.';
     return;
   }
   const http = new XMLHttpRequest();
@@ -2239,8 +2240,7 @@ function update_password() {
         document.getElementById('pass_error').innerHTML = 'Password updated!';
         _current_user = response.updated_user;
       } else {
-        document.getElementById('error').innerHTML = response.msg;
-      }
+dcvgb        }
     }
   }
 }
