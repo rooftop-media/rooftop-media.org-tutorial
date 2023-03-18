@@ -259,12 +259,10 @@ var pageURLkeys = Object.keys(pageURLs);
 
 <h3 id="a-5">  ☑️ Step 5: Using <code>/pages/index.js</code> to reroute and update the header </h3>
 
-In this step, we'll do a few things:
+In this step, we'll redirect the user based on these rules:
  - If the user is logged in on `/login` or `/register`, redirect them to the home page. 
  - If the user _isn't_ logged in on a dynamic page management page, redirect them to the home page. 
    - This will include any route that starts with `/edit/...`, which we'll code in part B. 
- - We'll also change the header for logged in users, to a single button that says the user's name. 
-   - When the user clicks on this "user button", a drop down menu will display. 
 
 Open up `/pages/index.js`.  First, we'll add a new function, `reroute_if_needed`, right below `current_user_loaded`:  
 
@@ -299,8 +297,8 @@ function update_header() {
   } else {
     buttonText = _current_user.display_name;
     menuHTML += `<a href="/profile">Your profile</a>`;
-    userMenuHTML += `<a href="/create-page">New page</a>`;
-    userMenuHTML += `<a href="/all-pages">All pages</a>`;
+    menuHTML += `<a href="/create-page">New page</a>`;
+    menuHTML += `<a href="/all-pages">All pages</a>`;
     menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
@@ -339,6 +337,16 @@ function boot() {
   } else {
     update_header();
     reroute_if_needed();
+  }
+
+  if (_dark_mode === 'true') {
+    _dark_mode = 'false';
+    toggle_darkmode();
+  }
+  
+  //  Redirect away from register or login if we're logged in.
+  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
+    window.location.href = '/';
   }
   
 }
