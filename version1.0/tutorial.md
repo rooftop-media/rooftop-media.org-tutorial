@@ -3,7 +3,7 @@
 This is a tutorial for building rooftop-media.org version 1.0.  
 This version creates a website with a few static pages, and user management.  
 
-*Total estimated time for this tutorial: 1 hour and 15 minutes *
+*Total estimated time for this tutorial: 1 hour and 15 minutes*
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
