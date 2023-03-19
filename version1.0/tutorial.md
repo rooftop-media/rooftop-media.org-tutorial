@@ -34,11 +34,10 @@ Click a part title to jump down to it, in this file.
 | [Part H - Unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |-->
 <!--
 Proposals...  
- D. Unit testing - Mocha? DIY will take brain power, not just copying
- E. Email confirmation - Nodemailer? Diy will take brain power
- F. Phone confirmation - Twilio? "Courier" could do this and E. 
- G. Pass reset - Nodemailer again
- H. This part could be done diy-->
+ . Unit testing - Mocha? DIY will take brain power, not just copying
+ . Email confirmation - Nodemailer? Diy will take brain power
+ . Phone confirmation - Twilio? "Courier" could do this and E. 
+ . Pass reset - Nodemailer again-->
  
  
 
@@ -753,6 +752,9 @@ html, body {
 .px-3 {
     padding-left: var(--spacer);
     padding-right: var(--spacer);
+}
+.p-3 {
+    padding: var(--spacer);
 }
 
 .center-column {
