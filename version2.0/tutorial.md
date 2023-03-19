@@ -311,7 +311,7 @@ function update_header() {
 }
 ```
 
-Then, we'll edit the `boot` function, to call our new functions:  
+Then, we'll edit the `boot` function, to call `reroute_if_needed`, and remove the old reroute "if" statement:  
 
 ```javascript
 ////  SECTION 3: Boot.
@@ -327,12 +327,14 @@ function boot() {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
         current_user_loaded();
+        reroute_if_needed();
+        update_header();
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
+        reroute_if_needed();
+        update_header();
       }
-      update_header();
-      reroute_if_needed();
     }
   } else {
     update_header();
@@ -344,11 +346,6 @@ function boot() {
     toggle_darkmode();
   }
   
-  //  Redirect away from register or login if we're logged in.
-  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
-    window.location.href = '/';
-  }
-  
 }
 window.addEventListener('load', (event) => {
   boot()
@@ -356,6 +353,8 @@ window.addEventListener('load', (event) => {
 ```
 
 <br/><br/><br/><br/>
+
+Note that most would suggest I put the AJAX call set up in a [separate reusable function](https://stackoverflow.com/questions/2818648/using-two-xmlhttprequest-calls-on-a-page).  I'm not doing that for now. 
 
 
 
@@ -411,7 +410,7 @@ function respond_with_a_dynamic_page(res, url) {
   if (page_data.length < 1) {
     content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
   } else {
-    content_page = `<div class="px-3"><h2>${page_data[0].page_title}</h2></div>`
+    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2></div>`
   }
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
   var page_halves = main_page.split('<!--  Insert page content here!  -->');
@@ -472,13 +471,13 @@ function GET_all_pages(res) {
 
 
 
-<h3 id="a-10"> ☑️ Step 10:  Creating <code>/all-pages</code> </h3>
+<h3 id="a-10"> ☑️ Step 10:  Creating <code>pages/cms/all-pages.html</code> </h3>
 
 This page will allow us to view all pages created in our database.  
 Create a new page, `/pages/cms/all-pages.html`, and add this:
 
 ```html
-<div class="px-3">
+<div class="p-3">
   <h3>All dynamic pages:</h3>
   <table id="page-table">
     <tr>
