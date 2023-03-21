@@ -666,7 +666,7 @@ function POST_get_page(route_data, res) {
 This is another dynamic page. It will get a page's details via an API call to `POST_get_page`.  
 Then, it will load the page's content into editable input boxes.  
 
-A "draft" of the page's elements and their contents can then be edited, added or deleted.  
+A "buffer" (a draft) of the page's elements and their contents can then be edited, added or deleted.  
 Finally, pages can be "saved", updating the published page.  
 
 Create the file `/pages/cms/edit-page.html`, with the following code:  
@@ -823,7 +823,7 @@ function save_buffer() {
         render_buffer();
       } else {
         console.warn("Err")
-        document.getElementById('error').innerHTML = response.msg;
+        document.getElementById('dynamic-page').innerHTML = response.msg;
       }
     }
   }
@@ -968,9 +968,9 @@ function respond_with_a_dynamic_page(res, url) {
       let el = page_data[0].content[i];
       content_page += `<${el.type}>${el.text}</${el.type}>`
     }
-    content_page = `<div class="px-3">${content_page}</div>`;
+    content_page = `<div class="p-3">${content_page}</div>`;
   } else {
-    content_page = `<div class="px-3"><h2>${page_data[0].page_title}</h2>`
+    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2>`
     content_page += `<p>This page is still empty.</p></div>`;
   }
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
