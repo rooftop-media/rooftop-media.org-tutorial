@@ -527,6 +527,12 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
     min-width: 100px;
     padding: 5px;
   }
+  #content.dark td a {
+    color: pink;
+  }
+  #content.dark td a:visited {
+    color: lavender;
+  }
 </style>
 ```
 
