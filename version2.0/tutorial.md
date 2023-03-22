@@ -562,6 +562,8 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 In this section, we'll create a new dynamic route, `/edit/:page_route`.  
 On this page, users can edit a page's title, add elements to the page, and edit those element's properties. 
 
+This page is a true webapp interface, in my opinion!
+
 <br/><br/><br/><br/>
 
 
@@ -678,14 +680,16 @@ Create the file `/pages/cms/edit-page.html`, with the following code:
 
 <script>
 
-//  Page memory
+////  SECTION 1: Page memory
 let page_route = _current_page.split('/edit/')[1];
 let page_buffer = [];
 let page_data = {};
 let edit_el_index = -1;
+let show_settings = false;
 load_page_elements();
 
-//  Load all page elements from API
+////  SECTION 2: Boot
+//  Load all page elements from API, then render buffer
 function load_page_elements() {
   const http = new XMLHttpRequest();
   http.open('POST', '/api/get-page');
@@ -701,20 +705,13 @@ function load_page_elements() {
         page_buffer = page_data.content;
         render_buffer();
       } else {
-        document.getElementById('error').innerHTML = response.msg;
+        document.getElementById('dynamic-page').innerHTML = response.msg;
       }
     }
   }
 }
 
-//  Add a new element
-function add_new_element() {
-  page_buffer.push({ 
-    type: 'p', 
-    text: ""
-  })
-  render_buffer();
-}
+////  SECTION 3: Render
 
 //  Render the buffer as editable elements
 function render_buffer() {
@@ -746,6 +743,7 @@ function render_buffer() {
       </div>`
     }
   }
+
   document.getElementById('dynamic-page').innerHTML += `<div id="new-el">
     <button onclick="add_new_element()">+ add new element</button>
   </div>`;
@@ -754,6 +752,31 @@ function render_buffer() {
     <button onclick="save_buffer()">Save page changes</button>
   </div>`;
   document.getElementById('dynamic-page').innerHTML += `<div id="error"></div>`;
+  document.getElementById('dynamic-page').innerHTML += `<div id="settings"></div>`;
+  render_settings();
+}
+
+function render_settings() {
+  let settingsEl = document.getElementById('settings');
+  if (show_settings) {
+    settingsEl.innerHTML = `<div class="icon" onclick="show_settings=false;render_settings();">&#9881;&#65039;</div>`;
+    settingsEl.innerHTML += `<div>Page title: <input value="${page_data.page_title}"></div>`;
+    settingsEl.innerHTML += `<div>Page route: <input value="${page_data.page_route}"></div>`;
+    settingsEl.innerHTML += `<div><a href="/${page_data.page_route}">View page</a></div>`;
+  } else {
+    settingsEl.innerHTML = `<div class="icon" onclick="show_settings=true;render_settings()">&#9881;&#65039;</div>`;
+  }
+}
+
+////  SECTION 4: Event reactions
+
+//  Fires when "New Element" button is clicked
+function add_new_element() {
+  page_buffer.push({ 
+    type: 'p', 
+    text: ""
+  })
+  render_buffer();
 }
 
 //  Fires when text of a given input is changed.
@@ -788,13 +811,11 @@ function context_menu(index) {
   </div>`;
 }
 
-//  Fires whenever the user clicks on the page, to remove the custom ctx menu
+//  Fires whenever the user clicks on the page, to remove the custom context menu
 document.body.addEventListener('mousedown', function(ev) {
-  //  Don't remove ctx menu on right click
-  if (ev.which == 3) { 
-    return;
-  }
-  //  Don't remove ctx menu when clicking the ctx menu (let the ctx menu handle that)
+  //  Don't remove context menu on right click
+  if (ev.which == 3) { return; }
+  //  Don't remove context menu when clicking the ctx menu (let the ctx menu handle that)
   if (ev.target.id == 'ctx_menu' || ev.target.className == 'ctx_choice' ) {
     return;
   }
@@ -823,7 +844,7 @@ function save_buffer() {
         render_buffer();
       } else {
         console.warn("Err")
-        document.getElementById('dynamic-page').innerHTML = response.msg;
+        document.getElementById('error').innerHTML = response.msg;
       }
     }
   }
@@ -832,16 +853,25 @@ function save_buffer() {
 </script>
 
 <style> 
-  #dynamic-page, body {
+  #dynamic-page {
     position: relative;
   }
   input {
     font-family: CrimsonText;
   }
+    /* https://www.w3schools.com/cssref/css_default_values.php */
   input.h1 {
-    font-size: 38px;
+    margin: 0.67em 0px;
+    padding: 0px;
+    font-size: 2em;
+  }
+  input.p {
+    margin: 0px;
+    padding: 0px;
+    font-size: 1em;
   }
 
+  /*  Context menu  */
   #ctx_menu {
     position: absolute;
     background: #efefef;
@@ -861,6 +891,17 @@ function save_buffer() {
     border: solid 1px gray;
     padding: 5px;
     display: inline-block;
+  }
+
+  /*  Page settings menu */
+  #settings {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    text-align: right;
+  }
+  #settings .icon {
+    cursor: pointer;
   }
 </style>
 ```
