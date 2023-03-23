@@ -562,7 +562,7 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 In this section, we'll create a new dynamic route, `/edit/:page_route`.  
 On this page, users can edit a page's title, add elements to the page, and edit those element's properties. 
 
-This page is a true webapp interface, in my opinion!
+This page is a true webapp interface, and thus deserves a lot of attention, similar to a full [terminal app](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md).
 
 <br/><br/><br/><br/>
 
