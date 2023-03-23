@@ -1,4 +1,4 @@
-////  SECTION 1: Imports.
+////  SECTION 1: Imports
 
 //  Importing NodeJS libraries.
 var http = require('http');     // listen to HTTP requests
@@ -97,9 +97,9 @@ function respond_with_a_dynamic_page(res, url) {
       let el = page_data[0].content[i];
       content_page += `<${el.type}>${el.text}</${el.type}>`
     }
-    content_page = `<div class="px-3">${content_page}</div>`;
+    content_page = `<div class="p-3">${content_page}</div>`;
   } else {
-    content_page = `<div class="px-3"><h2>${page_data[0].page_title}</h2>`
+    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2>`
     content_page += `<p>This page is still empty.</p></div>`;
   }
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});

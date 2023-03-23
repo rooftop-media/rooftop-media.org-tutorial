@@ -1,15 +1,16 @@
 @font-face {
     font-family: CrimsonText;
     src: url(/assets/fonts/CrimsonText-Regular.ttf),
-         url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
-         url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
-         url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
-         Times New Roman, serif; /* Safari, Android, iOS */
-  }
-
+        url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+        url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+        url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
+        Times New Roman, serif; /* Safari, Android, iOS */
+}
+  
 html, body {
     font-family: CrimsonText;
     margin: 0;
+    min-height: 100vh;
 }
 
 :root {
@@ -58,7 +59,7 @@ html, body {
 #user-buttons a:active {
     filter:          brightness(1.01);
 }
-
+  
 /*  Global styles  */
 .px-1 {
     padding-left: calc(var(--spacer) * 0.25);
@@ -75,7 +76,7 @@ html, body {
 .p-3 {
     padding: var(--spacer);
 }
-
+  
 .center-column {
     max-width: 800px;
     margin: 0 auto;

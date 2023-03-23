@@ -1,5 +1,3 @@
-////  SECTION 1: Imports.
-
 //  Importing NodeJS libraries.
 var http = require('http');     // listen to HTTP requests
 var path = require('path');     // manage filepath names
@@ -91,7 +89,7 @@ function respond_with_a_dynamic_page(res, url) {
   if (page_data.length < 1) {
     content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
   } else {
-    content_page = `<div class="px-3"><h2>${page_data[0].page_title}</h2></div>`
+    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2></div>`
   }
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
   var page_halves = main_page.split('<!--  Insert page content here!  -->');

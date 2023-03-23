@@ -1,21 +1,22 @@
 @font-face {
-  font-family: CrimsonText;
-  src: url(/assets/fonts/CrimsonText-Regular.ttf),
-       url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
-       url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
-       url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
-       Times New Roman, serif; /* Safari, Android, iOS */
+    font-family: CrimsonText;
+    src: url(/assets/fonts/CrimsonText-Regular.ttf),
+        url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+        url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+        url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
+        Times New Roman, serif; /* Safari, Android, iOS */
 }
 
 html, body {
     font-family: CrimsonText;
     margin: 0;
+    min-height: 100vh;
 }
 
 :root {
     --spacer: 20px;
 }
-
+  
 /* The header, including the RTM logo and user profile buttons  */
 #header {
     width:           100%;
@@ -34,7 +35,7 @@ html, body {
     background: #1f1f1f;
     color: white;
 }
-
+  
 #logo {
     width:           100px;
     margin-top:      15px;
@@ -44,7 +45,7 @@ html, body {
 #header.dark #logo {
     filter: invert(1);
 }
-
+  
 #user-buttons {
     position: relative;
     display: flex;
@@ -60,38 +61,19 @@ html, body {
     cursor:          pointer;
     border-radius:   4px;
 }
-#header.dark #user-buttons a, #header.dark #user-buttons button {
-    background:      #2f2f2f;
-    color:         white;
-}
-
 #user-buttons a:hover, #user-buttons button:hover {
     filter:          brightness(1.05);
 }
 #user-buttons a:active, #user-buttons button:active {
     filter:          brightness(1.01);
 }
-
-#user-menu {
-    position:        absolute;
-    top:             30px;
-    right:           0px;
-    min-width:       120px;
-    border:          solid 1px #bbb;
-    background:      #f6f6f6;
-    overflow-x:      hidden;
-    border-radius:   4px;
-}
-#user-menu a, #user-menu button {
-    border:          none;
-    border-radius:   0px;
-    width:           100%;
-    margin:          0px;
-    text-align:      left;
+#header.dark #user-buttons a, #header.dark #user-buttons button {
+    background:      #2f2f2f;
+    color:         white;
 }
 
 #content {
-    height: calc(100vh - 100px);
+    min-height: calc(100vh - 100px);
 }
 #content.dark {
     background:    black;
@@ -113,6 +95,25 @@ html, body {
     border: solid 1px #1f1f1f;
 }
 
+#user-menu {
+    position:        absolute;
+    top:             30px;
+    right:           0px;
+    min-width:       120px;
+    border:          solid 1px #bbb;
+    background:      #f6f6f6;
+    overflow-x:      hidden;
+    border-radius:   4px;
+}
+#user-menu a, #user-menu button {
+    border:          none;
+    border-radius:   0px;
+    width:           100%;
+    margin:          0px;
+    text-align:      left;
+}
+
+  
 /*  Global styles  */
 .px-1 {
     padding-left: calc(var(--spacer) * 0.25);

@@ -1,4 +1,4 @@
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <h3>Register</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
@@ -45,6 +45,7 @@ const phone_regex = /^[0-9\-]{0,12}$/;
 var phone_val = "";
 phone_input.addEventListener("keydown", event => {
   phone_val = phone_input.value
+  event.target.selectionStart = phone_input.value.length;
   if (!phone_regex.test(phone_val + event.key) && !utility_keys.includes(event.keyCode) || event.keyCode == 173) {
     event.preventDefault();
   } else if (event.keyCode != 8) {
@@ -65,15 +66,12 @@ function register() {
   var phone = document.getElementById('phone').value;
   var password = document.getElementById('password').value;
   var confirm_password = document.getElementById('confirm_password').value;
-  
   if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
-  } else if (username.length < 2) {
-    document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
-    return;
-  } else if (password.length < 8) {
-    document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
+  }
+  if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Valid username required.';
     return;
   }
 

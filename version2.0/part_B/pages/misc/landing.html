@@ -1,4 +1,4 @@
-<div class="px-3 center-column">
+<div class="p-3 center-column">
   <img id="comic" src="/assets/landing/comic.svg"/>
   <hr/><br/>
   <h2 style="text-decoration: underline;">Articles</h2>
@@ -22,7 +22,6 @@
   .thumb-container {
     display: flex;
     justify-content: space-between;
-    width: 100%;
   }
   .thumb-container a {
     display: block;
@@ -40,6 +39,10 @@
   }
   .thumb-container a:hover p {
     text-decoration: underline;
+  }
+
+  #content.dark img {
+    filter: invert(1);
   }
 
   @media only screen and (max-width: 650px) {

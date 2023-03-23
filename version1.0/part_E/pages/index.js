@@ -47,7 +47,7 @@ function update_header() {
 }
 
 function toggle_darkmode() {
-  _dark_mode = !_dark_mode;
+  _dark_mode = _dark_mode != 'true' ? 'true' : false;
   localStorage.setItem('dark_mode', _dark_mode);
   document.getElementById('header').classList.toggle('dark');
   document.getElementById('content').classList.toggle('dark');
@@ -77,7 +77,7 @@ function boot() {
   }
 
   if (_dark_mode === 'true') {
-    _dark_mode = false;
+    _dark_mode = 'false';
     toggle_darkmode();
   }
   

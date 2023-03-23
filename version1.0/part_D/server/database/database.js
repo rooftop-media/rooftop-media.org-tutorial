@@ -39,16 +39,6 @@ class Table {
     return row_data.id;
   }
 
-  delete(id_to_delete) {
-    for (let i = 0; i < this.rows.length; i++) {
-      if (this.rows[i].id == id_to_delete) {
-        this.rows.splice(i, 1);
-        return ``;
-      }
-    }
-    return `No row found with id ${id_to_delete}`;
-  }
-
   update(id, update) {
     //  Look for row to update...
     for (let i = 0; i < this.rows.length; i++) {
@@ -64,6 +54,16 @@ class Table {
       }
     }
     return null;
+  }
+
+  delete(id_to_delete) {
+    for (let i = 0; i < this.rows.length; i++) {
+      if (this.rows[i].id == id_to_delete) {
+        this.rows.splice(i, 1);
+        return ``;
+      }
+    }
+    return `No row found with id ${id_to_delete}`;
   }
   
 }

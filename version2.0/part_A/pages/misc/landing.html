@@ -22,7 +22,6 @@
   .thumb-container {
     display: flex;
     justify-content: space-between;
-    width: 100%;
   }
   .thumb-container a {
     display: block;
@@ -40,6 +39,10 @@
   }
   .thumb-container a:hover p {
     text-decoration: underline;
+  }
+
+  #content.dark img {
+    filter: invert(1);
   }
 
   @media only screen and (max-width: 650px) {

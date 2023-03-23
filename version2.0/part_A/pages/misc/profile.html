@@ -116,7 +116,7 @@ function update_password() {
   var new_password = document.getElementById('new_password').value;
   var confirm_new_password = document.getElementById('confirm_new_password').value;
   if (new_password != confirm_new_password) {
-    document.getElementById('error').innerHTML = 'New passwords must match.';
+    document.getElementById('pass_error').innerHTML = 'New passwords must match.';
     return;
   }
   const http = new XMLHttpRequest();
@@ -134,7 +134,7 @@ function update_password() {
         document.getElementById('pass_error').innerHTML = 'Password updated!';
         _current_user = response.updated_user;
       } else {
-        document.getElementById('error').innerHTML = response.msg;
+        document.getElementById('pass_error').innerHTML = response.msg;
       }
     }
   }

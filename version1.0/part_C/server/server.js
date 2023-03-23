@@ -1,5 +1,3 @@
-////  SECTION 1: Imports.
-
 //  Importing NodeJS libraries.
 var http = require('http');     // listen to HTTP requests
 var path = require('path');     // manage filepath names

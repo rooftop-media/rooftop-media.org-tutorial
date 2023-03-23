@@ -1,9 +1,9 @@
 [
   {
-    "page_title": "Cloobhouse",
-    "page_route": "clubhouse",
+    "page_title": "My Blog",
+    "page_route": "my-blog",
     "is_public": false,
-    "created_by": 0,
+    "created_by": 1,
     "id": 2
   }
 ]

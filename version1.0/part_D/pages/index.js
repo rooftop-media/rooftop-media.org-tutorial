@@ -23,7 +23,7 @@ function current_user_loaded() {}
 ////  SECTION 3: Boot.
 function boot() {
   console.log("Welcome to Rooftop Media Dot Org!");
-
+  
   //  Log user in if they have a session id. 
   if (_session_id) {
     const http = new XMLHttpRequest();

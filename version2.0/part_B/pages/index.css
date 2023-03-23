@@ -1,21 +1,22 @@
 @font-face {
     font-family: CrimsonText;
     src: url(/assets/fonts/CrimsonText-Regular.ttf),
-         url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
-         url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
-         url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
-         Times New Roman, serif; /* Safari, Android, iOS */
-  }
+        url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+        url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+        url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
+        Times New Roman, serif; /* Safari, Android, iOS */
+}
 
 html, body {
     font-family: CrimsonText;
     margin: 0;
+    min-height: 100vh;
 }
 
 :root {
     --spacer: 20px;
 }
-
+  
 /* The header, including the RTM logo and user profile buttons  */
 #header {
     width:           100%;
@@ -30,14 +31,21 @@ html, body {
     z-index:         10;
     position:        relative;
 }
-
+#header.dark {
+    background: #1f1f1f;
+    color: white;
+}
+  
 #logo {
     width:           100px;
     margin-top:      15px;
     margin-bottom:   25px;
     cursor:          pointer;
 }
-
+#header.dark #logo {
+    filter: invert(1);
+}
+  
 #user-buttons {
     position: relative;
     display: flex;
@@ -54,10 +62,37 @@ html, body {
     border-radius:   4px;
 }
 #user-buttons a:hover, #user-buttons button:hover {
-  background:      #fafafa;
+    filter:          brightness(1.05);
 }
 #user-buttons a:active, #user-buttons button:active {
-  background:      #eaeaea;
+    filter:          brightness(1.01);
+}
+#header.dark #user-buttons a, #header.dark #user-buttons button {
+    background:      #2f2f2f;
+    color:         white;
+}
+
+#content {
+    min-height: calc(100vh - 100px);
+}
+#content.dark {
+    background:    black;
+    color:         white;
+}
+#content.dark input {
+    background: #2f2f2f;
+    color: white;
+    border: solid 1px #1f1f1f;
+}
+#content.dark button {
+    background: #2f2f2f;
+    color: white;
+    border: solid 1px #1f1f1f;
+}
+#content.dark button:hover {
+    background: #3f3f3f;
+    color: white;
+    border: solid 1px #1f1f1f;
 }
 
 #user-menu {
@@ -72,10 +107,13 @@ html, body {
 }
 #user-menu a, #user-menu button {
     border:          none;
+    border-radius:   0px;
     width:           100%;
     margin:          0px;
+    text-align:      left;
 }
 
+  
 /*  Global styles  */
 .px-1 {
     padding-left: calc(var(--spacer) * 0.25);

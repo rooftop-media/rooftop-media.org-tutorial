@@ -1,29 +1,11 @@
 [
   {
-    "username": "mickeymouse",
-    "display_name": "Mickey Mouse",
-    "email": "mickey@mouse.org",
-    "phone": "234234q",
-    "password": "1dec7d3ada98e9b52f80ac1a6282850f4c5d52aff7b8a93e3abe91c0c0d376610fc3fc6d31e30a40e73a4c5a8c97a63a3142f77fec79866218982464220858ec",
-    "salt": "2c07788e65fa05f8da74bf3a7990055b",
+    "username": "ben",
+    "display_name": "Ben H",
+    "email": "ben@rooftop-media.org",
+    "phone": "123141231414",
+    "password": "ab23ab8d04538d27587954d1208de049eef2835e615e6933a919e4ac2cfecafb9e1dc940f951655edc6a30e5ec13d91ea8b723210be55877c04595f787406a06",
+    "salt": "bcfb58fdd119bd5af63677907b323f9b",
     "id": 0
-  },
-  {
-    "username": "donaldduck",
-    "display_name": "Donald Duck",
-    "email": "donald@disney.org",
-    "phone": "233-333-3333",
-    "password": "7c09b27b8d4d20c817781b76c3457d613e58775402ed5933672fc961aebe4a058984e7201b2ea2111d71eba4e2cdfafe987ab92b2b876ccda15931cbce6ad394",
-    "salt": "714223d98c1ca19d47f9c8bbc7a2ff3f",
-    "id": 1
-  },
-  {
-    "username": "tester",
-    "display_name": "",
-    "email": "",
-    "phone": "",
-    "password": "94837269fd301043f7078aaaa2e578e3adcc68baa9f690a9a56cab83ecca3fe8b8537789ce44e6ba9994e95751168fc29f1040f9dfbd827577379a5146c926f7",
-    "salt": "672371620146c5708e366980b2f30ee4",
-    "id": 2
   }
 ]

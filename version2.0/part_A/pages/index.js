@@ -48,17 +48,24 @@ function update_header() {
   } else {
     buttonText = _current_user.display_name;
     menuHTML += `<a href="/profile">Your profile</a>`;
-    userMenuHTML += `<a href="/create-page">New page</a>`;
-    userMenuHTML += `<a href="/all-pages">All pages</a>`;
+    menuHTML += `<a href="/create-page">New page</a>`;
+    menuHTML += `<a href="/all-pages">All pages</a>`;
     menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
-
+  
   userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">${buttonText}</button>`;
   if (_show_user_menu) {
     userButtonsEl.innerHTML += menuHTML + `</div>`;
   }
 
+}
+
+function toggle_darkmode() {
+  _dark_mode = _dark_mode != 'true' ? 'true' : false;
+  localStorage.setItem('dark_mode', _dark_mode);
+  document.getElementById('header').classList.toggle('dark');
+  document.getElementById('content').classList.toggle('dark');
 }
 
 ////  SECTION 3: Boot.
@@ -74,16 +81,23 @@ function boot() {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
         current_user_loaded();
+        reroute_if_needed();
+        update_header();
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
+        reroute_if_needed();
+        update_header();
       }
-      update_header();
-      reroute_if_needed();
     }
   } else {
     update_header();
     reroute_if_needed();
+  }
+
+  if (_dark_mode === 'true') {
+    _dark_mode = 'false';
+    toggle_darkmode();
   }
   
 }
