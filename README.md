@@ -20,7 +20,15 @@ You can also [visit the website](https://rooftop-media.org).
 rooftop-media.org is built using Javascript and NodeJS. 
 
 This tutorial is organized into 3 stable, usable **versions** -- version 1.0, 2.0, and 3.0.   
-*You can see a bird’s eye view of each version below.*  
+
+| Version   | Description                                                                 | Status      |
+|-----------|-----------------------------------------------------------------------------|-------------|
+| 1.0       | Static pages, user management                                               | Finished    |
+| 2.0       | CMS - markdown and visual                                                   | in progress |
+| 3.0       | [LMS](https://en.wikipedia.org/wiki/Learning_management_system) - user data | todo        |
+| 4.0       | uhhh email client                                                           | todo        |
+| 5.0       | vector editor                                                               | todo        |
+
 
 Each individual **version** is broken down into different tutorial **parts**, labelled by letter.  
 *The full, finished code will be available at the end of each part.*  
