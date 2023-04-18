@@ -29,7 +29,7 @@ Click a part title to jump down to it, in this file.
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
 | [Part A - /email, /email/:msgid, /email/settings](#part-a) | ? min. | ? |
-| [Part B - Editing email settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-b) | 0 min. | 0 |
+| [Part B - Email address set up](#part-b) | 0 min. | 0 |
 | [Part C - Recieving & displaying email](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-c) | 0 min. | 0 |
 | [Part D - Sending email](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-d) | 0 min. | 0 |
 | [Part E - Search emails](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-e) | 0 min. | 0 |
@@ -329,12 +329,35 @@ Open up `localhost:8080/email` to make sure the email page loads correctly.
 
 
 
-<h3 id="a-4">  ☑️ Step 4: Recieving an email in <code>server.js</code> with SMTP  </h3>
+<h3 id="a-4">  ☑️ Step 4: <code>/email-reader.html</code>, for <code>/email/:emailid</code>   </h3>
 
+Now we need a page to load the contents of an email, so the user can read it. 
+
+Create a page called `/pages/email/email-reader.html` and add this:
 
 ```javascript
 
 ```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-??">☑️ Step ??. ❖ Part A review. </h3>
+
+The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_A).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+<h2 id="part-b" align="center">  Part B:  Email address set up</h2>
+
+In this part, we're going to allow users to set up an email account at the domain `rooftop-media.org`.  
+For example, "staff@rooftop-media.org".  
+
+Users will be able to create email addresses when they register, or after registering.  
+Each user can only have one `rooftop-media.org` email address, and this address cannot be edited.  
 
 <br/><br/><br/><br/>
 
