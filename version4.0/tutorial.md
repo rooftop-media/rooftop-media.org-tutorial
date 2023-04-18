@@ -1,8 +1,11 @@
 # NodeJS Tutorial for rooftop-media.org, version 4.0
 
 This is a tutorial for building rooftop-media.org version 4.0.  
-This version creates an email client, for writing, sending, recieving, and reading emails!
-Users will also be able to create email accounts on our website.  
+This version creates an email client, for writing, sending, recieving, and reading emails!  
+
+Users will also be able to create email accounts on our website.
+This can be done when registering an account, or by adding an email to an existing account.  
+Accounts may also have a non-rooftop backup email address.  
 
 *Total estimated time for this tutorial: ADD ESTIMATED TIME*
 
@@ -61,10 +64,10 @@ We'll make sure a user is logged in before they can create pages.
 Create a new folder called `/pages/email`.  In it, add a new file, `email.html`.  
 
 ```html
-<div class="p-3 center-column display-flex">
+<div class="p-3 center-column display-flex position-relative" id="email">
   <div id="mail-sidebar">
     <h1>Mail</h1>
-    <button id="compose">Compose</button>
+    <button id="compose" onclick="composing=true;render_composer()">Compose</button>
     <br/>
     <ul>
       <li>Inbox</li>
@@ -73,6 +76,8 @@ Create a new folder called `/pages/email`.  In it, add a new file, `email.html`.
       <li>Spam</li>
       <li>Drafts</li>
       <li>Archive</li>
+      <br/><hr /><br/>
+      <li>Settings</li>
     </ul>
   </div>
   <div id="mail-display">
@@ -85,19 +90,28 @@ Create a new folder called `/pages/email`.  In it, add a new file, `email.html`.
     <hr/>
     <!--  Email rows go here -->
   </div>
+  <div id="composer">
+    <div id="composer-title">New email<span onclick="close_composer();">x</span></div>
+    <div id="composer-to"><input placeholder="To" /></div>
+    <div id="composer-subject"><input placeholder="Subject" /></div>
+    <div id="composer-body"><textarea></textarea></div>
+    <div><button id="send" onclick="send()">Send</button></div>
+  </div>
 </div>
 
 <script>
+
+let composing = false;
 let emails = [{
-  title: "Hello world!",
+  subject: "Hello world!",
   text: "This is a test email...",
   date: "April 10th"
 }, {
-  title: "Welcome",
+  subject: "Welcome",
   text: "Welcome to rooftop!",
   date: "April 13th"
 }, {
-  title: "Third email",
+  subject: "Third email",
   text: "Testing, testing",
   date: "April 13th"
 }]
@@ -111,21 +125,49 @@ function render() {
     emailDisplay.innerHTML += `<div class="row">
       <input type="checkbox" />
       <!-- <img src="star.png" /> -->
-      <div class="email-title">${emails[i].title}</div>
+      <div class="email-subject">${emails[i].subject}</div>
       <div class="email-peek">${emails[i].text}</div>
       <div class="email-date">${emails[i].date}</div>
     </div>
     <hr/>`;
   }
+  render_composer();
+}
+function render_composer() {
+  if (!composing) {
+    document.getElementById('composer').style.display = 'none';
+  } else {
+    document.getElementById('composer').style.display = 'block';
+  }
 }
 
 render();
 
+function close_composer() {
+  composing = false;
+  render_composer();
+}
+
+function send() {
+  let email = {
+    to: document.getElementById('composer-to').children[0].value,
+    subject: document.getElementById('composer-subject').children[0].value,
+    body: document.getElementById('composer-body').children[0].value
+  }
+  console.log(email);
+}
+
 </script>
 
 <style>
+  #email {
+    min-height: calc(100vh - 100px);
+  }
   .display-flex {
     display: flex;
+  }
+  .position-relative {
+    position: relative;
   }
 
   /** sidebar  **/
@@ -150,7 +192,13 @@ render();
     margin-bottom: 10px;
     color: #aaa;
   }
+  #mail-sidebar hr {
+    color: #eee;
+    margin: 0px;
+    border-width: .5px;
+  }
 
+  /**  Mail display  */
   #mail-display {
     margin-top: 1.3em;
     flex-grow: .7;
@@ -193,7 +241,7 @@ render();
   .row:hover input[type=checkbox] {
     opacity: 1;
   }
-  .email-title {
+  .email-subject {
     padding-left: 10px;
     box-sizing: border-box;
     width: 30%;
@@ -206,6 +254,43 @@ render();
     width: 20%;
     font-size: .75em;
     color: #aaa;
+  }
+
+
+  /* Mail composer  */
+  #composer {
+    position: absolute;
+    bottom: 0px;
+    right: 20px;
+    min-width: 300px;
+    min-height: 300px;
+    width: 400px;
+    height: 400px;
+    background: white;
+    box-shadow: 0px 0px 5px rgba(0,0,0,.5);
+  }
+  #composer div {
+    padding: 5px 10px;
+    box-sizing: border-box;
+  }
+  #composer-title {
+    background: #eee;
+    display: flex;
+    justify-content: space-between;
+  }
+  #composer-title span {
+    cursor: pointer;
+  }
+  #composer div input, #composer div textarea {
+    width: calc(100% - 5px);
+    border: none;
+  }
+  #send {
+    background: #BFDAFF;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
   }
   
 </style>
