@@ -30,13 +30,13 @@ Click a part title to jump down to it, in this file.
 | --------------------------- | ------ | ---------- |
 | [Part A - Email address set up](#part-a) | ? min. | ? |
 | [Part B - /email](#part-b) | 0 min. | 0 |
-| [Part C - Recieving & displaying email](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-c) | 0 min. | 0 |
-| [Part D - Sending email](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-d) | 0 min. | 0 |
-| [Part E - Search emails](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-e) | 0 min. | 0 |
-| [Part F - Folders and drafts](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-f) | 0 min. | 0 |
-| [Part G - Spam](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-g) | 0 min. | 0 |
-| [Part H - HTML Emails](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-h) | 0 min. | 0 |
-| [Version 5.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#v2) | Todo | ? |
+| [Part C - Recieving & displaying email](#part-c) | 0 min. | 0 |
+| [Part D - Sending email](#part-d) | 0 min. | 0 |
+| [Part E - Search emails](#part-e) | 0 min. | 0 |
+| [Part F - Folders and drafts](#part-f) | 0 min. | 0 |
+| [Part G - Spam](#part-g) | 0 min. | 0 |
+| [Part H - HTML Emails](#part-h) | 0 min. | 0 |
+| [Version 5.0.](#v5) | Todo | ? |
 
 
 
@@ -186,10 +186,36 @@ function api_POST_routes(url, req, res) {
 }
 ```
 
-And then in the same file, below `POST_update_password`, add this function: 
+And then in the same file, _below_ `POST_update_password`, add this function: 
 
 ```
+function POST_add_address(new_address, res) {
+  let addresses = fs.readFileSync(__dirname + '/database/table_rows/email_addresses.json', 'utf8');
+  addresses = JSON.parse(addresses);
+  let response = {
+    error: false,
+    msg: '',
+    rooftop_email: new_address.address
+  }
+  for (let i = 0; i < addresses.length; i++) {
+    if (addresses[i].address == new_address.address) {
+      response.error = true;
+      response.msg = 'Email address already taken.';
+      break;
+    } else if (addresses[i].user_id == new_address.user_id) {
+      response.error = true;
+      response.msg = 'User already has an address.';
+      break;
+    } 
+  }
 
+  if (!response.error) {
+    let address_id = DataBase.table('email_addresses').insert(new_address);
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
 ```
 
 <br/><br/><br/><br/>
@@ -237,58 +263,37 @@ Create a file called `/server/database/table_rowss/email-addresses.json`.  Add a
 
 
 
-<h3 id="a-"> ☑️ Step . ☞  Test the code!  </h3>
+<h3 id="a-5"> ☑️ Step 5. ☞  Test the code!  </h3>
 
-Open up `localhost:8080/email` to make sure the email page loads correctly. 
+Restart the server, and open up `localhost:8080/add-address`. Make sure you're logged in.  
+Try adding a new address.  It should create a new email address record in the database, and redirect you to `/email`.  
 
-<br/><br/><br/><br/>
-
-
-
-<h3 id="a-4">  ☑️ Step 4: <code>/email-reader.html</code>, for <code>/email/:emailid</code>   </h3>
-
-Now we need a page to load the contents of an email, so the user can read it. 
-
-Create a page called `/pages/email/email-reader.html` and add this:
-
-```javascript
-<div>
-  <h2 id="email-subject">Hello world!</h2>
-  <div id="email-from">from: test@email.com<span>April 10th</span></div>
-  <div id="email-body">This is a test email...</div>
-  <button>reply</button>
-</div>
-```
-
-<br/><br/><br/><br/>
-
-
-<h3 id="a-5">  ☑️ Step 5:    </h3>
-
-
-
-
-<h3 id="a-??">☑️ Step ??. ❖ Part A review. </h3>
-
-The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_A).
-
-<br/><br/><br/><br/>
-<br/><br/><br/><br/>
-
-
-<h2 id="part-b" align="center">  Part B:  Email address set up</h2>
-
-In this part, we're going to allow users to set up an email account at the domain `rooftop-media.org`.  
-For example, "staff@rooftop-media.org".  
-
-Users will be able to create email addresses when they register, or after registering.  
-Each user can only have one `rooftop-media.org` email address, and this address cannot be edited.  
+Now try adding another email address with the same user -- you should get an error.  
+Try adding the same address name for another error.  
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-??">☑️ Step ??. ❖ Part A review. </h3>
+<h3 id="a-6">☑️ Step 6. ❖ Part A review. </h3>
+
+The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version4.0/part_A).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+
+<h2 id="part-b" align="center">  Part B:  <code>/email</code></h2>
+
+In this part, we'll build a webapp page for browsing, reading, and writing emails. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-??">☑️ Step ??. ❖ Part B review. </h3>
 
 The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_A).
 
