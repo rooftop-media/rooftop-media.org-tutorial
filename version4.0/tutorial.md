@@ -336,10 +336,19 @@ Now we need a page to load the contents of an email, so the user can read it.
 Create a page called `/pages/email/email-reader.html` and add this:
 
 ```javascript
-
+<div>
+  <h2 id="email-subject">Hello world!</h2>
+  <div id="email-from">from: test@email.com<span>April 10th</span></div>
+  <div id="email-body">This is a test email...</div>
+  <button>reply</button>
+</div>
 ```
 
 <br/><br/><br/><br/>
+
+
+<h3 id="a-5">  ☑️ Step 5:    </h3>
+
 
 
 
