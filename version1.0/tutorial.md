@@ -23,12 +23,13 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - Serving Static Pages](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-a) | 15 min. | 18 |
-| [Part B - /register, API & DB basics](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-b) | 15 min. | 8 |
-| [Part C - User sessions, logout, and /login](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-c) | 20 min.  | 13 |
-| [Part D - User settings](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-d) | 10 min. | 9 |
-| [Part E - Mobile design](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-e) | 15 min. | 12 |
-| [Version 2.0.](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#v2) | Todo | ? |
+| [Part A - Serving Static Pages](#part-a) | 15 min. | 18 |
+| [Part B - /register, API & DB basics](#part-b) | 15 min. | 8 |
+| [Part C - User sessions, logout, and /login](#part-c) | 20 min.  | 13 |
+| [Part D - User settings](#part-d) | 10 min. | 9 |
+| [Part E - Mobile design](#part-e) | 15 min. | 12 |
+| [Part F - Hosting](#part-f) | ? min. | ? |
+| [Version 2.0.](#v2) | Todo | ? |
 <!--| [Part F - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
 | [Part G - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-g) | 0 min. | 0 |
 | [Part H - Unit testing](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-h) | 0 min. | 0 |-->
