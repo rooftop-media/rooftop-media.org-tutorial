@@ -28,8 +28,8 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - /email, /email/:msgid, /email/settings](#part-a) | ? min. | ? |
-| [Part B - Email address set up](#part-b) | 0 min. | 0 |
+| [Part A - Email address set up](#part-a) | ? min. | ? |
+| [Part B - /email](#part-b) | 0 min. | 0 |
 | [Part C - Recieving & displaying email](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-c) | 0 min. | 0 |
 | [Part D - Sending email](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-d) | 0 min. | 0 |
 | [Part E - Search emails](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md#part-e) | 0 min. | 0 |
@@ -46,253 +46,86 @@ Click a part title to jump down to it, in this file.
 
 
 
-<h2 id="part-a" align="center">  Part A:  <code>/email</code></h2>
+<h2 id="part-a" align="center">  Part A:  Email address set up</h2>
 
-In this part, we'll create two static pages to facilitate the basic creation of dynamic pages:
- - `/create-page`, where users can create a new page with a specific title and route, and
- - `/pages`, where users can see all created pages.
 
-Dynamic pages will be saved to the database, and accessible at different URL routes.  
-We'll make sure a user is logged in before they can create pages. 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/email/email.html</code>  </h3>
+<h3 id="a-1">  ☑️ Step 1: Add <code>/pages/email/add-address.html</code>  </h3>
 
-Create a new folder called `/pages/email`.  In it, add a new file, `email.html`.  
+First, we'll let the user create an email account on rooftop-media.org.  
+We'll store this email in a new database table, called "email-addresses".  
+
+Create a new folder called `/pages/email`, and add the file `/pages/email/add-address.html`. 
 
 ```html
-<div class="p-3 center-column display-flex position-relative" id="email">
-  <div id="mail-sidebar">
-    <h1>Mail</h1>
-    <button id="compose" onclick="composing=true;render_composer()">Compose</button>
-    <br/>
-    <ul>
-      <li>Inbox</li>
-      <li>Sent</li>
-      <li>Starred</li>
-      <li>Spam</li>
-      <li>Drafts</li>
-      <li>Archive</li>
-      <br/><hr /><br/>
-      <li>Settings</li>
-    </ul>
-  </div>
-  <div id="mail-display">
-    <input type="text" placeholder="Search" id="searchbar" />
-    <br/>
-    <hr/>
-    <div id="top-row">
-      <input type="checkbox" />
-    </div>
-    <hr/>
-    <!--  Email rows go here -->
-  </div>
-  <div id="composer">
-    <div id="composer-title">New email<span onclick="close_composer();">x</span></div>
-    <div id="composer-to"><input placeholder="To" /></div>
-    <div id="composer-subject"><input placeholder="Subject" /></div>
-    <div id="composer-body"><textarea></textarea></div>
-    <div><button id="send" onclick="send()">Send</button></div>
-  </div>
+<div class="p-3 center-column" id="email">
+  <h2>Create a new email address</h2>
+  <p>Looks like you don't have a <b>rooftop-media.org</b> email address yet. </p>
+  <div><input type="text" tabindex="6" id="new_address"/>@rooftop-media.org</div>
+  <p>Your email address cannot be changed once created!</p>
+  <p id="error"></p>
+
+  <br/>
+  <button onclick="create_address()">Create email address</button>
+
 </div>
 
 <script>
 
-let composing = false;
-let emails = [{
-  subject: "Hello world!",
-  text: "This is a test email...",
-  date: "April 10th"
-}, {
-  subject: "Welcome",
-  text: "Welcome to rooftop!",
-  date: "April 13th"
-}, {
-  subject: "Third email",
-  text: "Testing, testing",
-  date: "April 13th"
-}]
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
 
-
-function render() {
-  let emailDisplay = document.getElementById('mail-display');
-  emailDisplay.innerHTML = `<input type="text" placeholder="Search" id="searchbar" /><br/><hr/>`;
-  emailDisplay.innerHTML += `<div id="top-row"><input type="checkbox" /></div><hr/>`;
-  for (let i = 0; i < emails.length; i++) {
-    emailDisplay.innerHTML += `<div class="row">
-      <input type="checkbox" />
-      <!-- <img src="star.png" /> -->
-      <div class="email-subject">${emails[i].subject}</div>
-      <div class="email-peek">${emails[i].text}</div>
-      <div class="email-date">${emails[i].date}</div>
-    </div>
-    <hr/>`;
-  }
-  render_composer();
-}
-function render_composer() {
-  if (!composing) {
-    document.getElementById('composer').style.display = 'none';
+//  Validate address
+const new_address_input = document.getElementById('new_address');
+const new_address_regex = /^[a-z0-9_]*$/;
+var new_address_val = new_address_input.value;
+new_address_input.addEventListener("keydown", event => {
+  new_address_val = new_address_input.value;
+  if (!new_address_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    document.getElementById('error').innerHTML = "Email must contain only letters, numbers, and _.";
+    event.preventDefault();
   } else {
-    document.getElementById('composer').style.display = 'block';
+    document.getElementById('error').innerHTML = "";
   }
-}
+});
 
-render();
 
-function close_composer() {
-  composing = false;
-  render_composer();
-}
+function create_address() {
+  const new_address = document.getElementById('new_address').value;
 
-function send() {
-  let email = {
-    to: document.getElementById('composer-to').children[0].value,
-    subject: document.getElementById('composer-subject').children[0].value,
-    body: document.getElementById('composer-body').children[0].value
+  if (new_address.length < 2) {
+    document.getElementById('error').innerHTML = "Email address must be at least 2 characters.";
   }
-  console.log(email);
-}
 
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/add-address');
+  http.send(JSON.stringify({
+    username: _current_user.username,
+    address: new_address
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Address created!");
+        _current_user.rooftop_email = response.address;
+        window.location.href = '/email';
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  } // end http callback
+}
 </script>
 
 <style>
-  #email {
-    min-height: calc(100vh - 100px);
+  #error {
+    color: red;
   }
-  .display-flex {
-    display: flex;
-  }
-  .position-relative {
-    position: relative;
-  }
-
-  /** sidebar  **/
-  #mail-sidebar {
-    flex-grow: .3;
-  }
-  #compose {
-    background: #BFDAFF;
-    color: #666;
-    padding: 10px 20px;
-    border-radius: 25px;
-    border: none;
-    font-size: 1em;
-    cursor: pointer;
-  }
-  #mail-sidebar ul {
-    padding-left: 10px;
-  }
-  #mail-sidebar li {
-    list-style-type: none;
-    cursor: pointer;
-    margin-bottom: 10px;
-    color: #aaa;
-  }
-  #mail-sidebar hr {
-    color: #eee;
-    margin: 0px;
-    border-width: .5px;
-  }
-
-  /**  Mail display  */
-  #mail-display {
-    margin-top: 1.3em;
-    flex-grow: .7;
-    font-family: sans-serif;
-  }
-  #mail-display hr {
-    color: #eee;
-    margin: 0px;
-    border-width: .5px;
-  }
-  #searchbar {
-    width: 100%;
-    display: block;
-    padding: 10px;
-    box-sizing: border-box;
-  }
-  input[type=checkbox] {
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
-  }
-
-  #top-row {
-    padding: .5em 0px;
-    display: flex;
-  }
-
-  .row {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    padding: .5em 0px;
-  }
-  .row:hover {
-    box-shadow: 0px 0px 2px rgba(0,0,0,.5);
-  }
-  .row input[type=checkbox] {
-    opacity: .7;
-  }
-  .row:hover input[type=checkbox] {
-    opacity: 1;
-  }
-  .email-subject {
-    padding-left: 10px;
-    box-sizing: border-box;
-    width: 30%;
-  }
-  .email-peek {
-    width: 50%;
-    color: #aaa;
-  }
-  .email-date {
-    width: 20%;
-    font-size: .75em;
-    color: #aaa;
-  }
-
-
-  /* Mail composer  */
-  #composer {
-    position: absolute;
-    bottom: 0px;
-    right: 20px;
-    min-width: 300px;
-    min-height: 300px;
-    width: 400px;
-    height: 400px;
-    background: white;
-    box-shadow: 0px 0px 5px rgba(0,0,0,.5);
-  }
-  #composer div {
-    padding: 5px 10px;
-    box-sizing: border-box;
-  }
-  #composer-title {
-    background: #eee;
-    display: flex;
-    justify-content: space-between;
-  }
-  #composer-title span {
-    cursor: pointer;
-  }
-  #composer div input, #composer div textarea {
-    width: calc(100% - 5px);
-    border: none;
-  }
-  #send {
-    background: #BFDAFF;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-  
 </style>
 ```
 
@@ -300,7 +133,7 @@ function send() {
 
 
 
-<h3 id="a-2">  ☑️ Step 2: Adding <code>email</code> to the server </h3>
+<h3 id="a-2">  ☑️ Step 2: Adding <code>/add-address.html</code> to the server </h3>
 
 In `/server/server.js`, edit this:
 
@@ -312,7 +145,7 @@ var pageURLs = {
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html',
-  '/email': '/pages/email/email.html'
+  '/add-address': '/pages/email/add-address.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
 ```
@@ -321,7 +154,90 @@ var pageURLkeys = Object.keys(pageURLs);
 
 
 
-<h3 id="a-3"> ☑️ Step 3. ☞  Test the code!  </h3>
+<h3 id="a-3">  ☑️ Step 3: Add api POST route, <code>/api/add-address</code> </h3>
+
+In `server.js`, update this:  
+
+```js
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/login') {
+      POST_login(req_data, res);
+    } else if (url == '/api/logout') {
+      POST_logout(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    } else if (url == '/api/update-user') {
+      POST_update_user(req_data, res);
+    } else if (url == '/api/update-password') {
+      POST_update_password(req_data, res);
+    } else if (url == '/api/add-address') {
+      POST_add_address(req_data, res);
+    }
+  })
+}
+```
+
+And then in the same file, below `POST_update_password`, add this function: 
+
+```
+
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-4">  ☑️ Step 4: Add a new table to the database</h3>
+
+Create a file called `/server/database/table_columns/email-addresses.json`.  Add the following:
+
+```json
+{
+  "name": "Email addresses",
+  "snakecase": "email_addresses",
+  "max_id": 0,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "User id",
+      "snakecase": "user_id",
+      "unique": true
+    },
+    {
+      "name": "Address",
+      "snakecase": "display_name",
+      "unique": true
+    }
+  ]
+}
+```
+
+Create a file called `/server/database/table_rowss/email-addresses.json`.  Add an empty array:
+
+```json
+[]
+```
+
+<br/><br/><br/><br/>
+
+
+
+
+
+<h3 id="a-"> ☑️ Step . ☞  Test the code!  </h3>
 
 Open up `localhost:8080/email` to make sure the email page loads correctly. 
 
