@@ -2724,18 +2724,23 @@ ssh -i ~/path/to/publickey.pem root@<your-domain-ip>
 
 <h3 id="f-4"> ☑️ Step 4. Hosting the Node website </h3>
 
-Follow [this tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-22-04) 
-to host the website with Nginx.  
+Digital Ocean provides a great tutorial for hosting a NodeJS website.
 
 That tutorial requires several prerequisite tutorials which you'll have to follow first:
  - [Initial set up](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-22-04)
  - [DNS quickstart](https://docs.digitalocean.com/products/networking/dns/quickstart/) (We already did this one)
  - [Installing NginX](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04)
-   - Make a dummy html page for this one, you'll replace it with our website at the end. 
- - [Securing NginX with LetsEncrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-22-04)
- - [Installing NodeJS](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-22-04)
+   - Make a dummy html page for this one, in a folder called `/var/www/rooftop-media.org`. 
+ - [Securing NginX with LetsEncrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-22-04) (for https)
+ - [Installing NodeJS](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-22-04) (you don't need to install `npm`.)
 
-So, follow all those, and _then_, follow the first link to host your website. 
+So, follow all those, and _then_, follow [this tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-22-04), but skip step 1, and instead do the following:
+ - Navigate to `/var/www`
+ - Run `sudo rm -rf rooftop-media.org/`
+ - Run `git clone https://github.com/rooftop-media/rooftop-media.org.git`
+   - Enter your github username
+   - You'll have to [create a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) for your password
+  - Skip to Step 2 of the tutuorial. 
 
 <br/><br/><br/><br/>
 
