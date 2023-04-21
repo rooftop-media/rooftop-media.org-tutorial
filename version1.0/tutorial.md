@@ -2731,6 +2731,7 @@ That tutorial requires several prerequisite tutorials which you'll have to follo
  - [Initial set up](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-22-04)
  - [DNS quickstart](https://docs.digitalocean.com/products/networking/dns/quickstart/) (We already did this one)
  - [Installing NginX](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04)
+   - Make a dummy html page for this one, you'll replace it with our website at the end. 
  - [Securing NginX with LetsEncrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-22-04)
  - [Installing NodeJS](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-22-04)
 
