@@ -2672,6 +2672,92 @@ The complete code for Part E is available [here](https://github.com/rooftop-medi
 
 
 
+<h2 id="part-f" align="center">  Part F:  Hosting </h2>
+
+In this part, we'll host our website on a webserver, with a domain public to the world wide web.  
+This section will use [Namecheap](www.namecheap.com/) for the domain name and [Digital Ocean](https://www.digitalocean.com/) for the server.  
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-1"> ☑️ Step 1.  Purchase a domain name </h3>
+
+Create an account on [Namecheap.com](www.namecheap.com/), if you don't have one.  
+Then, search for a domain name you like, and buy it for some amount of years.  
+I bought the domain name "rooftop-media.org".  
+
+Follow [this tutorial](https://docs.digitalocean.com/tutorials/dns-registrars/) to add *custom DNS* to the domain, pointing to these nameservers:  
+ - ns1.digitalocean.com
+ - ns2.digitalocean.com
+ - ns3.digitalocean.com
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-2"> ☑️ Step 2.  Create a droplet on digitalocean </h3>
+
+Create an account on [digitalocean.com](https://www.digitalocean.com/), if you don't already have one.  
+Create a droplet for an Ubuntu server. The $4/month option will work fine.  
+
+Click on the droplet options and click "Add domain".  
+Add your domain name, and make it redirect to the new server droplet, with "@" as the hostname. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-3"> ☑️ Step 3. Access the server </h3>
+
+Follow [this tutorial](https://docs.digitalocean.com/products/droplets/how-to/add-ssh-keys/) to set up a private ssh key for your droplet.  
+Create the key on your computer, and add it to the droplet. 
+
+Then, using the command line, SSH into your server like so: 
+```bash
+ssh -i ~/path/to/publickey.pem root@<your-domain-ip>
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-4"> ☑️ Step 4. Hosting the Node website </h3>
+
+Follow [this tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-22-04) 
+to host the website with Nginx.  
+
+That tutorial requires several prerequisite tutorials which you'll have to follow first:
+ - [Initial set up](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-22-04)
+ - [DNS quickstart](https://docs.digitalocean.com/products/networking/dns/quickstart/) (We already did this one)
+ - [Installing NginX](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04)
+ - [Securing NginX with LetsEncrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-22-04)
+ - [Installing NodeJS](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-22-04)
+
+So, follow all those, and _then_, follow the first link to host your website. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-5"> ☑️ Step 5.  ☞  Test the code! </h3>
+
+Test our new set up by going to your domain on a web browser. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-6"> ☑️ Step 6. ❖ Part F review. </h3>
+
+There is no additional code for part F, but congrats on the publically live website!
+
+**To update your website:**
+SSH into the web server, navigate to `/var/www/rooftop-media.org/`, and run `git pull`.  
+Then, restart the `pm2` process by running ...
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
 
 
 
