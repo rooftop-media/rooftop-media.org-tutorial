@@ -2942,7 +2942,10 @@ function POST_register(new_user, res) {
 
 <h3 id="f-4"> ☑️ Step 4.  ☞  Test the code! </h3>
 
-
+Restart the server. Go to `localhost:8080/register`, enter the wrong invite code. You should get an error.  
+Now, enter the correct invite code, and register a new user.  It should work.  
+Log out, and go to `/register` again.  This time, right click to open "dev tools", and make the div with id="register-section" display: block.  
+The registration form should appear.  Tyr to register a new user without adding the code.  You should get an error. 
 
 <br/><br/><br/><br/>
 
