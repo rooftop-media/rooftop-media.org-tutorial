@@ -28,7 +28,8 @@ Click a part title to jump down to it, in this file.
 | [Part C - User sessions, logout, and /login](#part-c) | 20 min.  | 13 |
 | [Part D - User settings](#part-d) | 10 min. | 9 |
 | [Part E - Mobile design](#part-e) | 15 min. | 12 |
-| [Part F - Hosting](#part-f) | ? min. | ? |
+| [Part F - Invite code](#part-f) | 15 min. | 12 |
+| [Part G - Hosting](#part-g) | ? min. | ? |
 | [Version 2.0.](#v2) | Todo | ? |
 <!--| [Part F - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
 | [Part G - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-g) | 0 min. | 0 |
@@ -2672,7 +2673,239 @@ The complete code for Part E is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-f" align="center">  Part F:  Hosting </h2>
+<h2 id="part-f" align="center">  Part F:  Invite code </h2>
+
+In this part, we'll ensure users can only register if they first type in an "invite code".  
+<!-- TODO: One access code = one registered account, admin accts can create codes.  For now it's just a simple reusable password. -->
+This will be important because I want to host the website on a public domain while it's still in beta. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-1"> ☑️ Step 1.  Update <code>register.html</code> </h3>
+
+We'll update the code for `register.html` with the following changes:
+ - Add an "invite-code-section", with an input for the invite code. 
+ - Make the "register-section" default to display: none. 
+ - Add an "enter" function which calls `/api/check-invite-code` and then displays the register section. 
+ - Edit the "register" function to submit the invite code with `/api/register`.  
+
+Here's the full code: 
+
+```html
+<div class="p-3 center-column" id="invite-code-section">
+  <h3>Register</h3>
+  <div>Invite code: <input type="text" tabindex="0" id="invite_code" placeholder="1234"/></div>
+  <p><i>rooftop-media.org is currently invite-only, as we work out the website's features.</i></p>
+  <button onclick="enter()">Enter</button>
+  <p id="error"></p>
+</div>
+<div class="p-3 center-column" id="register-section" style="display: none;">
+  <h3>Register</h3>
+  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" tabindex="5" id="password"/></div>
+  <div>Confirm password: <input type="password" tabindex="6" id="confirm_password"/></div>
+  <p id="error"></p>
+  <button onclick="register()">Register</button>
+</div>
+
+<script>
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+let invite_code = "";
+
+//  Username -- lowercase alphanumeric and _ only
+const username_input = document.getElementById('username');
+const username_regex = /^[a-z0-9_]*$/;
+username_input.addEventListener("keydown", event => {
+  if (!username_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    event.preventDefault();
+    document.getElementById('error').innerHTML = "Username can only contain lowercase letters, numbers, and underscores.";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Email
+const email_input = document.getElementById('email');
+const email_regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+var email_val = email_input.value;
+email_input.addEventListener("input", event => {
+  email_val = email_input.value;
+  if (!email_regex.test(email_val) && !utility_keys.includes(event.keyCode)) {
+    document.getElementById('error').innerHTML = "Invalid email format";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Phone
+const phone_input = document.getElementById('phone');
+const phone_regex = /^[0-9\-]{0,12}$/;
+var phone_val = "";
+phone_input.addEventListener("keydown", event => {
+  phone_val = phone_input.value
+  event.target.selectionStart = phone_input.value.length;
+  if (!phone_regex.test(phone_val + event.key) && !utility_keys.includes(event.keyCode) || event.keyCode == 173) {
+    event.preventDefault();
+  } else if (event.keyCode != 8) {
+    if (phone_val.length == 3 || phone_val.length == 7) {
+      phone_input.value = phone_input.value + "-";
+    }
+  } else {
+    if (phone_val.length == 5 || phone_val.length == 9) {
+      phone_input.value = phone_input.value.slice(0,-1);
+    }
+  }
+});
+
+function register() {
+  var username = document.getElementById('username').value;
+  var display_name = document.getElementById('display_name').value;
+  var email = document.getElementById('email').value;
+  var phone = document.getElementById('phone').value;
+  var password = document.getElementById('password').value;
+  var confirm_password = document.getElementById('confirm_password').value;
+  if (password != confirm_password) {
+    document.getElementById('error').innerHTML = 'Passwords must match.';
+    return;
+  }
+  if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Valid username required.';
+    return;
+  }
+
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/register');
+  http.send(JSON.stringify({
+    username: username,
+    display_name,
+    email,
+    phone,
+    password,
+    invite_code
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Logging you in.");
+        localStorage.setItem('session_id', response.session_id);
+        _session_id = response.session_id;
+        window.location.href = '/';
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+function enter() {
+  invite_code = document.getElementById('invite_code').value;
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/check-invite-code');
+  http.send(JSON.stringify({invite_code: invite_code}));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Correct invite code");
+        document.getElementById('invite-code-section').style.display = 'none';
+        document.getElementById('register-section').style.display = 'block';
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+</script>
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-2"> ☑️ Step 2.  Add <code>/api/check-invite-code</code> </h3>
+
+In `/server.js`, add `/api/check-invite-code`...
+
+```js
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    req_data = JSON.parse(req_data);
+
+    if (url == '/api/register') {
+      POST_register(req_data, res);
+    } else if (url == '/api/login') {
+      POST_login(req_data, res);
+    } else if (url == '/api/logout') {
+      POST_logout(req_data, res);
+    } else if (url == '/api/user-by-session') {
+      POST_user_by_session(req_data, res);
+    } else if (url == '/api/update-user') {
+      POST_update_user(req_data, res);
+    } else if (url == '/api/update-password') {
+      POST_update_password(req_data, res);
+    } else if (url == '/api/check-invite-code') {
+      POST_check_invite_code(req_data, res);
+    }
+  })
+}
+```
+
+And add this function after `POST_update_password`:
+
+```js
+function POST_check_invite_code(data, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  if (data.invite_code == 'secret123') {
+    res.write(JSON.stringify({error: false}));
+  } else {
+    res.write(JSON.stringify({error: true, msg: "incorrect code"}));
+  }
+  res.end();
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-3"> ☑️ Step 3.  Edit <code>/api/register</code> to check for the code</h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-4"> ☑️ Step 4.  ☞  Test the code! </h3>
+
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-??" ☑️ Step ?. ❖ Part F review. </h3>
+
+The complete code for Part F is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_F).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+<h2 id="part-g" align="center">  Part G:  Hosting </h2>
 
 In this part, we'll host our website on a webserver, with a domain public to the world wide web.  
 This section will use [Namecheap](www.namecheap.com/) for the domain name and [Digital Ocean](https://www.digitalocean.com/) for the server.  
@@ -2681,7 +2914,7 @@ This section will use [Namecheap](www.namecheap.com/) for the domain name and [D
 
 
 
-<h3 id="f-1"> ☑️ Step 1.  Purchase a domain name </h3>
+<h3 id="g-1"> ☑️ Step 1.  Purchase a domain name </h3>
 
 Create an account on [Namecheap.com](www.namecheap.com/), if you don't have one.  
 Then, search for a domain name you like, and buy it for some amount of years.  
@@ -2696,7 +2929,7 @@ Follow [this tutorial](https://docs.digitalocean.com/tutorials/dns-registrars/) 
 
 
 
-<h3 id="f-2"> ☑️ Step 2.  Create a droplet on digitalocean </h3>
+<h3 id="g-2"> ☑️ Step 2.  Create a droplet on digitalocean </h3>
 
 Create an account on [digitalocean.com](https://www.digitalocean.com/), if you don't already have one.  
 Create a droplet for an Ubuntu server. The $4/month option will work fine.  
@@ -2708,7 +2941,7 @@ Add your domain name, and make it redirect to the new server droplet, with "@" a
 
 
 
-<h3 id="f-3"> ☑️ Step 3. Access the server </h3>
+<h3 id="g-3"> ☑️ Step 3. Access the server </h3>
 
 Follow [this tutorial](https://docs.digitalocean.com/products/droplets/how-to/add-ssh-keys/) to set up a private ssh key for your droplet.  
 Create the key on your computer, and add it to the droplet. 
@@ -2722,7 +2955,7 @@ ssh -i ~/path/to/publickey.pem root@<your-domain-ip>
 
 
 
-<h3 id="f-4"> ☑️ Step 4. Hosting the Node website </h3>
+<h3 id="g-4"> ☑️ Step 4. Hosting the Node website </h3>
 
 Digital Ocean provides a great tutorial for hosting a NodeJS website.
 
@@ -2732,7 +2965,7 @@ That tutorial requires several prerequisite tutorials which you'll have to follo
  - [Installing NginX](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04)
    - Make a dummy html page for this one, in a folder called `/var/www/rooftop-media.org`. 
  - [Securing NginX with LetsEncrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-22-04) (for https)
- - [Installing NodeJS](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-22-04) (you don't need to install `npm`.)
+ - [Installing NodeJS](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-22-04) 
 
 So, follow all those, and _then_, follow [this tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-22-04), but skip step 1, and instead do the following:
  - Navigate to `/var/www`
@@ -2746,7 +2979,7 @@ So, follow all those, and _then_, follow [this tutorial](https://www.digitalocea
 
 
 
-<h3 id="f-5"> ☑️ Step 5.  ☞  Test the code! </h3>
+<h3 id="g-5"> ☑️ Step 5.  ☞  Test the code! </h3>
 
 Test our new set up by going to your domain on a web browser. 
 
@@ -2754,9 +2987,9 @@ Test our new set up by going to your domain on a web browser.
 
 
 
-<h3 id="f-6"> ☑️ Step 6. ❖ Part F review. </h3>
+<h3 id="G-6"> ☑️ Step 6. ❖ Part G review. </h3>
 
-There is no additional code for part F, but congrats on the publically live website!
+There is no additional code for part G, but congrats on the publically live website!
 
 **To update your website:**
 SSH into the web server, navigate to `/var/www/rooftop-media.org/`, and run `git pull`.  
