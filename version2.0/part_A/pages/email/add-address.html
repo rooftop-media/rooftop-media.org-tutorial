@@ -1,0 +1,64 @@
+<div class="p-3 center-column" id="email">
+  <h2>Create a new email address</h2>
+  <p>Looks like you don't have a <b>rooftop-media.org</b> email address yet. </p>
+  <div><input type="text" tabindex="6" id="new_address"/>@rooftop-media.org</div>
+  <p>Your email address cannot be changed once created!</p>
+  <p id="error"></p>
+
+  <br/>
+  <button onclick="create_address()">Create email address</button>
+
+</div>
+
+<script>
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+//  Validate address
+const new_address_input = document.getElementById('new_address');
+const new_address_regex = /^[a-z0-9_]*$/;
+var new_address_val = new_address_input.value;
+new_address_input.addEventListener("keydown", event => {
+  new_address_val = new_address_input.value;
+  if (!new_address_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    document.getElementById('error').innerHTML = "Email must contain only letters, numbers, and _.";
+    event.preventDefault();
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+
+function create_address() {
+  const new_address = document.getElementById('new_address').value;
+
+  if (new_address.length < 2) {
+    document.getElementById('error').innerHTML = "Email address must be at least 2 characters.";
+  }
+
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/add-address');
+  http.send(JSON.stringify({
+    username: _current_user.username,
+    address: new_address
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Address created!");
+        window.location.href = '/email';
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  } // end http callback
+}
+</script>
+
+<style>
+  #error {
+    color: red;
+  }
+</style>

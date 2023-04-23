@@ -34,8 +34,8 @@ var pageURLs = {
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html',
-  '/add-address': '/pages/email/add-address.html',
-  '/email': '/pages/email/email.html'
+  '/create-page': '/pages/cms/create-page.html',
+  '/all-pages': '/pages/cms/all-pages.html',
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -64,6 +64,8 @@ function server_request(req, res) {
 function respond_with_a_page(res, url) {
   if (pageURLkeys.includes(url)) {
     url = pageURLs[url];
+  } else {
+    return respond_with_a_dynamic_page(res, url);
   }
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     var content_page = "";
@@ -79,6 +81,22 @@ function respond_with_a_page(res, url) {
     res.write(rendered);
     res.end();
   });
+}
+
+function respond_with_a_dynamic_page(res, url) {
+  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
+  let content_page = "";
+  if (page_data.length < 1) {
+    content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+  } else {
+    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2></div>`
+  }
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+  var page_halves = main_page.split('<!--  Insert page content here!  -->');
+  content_page = page_halves[0] + content_page + page_halves[1];
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(content_page);
+  res.end();
 }
 
 function respond_with_asset(res, url, extname) {
@@ -103,7 +121,9 @@ function respond_with_asset(res, url, extname) {
 ////  SECTION 3: API.
 
 function api_GET_routes(url, res) {
-
+  if (url == '/api/all-pages') {
+    GET_all_pages(res);
+  }
 }
 
 function api_POST_routes(url, req, res) {
@@ -126,10 +146,17 @@ function api_POST_routes(url, req, res) {
       POST_update_user(req_data, res);
     } else if (url == '/api/update-password') {
       POST_update_password(req_data, res);
-    } else if (url == '/api/add-address') {
-      POST_add_address(req_data, res);
+    } else if (url == '/api/create-page') {
+      POST_create_page(req_data, res);
     }
   })
+}
+
+function GET_all_pages(res) {
+  let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(all_pages));
+  res.end();
 }
 
 function POST_register(new_user, res) {
@@ -312,28 +339,23 @@ function POST_update_password(password_update, res) {
   res.end();
 }
 
-function POST_add_address(new_address, res) {
-  let addresses = fs.readFileSync(__dirname + '/database/table_rows/email_addresses.json', 'utf8');
-  addresses = JSON.parse(addresses);
+function POST_create_page(new_page_data, res) {
+  let page_data = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
+  page_data = JSON.parse(page_data);
   let response = {
     error: false,
     msg: '',
-    rooftop_email: new_address.address
   }
-  for (let i = 0; i < addresses.length; i++) {
-    if (addresses[i].address == new_address.address) {
+  for (let i = 0; i < page_data.length; i++) {
+    if (page_data[i].page_route == new_page_data.page_route) {
       response.error = true;
-      response.msg = 'Email address already taken.';
-      break;
-    } else if (addresses[i].user_id == new_address.user_id) {
-      response.error = true;
-      response.msg = 'User already has an address.';
+      response.msg = 'Route name already taken.';
       break;
     } 
   }
-
+  //  If it's a valid page, save it
   if (!response.error) {
-    let address_id = DataBase.table('email_addresses').insert(new_address);
+    DataBase.table('pages').insert(new_page_data);
   }
   res.writeHead(200, {'Content-Type': 'text/html'});
   res.write(JSON.stringify(response));
