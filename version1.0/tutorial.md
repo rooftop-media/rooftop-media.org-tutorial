@@ -28,8 +28,8 @@ Click a part title to jump down to it, in this file.
 | [Part C - User sessions, logout, and /login](#part-c) | 20 min.  | 13 |
 | [Part D - User settings](#part-d) | 10 min. | 9 |
 | [Part E - Mobile design](#part-e) | 15 min. | 12 |
-| [Part F - Invite code](#part-f) | 15 min. | 12 |
-| [Part G - Hosting](#part-g) | ? min. | ? |
+| [Part F - Invite code](#part-f) | 5 min. | 5 |
+| [Part G - Hosting](#part-g) | 15 min. | 6 |
 | [Version 2.0.](#v2) | Todo | ? |
 <!--| [Part F - Email confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-f) | 0 min. | 0 |
 | [Part G - Phone confirmation](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md#part-g) | 0 min. | 0 |
@@ -2952,7 +2952,7 @@ The registration form should appear.  Tyr to register a new user without adding 
 
 
 
-<h3 id="f-??" ☑️ Step ?. ❖ Part F review. </h3>
+<h3 id="f-5" ☑️ Step 5. ❖ Part F review. </h3>
 
 The complete code for Part F is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_F).
 
