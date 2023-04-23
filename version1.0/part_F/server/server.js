@@ -33,9 +33,7 @@ var pageURLs = {
   '/landing': '/pages/misc/landing.html',
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
-  '/profile': '/pages/misc/profile.html',
-  '/add-address': '/pages/email/add-address.html',
-  '/email': '/pages/email/email.html'
+  '/profile': '/pages/misc/profile.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -126,8 +124,8 @@ function api_POST_routes(url, req, res) {
       POST_update_user(req_data, res);
     } else if (url == '/api/update-password') {
       POST_update_password(req_data, res);
-    } else if (url == '/api/add-address') {
-      POST_add_address(req_data, res);
+    } else if (url == '/api/check-invite-code') {
+      POST_check_invite_code(req_data, res);
     }
   })
 }
@@ -155,6 +153,11 @@ function POST_register(new_user, res) {
       break;
     }
   }
+  if (new_user.invite_code != 'secret123') {
+    response.error = true;
+    response.msg = 'Incorrect invite code!';
+  }
+
   //  If it's not a duplicate, encrypt the pass, and save it. 
   if (!response.error) {
     new_user.salt = crypto.randomBytes(16).toString('hex');
@@ -312,31 +315,13 @@ function POST_update_password(password_update, res) {
   res.end();
 }
 
-function POST_add_address(new_address, res) {
-  let addresses = fs.readFileSync(__dirname + '/database/table_rows/email_addresses.json', 'utf8');
-  addresses = JSON.parse(addresses);
-  let response = {
-    error: false,
-    msg: '',
-    rooftop_email: new_address.address
-  }
-  for (let i = 0; i < addresses.length; i++) {
-    if (addresses[i].address == new_address.address) {
-      response.error = true;
-      response.msg = 'Email address already taken.';
-      break;
-    } else if (addresses[i].user_id == new_address.user_id) {
-      response.error = true;
-      response.msg = 'User already has an address.';
-      break;
-    } 
-  }
-
-  if (!response.error) {
-    let address_id = DataBase.table('email_addresses').insert(new_address);
-  }
+function POST_check_invite_code(data, res) {
   res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(response));
+  if (data.invite_code == 'secret123') {
+    res.write(JSON.stringify({error: false}));
+  } else {
+    res.write(JSON.stringify({error: true, msg: "incorrect code"}));
+  }
   res.end();
 }
 
