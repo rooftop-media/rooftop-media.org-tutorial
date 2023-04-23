@@ -179,6 +179,8 @@ function api_POST_routes(url, req, res) {
       POST_update_user(req_data, res);
     } else if (url == '/api/update-password') {
       POST_update_password(req_data, res);
+    } else if (url == '/api/check-invite-code') {
+      POST_check_invite_code(req_data, res);
     } else if (url == '/api/add-address') {
       POST_add_address(req_data, res);
     }
