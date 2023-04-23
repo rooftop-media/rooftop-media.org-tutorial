@@ -2883,6 +2883,58 @@ function POST_check_invite_code(data, res) {
 
 <h3 id="f-3"> ☑️ Step 3.  Edit <code>/api/register</code> to check for the code</h3>
 
+Now, in `server.js`, we're going to require the "invite-code" in `/api/register`.  
+If we didn't do this, the user could just use CSS to show the "register" page.  
+This is just a small if statement containing two lines:  
+
+```js
+function POST_register(new_user, res) {
+  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
+  user_data = JSON.parse(user_data);
+  let response = {
+    error: false,
+    msg: '',
+    session_id: ''
+  }
+  for (let i = 0; i < user_data.length; i++) {
+    if (user_data[i].username == new_user.username) {
+      response.error = true;
+      response.msg = 'Username already taken.';
+      break;
+    } else if (user_data[i].email == new_user.email) {
+      response.error = true;
+      response.msg = 'Email already taken.';
+      break;
+    } else if (user_data[i].phone == new_user.phone) {
+      response.error = true;
+      response.msg = 'Phone number already taken.';
+      break;
+    }
+  }
+  if (new_user.invite_code != 'secret123') {
+    response.error = true;
+    response.msg = 'Incorrect invite code!';
+  }
+
+  //  If it's not a duplicate, encrypt the pass, and save it. 
+  if (!response.error) {
+    new_user.salt = crypto.randomBytes(16).toString('hex');
+    new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
+    //  Add the user to the db.
+    let user_id = DataBase.table('users').insert(new_user);
+    //  Add a session to the db.
+    let expire_date = new Date()
+    expire_date.setDate(expire_date.getDate() + 30);
+    response.session_id = DataBase.table('sessions').insert({
+      user_id: user_id,
+      expires: expire_date
+    })
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
+```
 
 <br/><br/><br/><br/>
 
