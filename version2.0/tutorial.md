@@ -653,9 +653,20 @@ function send() {
 
 
 
-<h3 id="c-2">☑️ Step 2. Add <code>/api/send-email</code></h3>
+<h3 id="c-2">☑️ Step 2. Add a new section to <code> server.js</code></h3>
 
-In `server.js`, we're going to edit three things.  
+After the API section, create a new "SECTION 4: EMAIL SERVER".  
+
+Then, change "SECTION 4: BOOT" to section 5. 
+
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-3">☑️ Step 3. Create an email server in <code> server.js</code></h3>
+
 First edit the imports.  
 We'll use the `net` library to implement the SMTP protocol, to send emails.  
 
@@ -668,7 +679,24 @@ var crypto = require('crypto');   // encrypt user passwords
 var net    = require('net');      // create TCP servers (for email)
 ```
 
-Next, add `'/api/send-email'` to `api_POST_routes`:
+Then, in the new email server section, add this: 
+```js 
+////  SECTION 4: Email.
+
+const net = require('net');
+
+const server = net.createServer(socket => {
+    socket.write('HTTP/1.1 200 OK\n\nhallo world')
+    socket.end((err)=>{console.log(err)})
+});
+
+server.listen(3000);
+```
+
+
+<h3 id="c-3">☑️ Step 3. Add <code>/api/send-email</code></h3>
+
+In `server.js`, add `'/api/send-email'` to `api_POST_routes`:
 
 ```js
 function api_POST_routes(url, req, res) {
@@ -701,6 +729,7 @@ Finally, create the `POST_send_email` function:
 
 ```js
 TODO TODO TODO
+
 ```
 
 <br/><br/><br/><br/>
