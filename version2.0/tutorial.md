@@ -700,10 +700,31 @@ function api_POST_routes(url, req, res) {
 Finally, create the `POST_send_email` function:
 
 ```js
-
+TODO TODO TODO
 ```
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="c-3">☑️ Step 3. Set up NGinX email configuration</h3>
+
+In this step, we'll edit the NGinX config file we set up in Version 1.0, part F.  
+SSH into the server with this command:  
+```bash
+ssh -r ./path/to/privateKey.pem root@<ip-of-server>   # .pem for windows, .ppk for unix
+```
+You'll need to enter the private key password.  
+Once you're in the server, switch to a non-root user, and edit the site's nginx config with this command:
+```bash
+nano /etc/nginx/sites-available/rooftop-media.org
+```
+
+
+<br/><br/><br/><br/>
+
+
+<h3 id="c-4">☑️ Step 4. Adding MX records?</h3>
 
 
 
