@@ -27,34 +27,97 @@ In the future, it will require later version.  (This is a bit out of order).
 Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
-| --------------------------- | ------ | ---------- |
-| [Part A - Email address set up](#part-a) | ? min. | ? |
-| [Part B - /email](#part-b) | 0 min. | 0 |
-| [Part C - Sending email](#part-c) | 0 min. | 0 |
-| [Part D - Recieving email](#part-d) | 0 min. | 0 |
-| [Part E - Search emails](#part-e) | 0 min. | 0 |
-| [Part F - Folders and drafts](#part-f) | 0 min. | 0 |
-| [Part G - Spam](#part-g) | 0 min. | 0 |
-| [Part H - HTML Emails](#part-h) | 0 min. | 0 |
-| [Version 5.0.](#v5) | Todo | ? |
+| --------------------------- | --------- | ---------- |
+| [Part A - Email server basics](#part-a) | ? min. | ? |
+| [Part B - Email address set up](#part-b) | ? min. | ? |
+| [Part C - /email](#part-c) | 0 min. | 0 |
+| [Part D - Sending email](#part-d) | 0 min. | 0 |
+| [Part E - Recieving email](#part-e) | 0 min. | 0 |
+| [Part F - Search emails](#part-f) | 0 min. | 0 |
+| [Part G - Folders and drafts](#part-g) | 0 min. | 0 |
+| [Part H - Spam](#part-h) | 0 min. | 0 |
+| [Part I - HTML Emails](#part-i) | 0 min. | 0 |
+| [Version 3.0.](#v3) | Todo | ? |
 
 
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
 
+<h2 id="part-a" align="center">  📧 Part A:  Email server basics</h2>
+
+In this part, we'll set up the basics of the email server, and test two functions:  
+ - Sending an email
+ - Recieving an email
+
+<br/><br/><br/><br/>
 
 
+<h3 id="a-1">☑️ Step 1. Add a new section to <code> server.js</code></h3>
 
-<h2 id="part-a" align="center">  Part A:  Email address set up</h2>
+We're going to create a new section in `/server/server.js`.  
 
+After the code in "SECTION 3: API" section, (right after the `POST_check_invite_code` function) create a new "SECTION 4: EMAIL SERVER".  
+
+Then, change "SECTION 4: Boot." to "SECTION 5: Boot."
+
+The `server.js` sections should now look like this:
+
+```js
+
+```
 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-1">  ☑️ Step 1: Add <code>/pages/email/add-address.html</code>  </h3>
+<h3 id="c-3">☑️ Step 3. Create an email server in <code> server.js</code></h3>
+
+First edit the imports.  
+We'll use the `net` library to implement the SMTP protocol, to send emails.  
+
+```js
+//  Importing NodeJS libraries.
+var http   = require('http');     // listen to HTTP requests
+var path   = require('path');     // manage filepath names
+var fs     = require('fs');       // access files on the server
+var crypto = require('crypto');   // encrypt user passwords
+var net    = require('net');      // create TCP servers (for email)
+```
+
+Then, in the new email server section, add this: 
+```js 
+////  SECTION 4: Email.
+
+const net = require('net');
+
+//  SMTP server
+const server = net.createServer(socket => {
+    socket.write('HTTP/1.1 200 OK\n\nhallo world')
+    socket.end((err)=>{console.log(err)})
+});
+
+server.listen(587);
+```
+
+The SMTP server listens on port 587. 
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+
+<h2 id="part-b" align="center">  📧 Part B:  Email address set up</h2>
+
+In this step, we'll let users create a rooftop-media.org email address, which we'll save to the database. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-1">  ☑️ Step 1: Add <code>/pages/email/add-address.html</code>  </h3>
 
 First, we'll let the user create an email account on rooftop-media.org.  
 We'll store this email in a new database table, called "email-addresses".  
@@ -133,7 +196,7 @@ function create_address() {
 
 
 
-<h3 id="a-2">  ☑️ Step 2: Adding <code>/add-address.html</code> to the server </h3>
+<h3 id="b-2">  ☑️ Step 2: Adding <code>/add-address.html</code> to the server </h3>
 
 In `/server/server.js`, edit this:
 
@@ -154,7 +217,7 @@ var pageURLkeys = Object.keys(pageURLs);
 
 
 
-<h3 id="a-3">  ☑️ Step 3: Add api POST route, <code>/api/add-address</code> </h3>
+<h3 id="b-3">  ☑️ Step 3: Add api POST route, <code>/api/add-address</code> </h3>
 
 In `server.js`, update this:  
 
@@ -220,7 +283,7 @@ function POST_add_address(new_address, res) {
 
 
 
-<h3 id="a-4">  ☑️ Step 4: Add a new table to the database</h3>
+<h3 id="b-4">  ☑️ Step 4: Add a new table to the database</h3>
 
 Create a file called `/server/database/table_columns/email-addresses.json`.  Add the following:
 
@@ -261,7 +324,7 @@ Create a file called `/server/database/table_rowss/email-addresses.json`.  Add a
 
 
 
-<h3 id="a-5"> ☑️ Step 5. ☞  Test the code!  </h3>
+<h3 id="b-5"> ☑️ Step 5. ☞  Test the code!  </h3>
 
 Restart the server, and open up `localhost:8080/add-address`. Make sure you're logged in.  
 Try adding a new address.  It should create a new email address record in the database, and redirect you to `/email`.  
@@ -273,9 +336,9 @@ Try adding the same address name for another error.
 
 
 
-<h3 id="a-6">☑️ Step 6. ❖ Part A review. </h3>
+<h3 id="b-6">☑️ Step 6. ❖ Part B review. </h3>
 
-The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version4.0/part_A).
+The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version4.0/part_B).
 
 <br/><br/><br/><br/>
 <br/><br/><br/><br/>
@@ -283,7 +346,7 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-b" align="center">  Part B:  <code>/email</code></h2>
+<h2 id="part-c" align="center">  📧 Part C:  <code>/email</code></h2>
 
 In this part, we'll build a webapp page for browsing, reading, and writing emails. 
 
@@ -291,7 +354,7 @@ In this part, we'll build a webapp page for browsing, reading, and writing email
 
 
 
-<h3 id="b-1">☑️ Step 1. Create <code>email.html</code> </h3>
+<h3 id="c-1">☑️ Step 1. Create <code>email.html</code> </h3>
 
 First, we'll set up a page that can browse a list of emails, read individual emails, and compose new emails.  
 This page will have sample data for now, not connected to any email server.  
@@ -538,7 +601,7 @@ function send() {
 
 
 
-<h3 id="b-2">☑️ Step 2. Add the page to <code>server.js</code></h3>
+<h3 id="c-2">☑️ Step 2. Add the page to <code>server.js</code></h3>
 
 In `/server/server.js`: 
 
@@ -560,7 +623,7 @@ var pageURLkeys = Object.keys(pageURLs);
 
 
 
-<h3 id="b-3">☑️ Step 3. Add a link to the email page</h3>
+<h3 id="c-3">☑️ Step 3. Add a link to the email page</h3>
 
 Open `/pages/index.js` and add one line to the `update_header` function:
 
@@ -595,7 +658,7 @@ function update_header() {
 
 
 
-<h3 id="b-4"> ☑️ Step 5. ☞  Test the code!  </h3>
+<h3 id="c-4"> ☑️ Step 5. ☞  Test the code!  </h3>
 
 The website should now have a link to the email page.  
 Click it tocheck out the email webapp interface.
@@ -604,16 +667,16 @@ Click it tocheck out the email webapp interface.
 
 
 
-<h3 id="b-6">☑️ Step 6. ❖ Part B review. </h3>
+<h3 id="c-6">☑️ Step 6. ❖ Part B review. </h3>
 
-The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_B).
+The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_C).
 
 <br/><br/><br/><br/>
 <br/><br/><br/><br/>
 
 
 
-<h2 id="part-c" align="center">  Part C:  Sending email</h2>
+<h2 id="part-d" align="center">  Part D:  Sending email</h2>
 
 In this part, we'll let the user send emails from their email address. 
 
@@ -621,7 +684,7 @@ In this part, we'll let the user send emails from their email address.
 
 
 
-<h3 id="c-1">☑️ Step 1. Edit <code>email.html</code></h3>
+<h3 id="d-1">☑️ Step 1. Edit <code>email.html</code></h3>
 
 In `email.html`, edit the `send()` function: 
 
@@ -650,48 +713,6 @@ function send() {
 ```
 
 <br/><br/><br/><br/>
-
-
-
-<h3 id="c-2">☑️ Step 2. Add a new section to <code> server.js</code></h3>
-
-After the API section, create a new "SECTION 4: EMAIL SERVER".  
-
-Then, change "SECTION 4: BOOT" to section 5. 
-
-
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="c-3">☑️ Step 3. Create an email server in <code> server.js</code></h3>
-
-First edit the imports.  
-We'll use the `net` library to implement the SMTP protocol, to send emails.  
-
-```js
-//  Importing NodeJS libraries.
-var http   = require('http');     // listen to HTTP requests
-var path   = require('path');     // manage filepath names
-var fs     = require('fs');       // access files on the server
-var crypto = require('crypto');   // encrypt user passwords
-var net    = require('net');      // create TCP servers (for email)
-```
-
-Then, in the new email server section, add this: 
-```js 
-////  SECTION 4: Email.
-
-const net = require('net');
-
-const server = net.createServer(socket => {
-    socket.write('HTTP/1.1 200 OK\n\nhallo world')
-    socket.end((err)=>{console.log(err)})
-});
-
-server.listen(3000);
-```
 
 
 <h3 id="c-3">☑️ Step 3. Add <code>/api/send-email</code></h3>
