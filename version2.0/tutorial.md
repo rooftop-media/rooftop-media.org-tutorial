@@ -50,29 +50,13 @@ In this part, we'll set up the basics of the email server, and test two function
  - Sending an email
  - Recieving an email
 
-<br/><br/><br/><br/>
-
-
-<h3 id="a-1">☑️ Step 1. Add a new section to <code> server.js</code></h3>
-
-We're going to create a new section in `/server/server.js`.  
-
-After the code in "SECTION 3: API" section, (right after the `POST_check_invite_code` function) create a new "SECTION 4: EMAIL SERVER".  
-
-Then, change "SECTION 4: Boot." to "SECTION 5: Boot."
-
-The `server.js` sections should now look like this:
-
-```js
-
-```
-
+Some sources for the creation of this section include the [Nodemailer source code](https://github.com/nodemailer/nodemailer/blob/master/lib/nodemailer.js), [Wikipedia](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol#Outgoing_mail_SMTP_server), and a [github issue](https://github.com/nodejs/help/issues/1741).
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="c-3">☑️ Step 3. Create an email server in <code> server.js</code></h3>
+<h3 id="a-1">☑️ Step 1. Create an email server in <code> server.js</code></h3>
 
 First edit the imports.  
 We'll use the `net` library to implement the SMTP protocol, to send emails.  
@@ -86,9 +70,9 @@ var crypto = require('crypto');   // encrypt user passwords
 var net    = require('net');      // create TCP servers (for email)
 ```
 
-Then, in the new email server section, add this: 
+Then, in the boot section, add this: 
 ```js 
-////  SECTION 4: Email.
+////  SECTION 4: Boot.
 
 const net = require('net');
 
