@@ -50,7 +50,11 @@ In this part, we'll set up the basics of the email server, and test two function
  - Sending an email
  - Recieving an email
 
-Some sources for the creation of this section include the [Nodemailer source code](https://github.com/nodemailer/nodemailer/blob/master/lib/nodemailer.js), [Wikipedia](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol#Outgoing_mail_SMTP_server), and a [github issue](https://github.com/nodejs/help/issues/1741).
+Some sources for the creation of this section include: 
+ - the [Nodemailer source code](https://github.com/nodemailer/nodemailer/blob/master/lib/nodemailer.js), 
+ - [Wikipedia - SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol#Outgoing_mail_SMTP_server), 
+ - [Wikipedia - SMTP Auth](https://en.wikipedia.org/wiki/SMTP_Authentication),
+ - and this [github issue](https://github.com/nodejs/help/issues/1741).
 
 <br/><br/><br/><br/>
 
