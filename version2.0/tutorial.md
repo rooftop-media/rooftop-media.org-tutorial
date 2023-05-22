@@ -53,8 +53,9 @@ In this part, we'll set up the basics of the email server, and test two function
 Some sources for the creation of this section include: 
  - the [Nodemailer source code](https://github.com/nodemailer/nodemailer/blob/master/lib/nodemailer.js), 
  - [Wikipedia - SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol#Outgoing_mail_SMTP_server), 
+ - this [github issue](https://github.com/nodejs/help/issues/1741), for starting plaintext STMP with Node,
  - [Wikipedia - SMTP Auth](https://en.wikipedia.org/wiki/SMTP_Authentication),
- - and this [github issue](https://github.com/nodejs/help/issues/1741).
+ - this [stack overflow question](), for using STARTTLS in 
 
 <br/><br/><br/><br/>
 
@@ -74,22 +75,68 @@ var crypto = require('crypto');   // encrypt user passwords
 var net    = require('net');      // create TCP servers (for email)
 ```
 
-Then, in the boot section, add this: 
+Then, in the boot section, add this, BUT replace the "RCPT TO" and "TO" email address with a new test email from [this website](https://ethereal.email/).
 ```js 
 ////  SECTION 4: Boot.
 
-const net = require('net');
+//  ...  Web server code here...
 
-//  SMTP server
-const server = net.createServer(socket => {
-    socket.write('HTTP/1.1 200 OK\n\nhallo world')
-    socket.end((err)=>{console.log(err)})
+const commands = [
+  'EHLO 93.sub-75-209-98.myvzw.com\r\n',  
+  'MAIL FROM: <ben@93.sub-75-209-98.myvzw.com>\r\n',
+  'RCPT TO: <kallie.rohan29@ethereal.email>\r\n',
+  'DATA\r\n',
+  'FROM: <ben@93.sub-75-209-98.myvzw.com>\r\nTO: <kallie.rohan29@ethereal.email>\r\nSUBJECT: Test 1\r\n',
+  '<p>This is cool!</p>\r\n<p>Blah blah blah...</p>\r\n.\r\n',
+  'QUIT\r\n'
+]
+
+let i = 0
+
+const socket = net.createConnection(25, 'smtp.ethereal.email', () => console.log('===== \n Connected to ethereal SMTP server.'))
+
+//  Fires on each response
+socket.on('data', buff => {
+  const res = buff.toString()
+  process.stdout.write(`\x1b[31mS:\x1b[0m ${res}`)
+  
+  if (res.includes('221')) {
+    socket.destroy();
+    process.exit();
+
+  } else if (i < commands.length) {
+    console.log("\x1b[90mPress enter to send next message...\x1b[0m")
+    
+  } else {
+    console.log('Ran out of commands but did not receive 221 response from SMTP server')
+    socket.destroy()
+  }
+})
+
+//  Manually send responses
+var process = require('process');
+var stdin = process.stdin;
+stdin.setRawMode(true);
+stdin.resume();
+stdin.setEncoding('utf8');
+stdin.on('data', function(key) {
+  //  Exit on ctrl-c
+  if (key === '\u0003') {
+    socket.destroy()
+    process.exit();
+
+  } else if (key == '\u000D') {
+    process.stdout.write(`\x1b[34mC:\x1b[0m ${commands[i]}`)
+    socket.write(commands[i]);
+    i++;
+  } else {
+//process.stdout.write(key);
+  }
+  
 });
-
-server.listen(587);
 ```
 
-The SMTP server listens on port 587. 
+The SMTP server sends messages unencrypted on port 25. 
 
 <br/><br/><br/><br/>
 <br/><br/><br/><br/>
