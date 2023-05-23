@@ -1,8 +1,12 @@
+////  SECTION 1: Imports.
+
 //  Importing NodeJS libraries.
-var http = require('http');     // listen to HTTP requests
-var path = require('path');     // manage filepath names
-var fs   = require('fs');       // access files on the server
-var crypto = require('crypto'); // encrypt user passwords
+var http   = require('http');     // listen to HTTP requests
+var path   = require('path');     // manage filepath names
+var fs     = require('fs');       // access files on the server
+var crypto = require('crypto');   // encrypt user passwords
+var net    = require('net');      // create TCP servers (for email)
+
 
 //  Importing our custom libraries
 const DataBase = require('./database/database.js');
@@ -33,9 +37,7 @@ var pageURLs = {
   '/landing': '/pages/misc/landing.html',
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
-  '/profile': '/pages/misc/profile.html',
-  '/create-page': '/pages/cms/create-page.html',
-  '/all-pages': '/pages/cms/all-pages.html',
+  '/profile': '/pages/misc/profile.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -64,8 +66,6 @@ function server_request(req, res) {
 function respond_with_a_page(res, url) {
   if (pageURLkeys.includes(url)) {
     url = pageURLs[url];
-  } else {
-    return respond_with_a_dynamic_page(res, url);
   }
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     var content_page = "";
@@ -81,22 +81,6 @@ function respond_with_a_page(res, url) {
     res.write(rendered);
     res.end();
   });
-}
-
-function respond_with_a_dynamic_page(res, url) {
-  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
-  let content_page = "";
-  if (page_data.length < 1) {
-    content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-  } else {
-    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2></div>`
-  }
-  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-  var page_halves = main_page.split('<!--  Insert page content here!  -->');
-  content_page = page_halves[0] + content_page + page_halves[1];
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(content_page);
-  res.end();
 }
 
 function respond_with_asset(res, url, extname) {
@@ -121,9 +105,7 @@ function respond_with_asset(res, url, extname) {
 ////  SECTION 3: API.
 
 function api_GET_routes(url, res) {
-  if (url == '/api/all-pages') {
-    GET_all_pages(res);
-  }
+
 }
 
 function api_POST_routes(url, req, res) {
@@ -146,17 +128,10 @@ function api_POST_routes(url, req, res) {
       POST_update_user(req_data, res);
     } else if (url == '/api/update-password') {
       POST_update_password(req_data, res);
-    } else if (url == '/api/create-page') {
-      POST_create_page(req_data, res);
+    } else if (url == '/api/check-invite-code') {
+      POST_check_invite_code(req_data, res);
     }
   })
-}
-
-function GET_all_pages(res) {
-  let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(all_pages));
-  res.end();
 }
 
 function POST_register(new_user, res) {
@@ -182,6 +157,11 @@ function POST_register(new_user, res) {
       break;
     }
   }
+  if (new_user.invite_code != 'secret123') {
+    response.error = true;
+    response.msg = 'Incorrect invite code!';
+  }
+
   //  If it's not a duplicate, encrypt the pass, and save it. 
   if (!response.error) {
     new_user.salt = crypto.randomBytes(16).toString('hex');
@@ -339,34 +319,23 @@ function POST_update_password(password_update, res) {
   res.end();
 }
 
-function POST_create_page(new_page_data, res) {
-  let page_data = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
-  page_data = JSON.parse(page_data);
-  let response = {
-    error: false,
-    msg: '',
-  }
-  for (let i = 0; i < page_data.length; i++) {
-    if (page_data[i].page_route == new_page_data.page_route) {
-      response.error = true;
-      response.msg = 'Route name already taken.';
-      break;
-    } 
-  }
-  //  If it's a valid page, save it
-  if (!response.error) {
-    DataBase.table('pages').insert(new_page_data);
-  }
+function POST_check_invite_code(data, res) {
   res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(response));
+  if (data.invite_code == 'secret123') {
+    res.write(JSON.stringify({error: false}));
+  } else {
+    res.write(JSON.stringify({error: true, msg: "incorrect code"}));
+  }
   res.end();
 }
+
+
 
 ////  SECTION 4: Boot.
 
 console.log("\x1b[32m >\x1b[0m Starting the rooftop server, at \x1b[36mlocalhost:8080\x1b[0m !");
 
-//  Creating the server!
+//  Creating the web server!
 var server = http.createServer(
   server_request
 );
@@ -377,3 +346,31 @@ process.on('SIGINT', function() {
   server.close();
 });
 server.listen(8080);
+
+
+//  Creating the email server!
+
+
+
+//  Sending a test email!
+
+let emailSocket = net.createConnection(25, 'gmail-smtp-in.l.google.com', () => {
+  console.log("New email request");
+  emailSocket.write("HELO gmail \r\n");
+  emailSocket.write("MAIL FROM: <ben@rooftop.com>\r\n");
+  emailSocket.write('RCPT TO: <benholland1024@gmail.com>\r\n');
+
+  emailSocket.write('DATA\r\n');
+  emailSocket.write('FROM: <ethan.arrowood@gmail.com>\r\n');
+  emailSocket.write('TO: <ethan.arrowood@gmail.com>\r\n');
+  emailSocket.write('SUBJECT: Testing\r\n');
+  emailSocket.write('This is cool!\r\n');
+
+  emailSocket.write('.\r\n')
+  emailSocket.write('QUIT\r\n')
+}) 
+emailSocket.on('data', (data) => {
+  console.log(data.toString());
+  // emailSocket.end();
+});
+

@@ -22,19 +22,6 @@ function logout() {
 
 function current_user_loaded() {}
 
-// Reroute the user if their log in status doesn't match the page
-function reroute_if_needed() {
-  if (_current_user == null) {
-    if (_current_page == '/create-page' || _current_page == '/all-pages' || _current_page.split('/')[1] == 'edit') {
-      window.location.href = '/';
-    }
-  } else {
-    if (_current_page == '/register' || _current_page == '/login') {
-      window.location.href = '/';
-    }
-  }
-}
-
 // Update the "user buttons" in the header
 function update_header() {
   let userButtonsEl = document.getElementById('user-buttons');
@@ -48,12 +35,10 @@ function update_header() {
   } else {
     buttonText = _current_user.display_name;
     menuHTML += `<a href="/profile">Your profile</a>`;
-    menuHTML += `<a href="/create-page">New page</a>`;
-    menuHTML += `<a href="/all-pages">All pages</a>`;
     menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
-  
+
   userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">${buttonText}</button>`;
   if (_show_user_menu) {
     userButtonsEl.innerHTML += menuHTML + `</div>`;
@@ -81,23 +66,24 @@ function boot() {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
         current_user_loaded();
-        reroute_if_needed();
-        update_header();
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
-        reroute_if_needed();
-        update_header();
       }
+      update_header();
     }
   } else {
     update_header();
-    reroute_if_needed();
   }
 
   if (_dark_mode === 'true') {
     _dark_mode = 'false';
     toggle_darkmode();
+  }
+  
+  //  Redirect away from register or login if we're logged in.
+  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
+    window.location.href = '/';
   }
   
 }
