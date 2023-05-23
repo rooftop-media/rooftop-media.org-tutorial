@@ -1,7 +1,10 @@
 # NodeJS Tutorial for rooftop-media.org, version 3.0
 
 This is a tutorial for building rooftop-media.org version 2.0.  
-This version creates ....  
+This version creates a Content Management System (CMS), allowing users to:
+ - Create new website pages
+ - Add and edit page content
+ - Manage page permissions
 
 *Total estimated time for this tutorial: ADD ESTIMATED TIME*
 
