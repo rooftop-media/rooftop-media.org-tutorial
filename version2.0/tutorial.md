@@ -24,7 +24,7 @@ Click a part title to jump down to it, in this file.
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
 | [Part A - /create-page, /all-pages](#part-a) | 20 min. | 13 |
-| [Part B - Page element editing](#part-b) | 0 min. | 0 |
+| [Part B - Page editing](#part-b) | 0 min. | 0 |
 | [Part C - Page formatting](#part-c) | 0 min. | 0 |
 | [Part D - Image & file upload](#part-d) | 0 min. | 0 |
 | [Part E - User permissions](#part-e) | 0 min. | 0 |
