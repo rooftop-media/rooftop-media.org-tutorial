@@ -13,3 +13,6 @@ v1 part C I think
 
 v1 part D:
  - [ ] "Delete account" button in user settings
+
+v1 part A thru F:
+ - [ ] Change design to dark mode by default
