@@ -25,6 +25,7 @@ var mimeTypes = {
   '.otf': 'application/font-otf',
   '.wasm': 'application/wasm'
 };
+
 //  Mapping URLs to pages
 var pageURLs = {
   '/': '/pages/misc/landing.html',

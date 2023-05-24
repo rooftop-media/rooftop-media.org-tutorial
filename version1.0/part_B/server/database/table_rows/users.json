@@ -1,11 +1,11 @@
 [
   {
-    "username": "ben",
-    "display_name": "Ben H",
-    "email": "ben@rooftop-media.org",
-    "phone": "123141231414",
-    "password": "ab23ab8d04538d27587954d1208de049eef2835e615e6933a919e4ac2cfecafb9e1dc940f951655edc6a30e5ec13d91ea8b723210be55877c04595f787406a06",
-    "salt": "bcfb58fdd119bd5af63677907b323f9b",
+    "username": "testuser",
+    "display_name": "TestUser",
+    "email": "test@test.com",
+    "phone": "1234567890",
+    "password": "31d16a9a53faf70c9e8548ebda039dcccee2fe8bf3d8d335786fbd662365678a344c3781549b340e9e62bd840e3a3a1e2ecfd74ef8dbdd98fa73f4d5e69d1a75",
+    "salt": "d1b417cbb021b2eca9797311c38dfeef",
     "id": 0
   }
 ]

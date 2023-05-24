@@ -69,9 +69,11 @@ function register() {
   if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
-  }
-  if (username.length < 2) {
+  } else if (username.length < 2) {
     document.getElementById('error').innerHTML = 'Valid username required.';
+    return;
+  } else if (password.length < 8) {
+    document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
     return;
   }
 

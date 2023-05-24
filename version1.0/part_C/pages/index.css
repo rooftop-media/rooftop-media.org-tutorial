@@ -1,20 +1,26 @@
 @font-face {
-    font-family: CrimsonText;
-    src: url(/assets/fonts/CrimsonText-Regular.ttf),
-        url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
-        url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
-        url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
-        Times New Roman, serif; /* Safari, Android, iOS */
-}
-  
-html, body {
-    font-family: CrimsonText;
-    margin: 0;
-    min-height: 100vh;
+  font-family: CrimsonText;
+  src: url(/assets/fonts/CrimsonText-Regular.ttf),
+       url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+       url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
+       Times New Roman, serif; /* Safari, Android, iOS */
 }
 
 :root {
     --spacer: 20px;
+    --dark-brown: #2E1F17;
+    --brown: #432D21;
+    --light-brown: #7F4C34;
+    --yellow: #E3D78F;
+}
+
+html, body {
+    font-family: CrimsonText;
+    margin: 0;
+    min-height: 100vh;
+    background: var(--dark-brown);
+    color: white;
 }
 
 /* The header, including the RTM logo and user profile buttons  */
@@ -24,7 +30,7 @@ html, body {
     align-items:     center;
     justify-content: space-between;
     display:         flex;
-    background:      #efefef;
+    background:      var(--brown);
     box-shadow:      0px 0px 10px rgba(0,0,0,.5);
     padding:         10px 25px;
     box-sizing:      border-box;
@@ -44,10 +50,12 @@ html, body {
 }
 #user-buttons a, #user-buttons button {
     display:         block;
-    color:         black;
+    color:           var(--yellow);
     text-decoration: none;
-    border:          solid 1px #bbb;
-    background:      #f6f6f6;
+    border:          none;
+    font-family:     CrimsonText;
+    font-size:       1em;
+    background:      var(--light-brown);
     margin-left:     10px;
     padding:         5px 20px;
     cursor:          pointer;
@@ -59,8 +67,12 @@ html, body {
 #user-buttons a:active, #user-buttons button:active {
     filter:          brightness(1.01);
 }
-  
+
 /*  Global styles  */
+h1 {
+  text-align: center;
+}
+
 .px-1 {
     padding-left: calc(var(--spacer) * 0.25);
     padding-right: calc(var(--spacer) * 0.25);
@@ -76,8 +88,8 @@ html, body {
 .p-3 {
     padding: var(--spacer);
 }
-  
-  .center-column {
-      max-width: 800px;
-      margin: 0 auto;
-  }
+
+.center-column {
+    max-width: 800px;
+    margin: 0 auto;
+}
