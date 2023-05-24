@@ -1410,9 +1410,11 @@ function register() {
   if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
-  }
-  if (username.length < 2) {
+  } else if (username.length < 2) {
     document.getElementById('error').innerHTML = 'Valid username required.';
+    return;
+  } else if (password.length < 8) {
+    document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
     return;
   }
 
@@ -1473,7 +1475,7 @@ function api_POST_routes(url, req, res) {
 }
 ```
 
-and, below `POST_register`, add:  
+and, below `POST_register`, add the new function `POST_user_by_session`:  
 
 ```javascript
 function POST_user_by_session(session_id, res) {
@@ -1552,10 +1554,12 @@ Change `#user-buttons a`, and that selector with `:hover` and `:active`, to:
 ```css
 #user-buttons a, #user-buttons button {
     display:         block;
-    color:         black;
+    color:           var(--yellow);
     text-decoration: none;
-    border:          solid 1px #bbb;
-    background:      #f6f6f6;
+    border:          none;
+    font-family:     CrimsonText;
+    font-size:       1em;
+    background:      var(--light-brown);
     margin-left:     10px;
     padding:         5px 20px;
     cursor:          pointer;
