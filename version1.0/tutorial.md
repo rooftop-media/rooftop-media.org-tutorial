@@ -307,6 +307,10 @@ html, body {
 }
 
 /*  Global styles  */
+h1 {
+  text-align: center;
+}
+
 .px-1 {
     padding-left: calc(var(--spacer) * 0.25);
     padding-right: calc(var(--spacer) * 0.25);
@@ -482,7 +486,7 @@ Create a new file, `/pages/misc/landing.html`, and add:
 ```html
 <div class="p-3 center-column">
   <br/>
-  <h2>Goals</h2>
+  <h1>Goals</h1>
   <hr/><br/>
   <div class="thumb-container">
     <a href="#understanding">
@@ -515,6 +519,9 @@ Create a new file, `/pages/misc/landing.html`, and add:
   }
   .thumb-container a img {
     transition: .3s;
+  }
+ .thumb-container a:hover img {
+    transform: scale(1.1);
   }
 </style>
 ```
@@ -631,7 +638,8 @@ Any other URL should load the 404 page.
 
 Note that right now, if a user navigates to `http://localhost:8080/server/server.js`,  they can see the code that makes our server run.  
 We don't want to send anything from our `/server` folder.  
-We can fix that by editing `server.js`:  
+
+We can fix that by editing the `server_request` function in `/server/server.js`:  
 
 ```javascript
 //  This function will fire upon every request to our server.
@@ -688,14 +696,20 @@ We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
        Times New Roman, serif; /* Safari, Android, iOS */
 }
 
+:root {
+    --spacer: 20px;
+    --dark-brown: #2E1F17;
+    --brown: #432D21;
+    --light-brown: #7F4C34;
+    --yellow: #E3D78F;
+}
+
 html, body {
     font-family: CrimsonText;
     margin: 0;
     min-height: 100vh;
-}
-
-:root {
-    --spacer: 20px;
+    background: var(--dark-brown);
+    color: white;
 }
 
 /* The header, including the RTM logo and user profile buttons  */
@@ -705,7 +719,7 @@ html, body {
     align-items:     center;
     justify-content: space-between;
     display:         flex;
-    background:      #efefef;
+    background:      var(--brown);
     box-shadow:      0px 0px 10px rgba(0,0,0,.5);
     padding:         10px 25px;
     box-sizing:      border-box;
@@ -725,10 +739,9 @@ html, body {
 }
 #user-buttons a {
     display:         block;
-    color:         black;
+    color:           var(--yellow);
     text-decoration: none;
-    border:          solid 1px #bbb;
-    background:      #f6f6f6;
+    background:      var(--light-brown);
     margin-left:     10px;
     padding:         5px 20px;
     cursor:          pointer;
@@ -742,6 +755,10 @@ html, body {
 }
 
 /*  Global styles  */
+h1 {
+  text-align: center;
+}
+
 .px-1 {
     padding-left: calc(var(--spacer) * 0.25);
     padding-right: calc(var(--spacer) * 0.25);
