@@ -104,7 +104,7 @@ Open the html file in a browser to make sure it shows the content correctly.
 
 <h3 id="a-2">  ☑️ Step 2.  Outlining <code>server.js</code> </h3>
 
-Let’s go into `server.js` and add some comments to plan our architecture.
+Let’s go into `server/server.js` and add some comments to plan our architecture.
 
 Delete the line of code, which was `console.log('Starting the rooftop-media.org server!');`.
 We’ll outline 4 sections. Here’s what we’ll write:
@@ -230,10 +230,9 @@ In `/rooftop-media.org/`, create a folder called `/assets/`, and add the followi
  - [`/fonts`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/fonts)
    - `/CrimsonText-Regular.ttf`
  - [`/landing`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/landing)
-   - `/comic.svg`
-   - `/thumb1.svg`
-   - `/thumb2.svg`
-   - `/thumb3.svg`
+   - `/clock_parts.svg`
+   - `/raised_fist.svg`
+   - `/branching_paths.svg`
  - [`/logo.png`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/logo.png)
 
 
@@ -260,14 +259,20 @@ First, create `/pages/index.css`, and add this:
        Times New Roman, serif; /* Safari, Android, iOS */
 }
 
-html, body {
-    font-family: CrimsonText;
-    margin: 0;
-    min-height: 100vh;
-}
-
 :root {
     --spacer: 20px;
+    --dark-brown: #2E1F17;
+    --brown: #432D21;
+    --light-brown: #7F4C34;
+    --yellow: #E3D78F;
+}
+
+html, body {
+  font-family: CrimsonText;
+  margin: 0;
+  min-height: 100vh;
+  background: var(--dark-brown);
+  color: white;
 }
 
 /* The header, including the RTM logo and user profile buttons  */
@@ -277,7 +282,7 @@ html, body {
     align-items:     center;
     justify-content: space-between;
     display:         flex;
-    background:      #efefef;
+    background:      var(--brown);
     box-shadow:      0px 0px 10px rgba(0,0,0,.5);
     padding:         10px 25px;
     box-sizing:      border-box;
