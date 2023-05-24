@@ -27,7 +27,7 @@ Click a part title to jump down to it, in this file.
 | [Part B - /register, API & DB basics](#part-b) | 15 min. | 8 |
 | [Part C - User sessions, logout, and /login](#part-c) | 20 min.  | 13 |
 | [Part D - User settings](#part-d) | 10 min. | 9 |
-| [Part E - Mobile design](#part-e) | 15 min. | 12 |
+| [Part E - Mobile design](#part-e) | 15 min. | 8 |
 | [Part F - Invite code](#part-f) | 5 min. | 5 |
 | [Part G - Hosting](#part-g) | 15 min. | 6 |
 | [Version 2.0.](#v2) | Todo | ? |
@@ -1881,7 +1881,7 @@ In `/server/database/database.js`, add this after our `insert` function:
 <h3 id="d-2"> ☑️ Step 2.  Add POST_update_user and a URL route to <code>server.js</code>  </h3>
 
 
-First, update this:  
+First, in `server.js`, update this:  
 
 ```javascript
 function api_POST_routes(url, req, res) {
@@ -2268,7 +2268,8 @@ function update_password() {
         document.getElementById('pass_error').innerHTML = 'Password updated!';
         _current_user = response.updated_user;
       } else {
-dcvgb        }
+        document.getElementById('pass_error').innerHTML = response.msg;
+      }
     }
   }
 }
@@ -2354,7 +2355,7 @@ Add one line in the `<head>` tag of `index.html`:
 
 <h3 id="e-3"> ☑️ Step 3.  Setting up device breakpoints in <code>/pages/misc/landing.html</code> </h3>
 
-We'll set up a CSS "breakpoint" for mobile devices, to change the landing page's image, and the layout of the thumbnail links.  
+We'll set up a CSS "breakpoint" for mobile devices, to change the layout of the thumbnail links.  
 
 Add this to the bottom of the css in `/pages/misc/landing.html`:
 
@@ -2363,12 +2364,6 @@ Add this to the bottom of the css in `/pages/misc/landing.html`:
     .thumb-container {
       flex-flow: column;
       align-items: center;
-    }
-    #comic {
-      width: 180vw;
-      margin: auto;
-      object-fit: contain;
-      margin-left: -50vw;
     }
   } 
 ```
@@ -2483,8 +2478,8 @@ Then, we'll add this, right below the `#user-buttons` section:
     top:             30px;
     right:           0px;
     min-width:       120px;
-    border:          solid 1px #bbb;
-    background:      #f6f6f6;
+    border:          solid 1px var(--dark-brown);
+    background:      var(--light-brown);
     overflow-x:      hidden;
     border-radius:   4px;
 }
@@ -2510,185 +2505,10 @@ If you're logged in, the `profile` and `logout` buttons should appear.
 
 <br/><br/><br/><br/>
 
+<!--  Todo: Add light mode, or theme change or something?  -->
 
 
-<h3 id="e-8"> ☑️ Step 8.  Add a dark mode button in <code>/pages/index.js</code> </h3>
-
-First we'll add a new variable:
-
-```javascript
-////  SECTION 1: Main website memory.
-var _current_page  = window.location.pathname;
-var _session_id = localStorage.getItem('session_id');
-var _current_user = null;
-var _show_user_menu = false;
-var _dark_mode = localStorage.getItem('dark_mode');
-```
-
-Then we'll add a button to the user menu we just made, to toggle darkmode, in `/pages/index.js`:
-
-```javascript
-// Update the "user buttons" in the header
-function update_header() {
-  let userButtonsEl = document.getElementById('user-buttons');
-  let buttonText = `Menu`;
-  let menuHTML = `<div id="user-menu">`;
-
-  if (_current_user == null) {
-    menuHTML += `<a href="/register">Register</a>`;
-    menuHTML += `<a href="/login">Login</a>`;
-    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
-  } else {
-    buttonText = _current_user.display_name;
-    menuHTML += `<a href="/profile">Your profile</a>`;
-    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
-    menuHTML += `<button onclick="logout()">Log out</button>`;
-  }
-
-  userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">${buttonText}</button>`;
-  if (_show_user_menu) {
-    userButtonsEl.innerHTML += menuHTML + `</div>`;
-  }
-
-}
-```
-
-Then we'll add a `toggle_darkmode()` function, right below the `update_header` function:
-
-```javascript
-function toggle_darkmode() {
-  _dark_mode = _dark_mode != 'true' ? 'true' : false;
-  localStorage.setItem('dark_mode', _dark_mode);
-  document.getElementById('header').classList.toggle('dark');
-  document.getElementById('content').classList.toggle('dark');
-}
-```
-
-Finally, we'll update `boot`:  
-
-```javascript
-////  SECTION 3: Boot.
-function boot() {
-  console.log("Welcome to Rooftop Media Dot Org!");
-
-  //  Log user in if they have a session id. 
-  if (_session_id) {
-    const http = new XMLHttpRequest();
-    http.open("POST", "/api/user-by-session");
-    http.send(_session_id);
-    http.onreadystatechange = (e) => {
-      if (http.readyState == 4 && http.status == 200) {
-        _current_user = JSON.parse(http.responseText);
-        current_user_loaded();
-      } else if (http.readyState == 4 && http.status == 404) {
-        console.log('No session found.');
-        localStorage.removeItem('session_id');
-      }
-      update_header();
-    }
-  } else {
-    update_header();
-  }
-
-  if (_dark_mode === 'true') {
-    _dark_mode = 'false';
-    toggle_darkmode();
-  }
-  
-  //  Redirect away from register or login if we're logged in.
-  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
-    window.location.href = '/';
-  }
-  
-}
-window.addEventListener('load', (event) => {
-  boot()
-});
-```
-
-<br/><br/><br/><br/>
-
-
-<h3 id="e-9"> ☑️ Step 9.  Add dark mode CSS <code>/pages/index.css</code> </h3>
-
-We'll need to update `/pages/index.css` in a few places...  
-
-Under `#header`:  
-```css
-#header.dark {
-    background: #1f1f1f;
-    color: white;
-}
-```
-
-Under `#logo`:  
-```css
-#header.dark #logo {
-    filter: invert(1);
-}
-```
-
-Under `#user-buttons a, #user-buttons button`:  
-```css
-#header.dark #user-buttons a, #header.dark #user-buttons button {
-    background:      #2f2f2f;
-    color:         white;
-}
-```
-
-And, under `#user-menu a, #user-menu button`:  
-```css
-#content {
-    min-height: calc(100vh - 100px);
-}
-#content.dark {
-    background:    black;
-    color:         white;
-}
-#content.dark input {
-    background: #2f2f2f;
-    color: white;
-    border: solid 1px #1f1f1f;
-}
-#content.dark button {
-    background: #2f2f2f;
-    color: white;
-    border: solid 1px #1f1f1f;
-}
-#content.dark button:hover {
-    background: #3f3f3f;
-    color: white;
-    border: solid 1px #1f1f1f;
-}
-```
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="e-10"> ☑️ Step 10.  Add dark mode CSS <code>/pages/misc/landing.html</code> </h3>
-
-In `pages/misc/landing.html`, add this to the  css:
-
-```css
-#content.dark img {
-    filter: invert(1);
-}
-```
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="e-11"> ☑️ Step 11.  ☞  Test the code! </h3>
-
-Refresh the browser and test the new dark mode button!
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="e-12"> ☑️ Step 12. ❖ Part E review. </h3>
+<h3 id="e-8"> ☑️ Step 8. ❖ Part E review. </h3>
 
 The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_E).
 
@@ -2701,7 +2521,7 @@ The complete code for Part E is available [here](https://github.com/rooftop-medi
 
 In this part, we'll ensure users can only register if they first type in an "invite code".  
 <!-- TODO: One access code = one registered account, admin accts can create codes.  For now it's just a simple reusable password. -->
-This will be important because I want to host the website on a public domain while it's still in beta. 
+This will be important because I want to host the website on a public domain while it's still being tested, and not "production ready". 
 
 <br/><br/><br/><br/>
 
