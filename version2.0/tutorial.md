@@ -189,26 +189,24 @@ function api_POST_routes(url, req, res) {
   req.on('end', function() {
     req_data = JSON.parse(req_data);
 
-    if (url == '/api/register') {
-      POST_register(req_data, res);
-    } else if (url == '/api/login') {
-      POST_login(req_data, res);
-    } else if (url == '/api/logout') {
-      POST_logout(req_data, res);
-    } else if (url == '/api/user-by-session') {
-      POST_user_by_session(req_data, res);
-    } else if (url == '/api/update-user') {
-      POST_update_user(req_data, res);
-    } else if (url == '/api/update-password') {
-      POST_update_password(req_data, res);
-    } else if (url == '/api/create-page') {
-      POST_create_page(req_data, res);
+    let api_map = {
+      '/api/register': POST_register,
+      '/api/login': POST_login,
+      '/api/logout': POST_logout,
+      '/api/user-by-session': POST_user_by_session,
+      '/api/update-user': POST_update_user,
+      '/api/update-password': POST_update_password,
+      '/api/check-invite-code': POST_check_invite_code,
+      '/api/create-page': POST_create_page
     }
+    
+    //  Calling the API route's function
+    api_map[url](req_data, res);
   })
 }
 ```
 
-Then, after the function `POST_update_password`, add this function:  
+Then, after the function `POST_check_invite_code`, add this function:  
 
 ```javascript
 function POST_create_page(new_page_data, res) {
@@ -262,30 +260,9 @@ var pageURLkeys = Object.keys(pageURLs);
 
 <h3 id="a-5">  ☑️ Step 5: Using <code>/pages/index.js</code> to reroute and update the header </h3>
 
-In this step, we'll redirect the user based on these rules:
- - If the user is logged in on `/login` or `/register`, redirect them to the home page. 
- - If the user _isn't_ logged in on a dynamic page management page, redirect them to the home page. 
-   - This will include any route that starts with `/edit/...`, which we'll code in part B. 
+Open up `/pages/index.js`.  We'll make two changes.
 
-Open up `/pages/index.js`.  First, we'll add a new function, `reroute_if_needed`, right below `current_user_loaded`:  
-
-```javascript
-// Reroute the user if their log in status doesn't match the page
-function reroute_if_needed() {
-  if (_current_user == null) {
-    if (_current_page == '/create-page' || _current_page == '/all-pages' || _current_page.split('/')[1] == 'edit') {
-      window.location.href = '/';
-    }
-  } else {
-    if (_current_page == '/register' || _current_page == '/login') {
-      window.location.href = '/';
-    }
-  }
-}
-```
-
-
-We'll also update the header, to include links to `/create-page` and `/all-pages`.
+First, we'll update the`update_ header` function, to include links to `/create-page` and `/all-pages`.
 ```
 // Update the "user buttons" in the header
 function update_header() {
@@ -296,13 +273,11 @@ function update_header() {
   if (_current_user == null) {
     menuHTML += `<a href="/register">Register</a>`;
     menuHTML += `<a href="/login">Login</a>`;
-    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
   } else {
     buttonText = _current_user.display_name;
     menuHTML += `<a href="/profile">Your profile</a>`;
     menuHTML += `<a href="/create-page">New page</a>`;
     menuHTML += `<a href="/all-pages">All pages</a>`;
-    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
   
@@ -314,7 +289,9 @@ function update_header() {
 }
 ```
 
-Then, we'll edit the `boot` function, to call `reroute_if_needed`, and remove the old reroute "if" statement:  
+Then, we'll edit the `boot` function.   
+We'll clean up the section that redirects the user to the home page under certain circumstances.  
+We'll also redirect to the home page if on `/create-page` or `/all-pages` and not logged in, or on any route starting with `/edit/`.
 
 ```javascript
 ////  SECTION 3: Boot.
@@ -330,25 +307,26 @@ function boot() {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
         current_user_loaded();
-        reroute_if_needed();
-        update_header();
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
-        reroute_if_needed();
-        update_header();
       }
+      update_header();
     }
   } else {
     update_header();
-    reroute_if_needed();
-  }
-
-  if (_dark_mode === 'true') {
-    _dark_mode = 'false';
-    toggle_darkmode();
   }
   
+  //  Redirect to home if...
+  var onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
+  var loggedIn = _session_id != null;
+  var redirectToHome = (onALoggedOutPage && loggedIn);
+  var onALoggedInPage = (_current_page == '/create-page' || _current_page == '/all-pages' || _current_page.split('/')[1] == 'edit');
+  redirectToHome = redirectToHome || (onALoggedInPage && !loggedIn);
+  if (redirectToHome) {
+    window.location.href = '/';
+  }
+
 }
 window.addEventListener('load', (event) => {
   boot()
@@ -357,7 +335,7 @@ window.addEventListener('load', (event) => {
 
 <br/><br/><br/><br/>
 
-Note that most would suggest I put the AJAX call set up in a [separate reusable function](https://stackoverflow.com/questions/2818648/using-two-xmlhttprequest-calls-on-a-page).  I'm not doing that for now. 
+<!--Note that most would suggest I put the AJAX call set up in a [separate reusable function](https://stackoverflow.com/questions/2818648/using-two-xmlhttprequest-calls-on-a-page).  I'm not doing that for now. -->
 
 
 
@@ -530,11 +508,8 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
     min-width: 100px;
     padding: 5px;
   }
-  #content.dark td a {
-    color: pink;
-  }
-  #content.dark td a:visited {
-    color: lavender;
+  a {
+    color: var(--yellow);
   }
 </style>
 ```
