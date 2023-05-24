@@ -432,9 +432,10 @@ First, edit `api_GET_routes`:
 
 ```javascript
 function api_GET_routes(url, res) {
-  if (url == '/api/all-pages') {
-    GET_all_pages(res);
+  let api_map = {
+    '/api/all-pages': GET_all_pages
   }
+  api_map[url](res);
 }
 ```
 
@@ -595,23 +596,20 @@ function api_POST_routes(url, req, res) {
   req.on('end', function() {
     req_data = JSON.parse(req_data);
 
-    if (url == '/api/register') {
-      POST_register(req_data, res);
-    } else if (url == '/api/login') {
-      POST_login(req_data, res);
-    } else if (url == '/api/logout') {
-      POST_logout(req_data, res);
-    } else if (url == '/api/user-by-session') {
-      POST_user_by_session(req_data, res);
-    } else if (url == '/api/update-user') {
-      POST_update_user(req_data, res);
-    } else if (url == '/api/update-password') {
-      POST_update_password(req_data, res);
-    } else if (url == '/api/create-page') {
-      POST_create_page(req_data, res);
-    } else if (url == '/api/get-page') {
-      POST_get_page(req_data, res)
+    let api_map = {
+      '/api/register': POST_register,
+      '/api/login': POST_login,
+      '/api/logout': POST_logout,
+      '/api/user-by-session': POST_user_by_session,
+      '/api/update-user': POST_update_user,
+      '/api/update-password': POST_update_password,
+      '/api/check-invite-code': POST_check_invite_code,
+      '/api/create-page': POST_create_page,
+      '/api/get-page': POST_get_page
     }
+    
+    //  Calling the API route's function
+    api_map[url](req_data, res);
   })
 }
 ```
@@ -644,9 +642,9 @@ function POST_get_page(route_data, res) {
 <h3 id="b-3">  ☑️ Step 3: Create <code>/pages/cms/edit-page.html</code>  </h3>
 
 This is another dynamic page. It will get a page's details via an API call to `POST_get_page`.  
-Then, it will load the page's content into editable input boxes.  
+Then, it will load the page's content, as markup, into an editable box.
 
-A "buffer" (a draft) of the page's elements and their contents can then be edited, added or deleted.  
+A "buffer" (a draft) of the page's markup can then be edited.
 Finally, pages can be "saved", updating the published page.  
 
 Create the file `/pages/cms/edit-page.html`, with the following code:  
