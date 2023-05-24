@@ -14,5 +14,6 @@ v1 part C I think
 v1 part D:
  - [ ] "Delete account" button in user settings
 
-v1 part A thru F:
- - [ ] Change design to dark mode by default
+v1 part E? or A
+ - [ ] Add better default CSS for inputs and buttons
+ - [ ] Add darker- and lighter- variants of brown, add green and red
