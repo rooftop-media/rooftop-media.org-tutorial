@@ -481,21 +481,21 @@ Create a new file, `/pages/misc/landing.html`, and add:
 
 ```html
 <div class="p-3 center-column">
-  <img id="comic" src="/assets/landing/comic.svg"/>
+  <br/>
+  <h2>Goals</h2>
   <hr/><br/>
-  <h2 style="text-decoration: underline;">Articles</h2>
   <div class="thumb-container">
-    <a href="/language">
-      <img src="/assets/landing/thumb1.svg"/>
-      <p>Language</p>
+    <a href="#understanding">
+      <img src="/assets/landing/clock_parts.svg"/>
+      <p>Understanding</p>
     </a>
-    <a href="/mathematics">
-      <img src="/assets/landing/thumb2.svg"/>
-      <p>Mathematics</p>
+    <a href="#justice">
+      <img src="/assets/landing/raised_fist.svg"/>
+      <p>Justice</p>
     </a>
-    <a href="/gravity">
-      <img src="/assets/landing/thumb3.svg"/>
-      <p>Gravity</p>
+    <a href="#control">
+      <img src="/assets/landing/branching_paths.svg"/>
+      <p>Control</p>
     </a>
   </div>
 </div>
@@ -510,17 +510,11 @@ Create a new file, `/pages/misc/landing.html`, and add:
     width: 200px;
     text-align: center;
     cursor: pointer;
-    color: black;
+    color: white;
     text-decoration: none;
   }
   .thumb-container a img {
     transition: .3s;
-  }
-  .thumb-container a:hover img {
-    box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
-  }
-  .thumb-container a:hover p {
-    text-decoration: underline;
   }
 </style>
 ```
