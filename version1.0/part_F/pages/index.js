@@ -3,7 +3,6 @@ var _current_page  = window.location.pathname;
 var _session_id = localStorage.getItem('session_id');
 var _current_user = null;
 var _show_user_menu = false;
-var _dark_mode = localStorage.getItem('dark_mode');
 
 ////  SECTION 2: Functions.
 
@@ -31,11 +30,9 @@ function update_header() {
   if (_current_user == null) {
     menuHTML += `<a href="/register">Register</a>`;
     menuHTML += `<a href="/login">Login</a>`;
-    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
   } else {
     buttonText = _current_user.display_name;
     menuHTML += `<a href="/profile">Your profile</a>`;
-    menuHTML += `<button onclick="toggle_darkmode()"> &#x1F317; </button>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
 
@@ -46,13 +43,8 @@ function update_header() {
 
 }
 
-function toggle_darkmode() {
-  _dark_mode = _dark_mode != 'true' ? 'true' : false;
-  localStorage.setItem('dark_mode', _dark_mode);
-  document.getElementById('header').classList.toggle('dark');
-  document.getElementById('content').classList.toggle('dark');
-}
 
+////  SECTION 3: Boot.
 ////  SECTION 3: Boot.
 function boot() {
   console.log("Welcome to Rooftop Media Dot Org!");
@@ -74,11 +66,6 @@ function boot() {
     }
   } else {
     update_header();
-  }
-
-  if (_dark_mode === 'true') {
-    _dark_mode = 'false';
-    toggle_darkmode();
   }
   
   //  Redirect away from register or login if we're logged in.

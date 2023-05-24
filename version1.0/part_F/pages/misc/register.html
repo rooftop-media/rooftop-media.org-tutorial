@@ -113,7 +113,6 @@ function enter() {
   invite_code = document.getElementById('invite_code').value;
   const http = new XMLHttpRequest();
   http.open('POST', '/api/check-invite-code');
-  console.log(invite_code)
   http.send(JSON.stringify({invite_code: invite_code}));
   http.onreadystatechange = (e) => {
     let response;      

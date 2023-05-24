@@ -1,3 +1,5 @@
+////  SECTION 1: Imports.
+
 //  Importing NodeJS libraries.
 var http = require('http');     // listen to HTTP requests
 var path = require('path');     // manage filepath names
@@ -27,6 +29,7 @@ var mimeTypes = {
   '.otf': 'application/font-otf',
   '.wasm': 'application/wasm'
 };
+
 //  Mapping URLs to pages
 var pageURLs = {
   '/': '/pages/misc/landing.html',
@@ -104,6 +107,7 @@ function api_GET_routes(url, res) {
 
 }
 
+
 function api_POST_routes(url, req, res) {
   let req_data = '';
   req.on('data', chunk => {
@@ -112,21 +116,18 @@ function api_POST_routes(url, req, res) {
   req.on('end', function() {
     req_data = JSON.parse(req_data);
 
-    if (url == '/api/register') {
-      POST_register(req_data, res);
-    } else if (url == '/api/login') {
-      POST_login(req_data, res);
-    } else if (url == '/api/logout') {
-      POST_logout(req_data, res);
-    } else if (url == '/api/user-by-session') {
-      POST_user_by_session(req_data, res);
-    } else if (url == '/api/update-user') {
-      POST_update_user(req_data, res);
-    } else if (url == '/api/update-password') {
-      POST_update_password(req_data, res);
-    } else if (url == '/api/check-invite-code') {
-      POST_check_invite_code(req_data, res);
+    let api_map = {
+      '/api/register': POST_register,
+      '/api/login': POST_login,
+      '/api/logout': POST_logout,
+      '/api/user-by-session': POST_user_by_session,
+      '/api/update-user': POST_update_user,
+      '/api/update-password': POST_update_password,
+      '/api/check-invite-code': POST_check_invite_code
     }
+    
+    //  Calling the API route's function
+    api_map[url](req_data, res);
   })
 }
 

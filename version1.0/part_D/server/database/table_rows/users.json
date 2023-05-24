@@ -1,20 +1,20 @@
 [
   {
-    "username": "ben",
-    "display_name": "Ben H",
-    "email": "ben@rooftop-media.org",
-    "phone": "123141231414",
-    "password": "ab23ab8d04538d27587954d1208de049eef2835e615e6933a919e4ac2cfecafb9e1dc940f951655edc6a30e5ec13d91ea8b723210be55877c04595f787406a06",
-    "salt": "bcfb58fdd119bd5af63677907b323f9b",
+    "username": "testuser",
+    "display_name": "TestUser",
+    "email": "test@test.com",
+    "phone": "1234567890",
+    "password": "31d16a9a53faf70c9e8548ebda039dcccee2fe8bf3d8d335786fbd662365678a344c3781549b340e9e62bd840e3a3a1e2ecfd74ef8dbdd98fa73f4d5e69d1a75",
+    "salt": "d1b417cbb021b2eca9797311c38dfeef",
     "id": 0
   },
   {
-    "username": "scott",
-    "display_name": "Scotty",
-    "email": "scott@gmail.com",
-    "phone": "123-123-1233",
-    "password": "03a39c0c07fdb160927aa526ab78dc42abed34009069258d281926aad2a36a9d54d200b1d17f390ad88f18c6b62cd11924670fa3ce40c48960e74010e401ddce",
-    "salt": "5a0d772e55b175e90883901c668a919c",
+    "username": "mickeymouse",
+    "display_name": "Mickey Mouse",
+    "email": "mickey@mouse.org",
+    "phone": "123-123-1231",
+    "password": "194a0f88e66fc76b94a38b91da1bd60b2391fdd540a02a36444a402742b46b02dcc8751a8b008fa2947ef1b6a8d7f4093e7c57360caa3513b6b02b23faa96d13",
+    "salt": "e9ac5ddc48af527e3ab4f59f7b43af4d",
     "id": 1
   }
 ]
