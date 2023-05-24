@@ -650,7 +650,7 @@ Finally, pages can be "saved", updating the published page.
 Create the file `/pages/cms/edit-page.html`, with the following code:  
 
 ```html
-<div class="p-3" id="dynamic-page">
+<div class="p-3 center-column" id="dynamic-page">
   <i>Loading page...</i>
 </div>
 
@@ -658,156 +658,44 @@ Create the file `/pages/cms/edit-page.html`, with the following code:
 
 ////  SECTION 1: Page memory
 let page_route = _current_page.split('/edit/')[1];
-let page_buffer = [];
+let page_buffer = '';
 let page_data = {};
-let edit_el_index = -1;
-let show_settings = false;
-load_page_elements();
 
-////  SECTION 2: Boot
-//  Load all page elements from API, then render buffer
-function load_page_elements() {
-  const http = new XMLHttpRequest();
-  http.open('POST', '/api/get-page');
-  http.send(JSON.stringify({ page_route: page_route }));
-  http.onreadystatechange = (e) => {
-    let response;      
-    if (http.readyState == 4 && http.status == 200) {
-      response = JSON.parse(http.responseText);
-      if (!response.error) {
-        console.log("Response recieved! Creating page.");
-        console.log(response);
-        page_data = response.data;
-        page_buffer = page_data.content;
-        render_buffer();
-      } else {
-        document.getElementById('dynamic-page').innerHTML = response.msg;
-      }
-    }
-  }
-}
+////  SECTION 2: Render
 
-////  SECTION 3: Render
-
-//  Render the buffer as editable elements
-function render_buffer() {
-  document.getElementById('dynamic-page').innerHTML = "";
-  for (var i = 0; i < page_buffer.length; i++) {
-    if (i == edit_el_index) {
-      document.getElementById('dynamic-page').innerHTML += `
-      <div id="element-type-select">
-        Element type: 
-        <select id="new-el-type" onchange="update_el(${i})">
-          <option value="p">p</option>
-          <option value="h1">h1</option>
-          <option value="img">img</option>
-          <option value="div">div</option>
-          <option value="a">a</option>
-          <option value="i">i</option>
-        </select>
-      </div>`;
-    } else {
-      document.getElementById('dynamic-page').innerHTML += `<div>
-        <input 
-        type="text" 
-        value="${page_buffer[i].text}" 
-        id="el-${i}" 
-        class="${page_buffer[i].type}"
-        oninput="update_text(${i})"
-        oncontextmenu="context_menu(${i})"
-      />
-      </div>`
-    }
-  }
-
-  document.getElementById('dynamic-page').innerHTML += `<div id="new-el">
-    <button onclick="add_new_element()">+ add new element</button>
+//  Renders the text editor, final page, or "page does not exist" message.
+function render_page() {
+  let page_editor = `
+  <div class="page-title-editor">
+    <input id="page-title" type="text" value="${page_data.page_title}" oninput="update_pageTitle()">
+    <button onclick="cancel()">Cancel</button>
+    <button onclick="save()">Save</button>
   </div>`;
-  document.getElementById('dynamic-page').innerHTML += `<br/>`;
-  document.getElementById('dynamic-page').innerHTML += `<div id="save">
-    <button onclick="save_buffer()">Save page changes</button>
-  </div>`;
-  document.getElementById('dynamic-page').innerHTML += `<div id="error"></div>`;
-  document.getElementById('dynamic-page').innerHTML += `<div id="settings"></div>`;
-  render_settings();
+  page_editor += `<textarea id="page-buffer" value="${page_buffer}" oninput="update_buffer()">${page_buffer}</textarea/><br/><br/>`;
+  page_editor += `<button onclick="preview()">Preview</button>`;
+  document.getElementById('dynamic-page').innerHTML = page_editor;
 }
 
-function render_settings() {
-  let settingsEl = document.getElementById('settings');
-  if (show_settings) {
-    settingsEl.innerHTML = `<div class="icon" onclick="show_settings=false;render_settings();">&#9881;&#65039;</div>`;
-    settingsEl.innerHTML += `<div>Page title: <input value="${page_data.page_title}"></div>`;
-    settingsEl.innerHTML += `<div>Page route: <input value="${page_data.page_route}"></div>`;
-    settingsEl.innerHTML += `<div><a href="/${page_data.page_route}">View page</a></div>`;
-  } else {
-    settingsEl.innerHTML = `<div class="icon" onclick="show_settings=true;render_settings()">&#9881;&#65039;</div>`;
-  }
+////  SECTION 3: Event reactions
+
+//  Fires when new page content is typed.
+function update_buffer() {
+  page_buffer = document.getElementById('page-buffer').value;
 }
 
-////  SECTION 4: Event reactions
-
-//  Fires when "New Element" button is clicked
-function add_new_element() {
-  page_buffer.push({ 
-    type: 'p', 
-    text: ""
-  })
-  render_buffer();
+//  Fires when the page title is changed. 
+function update_pageTitle() {
+  page_data.page_title = document.getElementById('page-title').value;
 }
-
-//  Fires when text of a given input is changed.
-function update_text(index) {
-  page_buffer[index].text = document.getElementById(`el-${index}`).value;
-}
-
-//  Fires when "type" of a given input is selected
-function update_el(index) {
-  page_buffer[index].type = document.getElementById('new-el-type').value;
-  edit_el_index = -1;
-  render_buffer();
-}
-
-//  Fires when "edit type" is clicked in the context menu
-function edit_el(index) {
-  edit_el_index = index;
-  render_buffer();
-  let ctx_menu = document.getElementById("ctx_menu");
-  ctx_menu.remove();
-}
-
-//  Fires when the user right clicks on an input
-function context_menu(index) {
-  document.getElementById("ctx_menu") != null ? document.getElementById("ctx_menu").remove() : null;
-  let e = window.event;
-  e.preventDefault();
-  
-  document.body.innerHTML += `<div id="ctx_menu" style="left: ${e.clientX}px; top: ${e.clientY}px">
-    <div class="ctx_choice" onclick="edit_el(${index})">Edit type</div>
-    <div class="ctx_choice" onclick="document.getElementById('ctx_menu').remove()">Close</div>
-  </div>`;
-}
-
-//  Fires whenever the user clicks on the page, to remove the custom context menu
-document.body.addEventListener('mousedown', function(ev) {
-  //  Don't remove context menu on right click
-  if (ev.which == 3) { return; }
-  //  Don't remove context menu when clicking the ctx menu (let the ctx menu handle that)
-  if (ev.target.id == 'ctx_menu' || ev.target.className == 'ctx_choice' ) {
-    return;
-  }
-  let ctx_menu = document.getElementById("ctx_menu");
-  if (ctx_menu != null) {
-    ctx_menu.remove();
-  }
-}, true);
 
 //  Fires when "Save page changes" is clicked.
-function save_buffer() {
+function save() {
   console.log("saving...")
   const http = new XMLHttpRequest();
   http.open('POST', '/api/update-page');
   http.send(JSON.stringify({ 
     id: page_data.id,
+    page_title: page_data.page_title,
     content: page_buffer
   }));
   http.onreadystatechange = (e) => {
@@ -817,7 +705,7 @@ function save_buffer() {
       if (!response.error) {
         console.log("Response recieved! Page updated.");
         console.log(response);
-        render_buffer();
+        render_page();
       } else {
         console.warn("Err")
         document.getElementById('error').innerHTML = response.msg;
@@ -825,6 +713,30 @@ function save_buffer() {
     }
   }
 }
+
+////  SECTION 4: Boot
+//  Load all page elements from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/get-page');
+  http.send(JSON.stringify({ page_route: page_route }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Creating page.");
+        console.log(response.data);
+        page_data = response.data;
+        page_buffer = page_data.content || "";
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+load_page();
 
 </script>
 
@@ -834,51 +746,43 @@ function save_buffer() {
   }
   input {
     font-family: CrimsonText;
+    width: 60%;
   }
-    /* https://www.w3schools.com/cssref/css_default_values.php */
-  input.h1 {
+  input, textarea {
+    background: var(--brown);
+    color: white;
+    border: solid 1px black;
+    
+  }
+  input:focus, textarea:focus {
+    outline: solid 1px var(--yellow);
+  }
+  input#page-title {
     margin: 0.67em 0px;
     padding: 0px;
     font-size: 2em;
   }
-  input.p {
-    margin: 0px;
-    padding: 0px;
-    font-size: 1em;
+  
+  textarea {
+    min-height: 60vh;
+    min-width: 100%;
   }
 
-  /*  Context menu  */
-  #ctx_menu {
-    position: absolute;
-    background: #efefef;
-    border: solid 1px #bfbfbf;
-    border-radius: 2px;
-    width: 100px;
-    min-height: 20px;
-  }
-  .ctx_choice {
-    padding: 5px;
-    cursor: pointer;
-  }
-  .ctx_choice:hover {
-    background: #dfdfdf;
-  }
-  #element-type-select {
-    border: solid 1px gray;
-    padding: 5px;
-    display: inline-block;
+  .page-title-editor {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;;
   }
 
-  /*  Page settings menu */
-  #settings {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    text-align: right;
-  }
-  #settings .icon {
+  #dynamic-page button {
+    padding: 10px 0px;
+    width: 15%;
+    background: var(--light-brown);
+    color: var(--yellow);
+    border: 1px solid var(--brown);
     cursor: pointer;
   }
+
 </style>
 ```
 
@@ -898,25 +802,21 @@ function api_POST_routes(url, req, res) {
   req.on('end', function() {
     req_data = JSON.parse(req_data);
 
-    if (url == '/api/register') {
-      POST_register(req_data, res);
-    } else if (url == '/api/login') {
-      POST_login(req_data, res);
-    } else if (url == '/api/logout') {
-      POST_logout(req_data, res);
-    } else if (url == '/api/user-by-session') {
-      POST_user_by_session(req_data, res);
-    } else if (url == '/api/update-user') {
-      POST_update_user(req_data, res);
-    } else if (url == '/api/update-password') {
-      POST_update_password(req_data, res);
-    } else if (url == '/api/create-page') {
-      POST_create_page(req_data, res);
-    } else if (url == '/api/get-page') {
-      POST_get_page(req_data, res);
-    } else if (url == '/api/update-page') {
-      POST_update_page(req_data, res);
+    let api_map = {
+      '/api/register': POST_register,
+      '/api/login': POST_login,
+      '/api/logout': POST_logout,
+      '/api/user-by-session': POST_user_by_session,
+      '/api/update-user': POST_update_user,
+      '/api/update-password': POST_update_password,
+      '/api/check-invite-code': POST_check_invite_code,
+      '/api/create-page': POST_create_page,
+      '/api/get-page': POST_get_page,
+      '/api/update-page': POST_update_page
     }
+    
+    //  Calling the API route's function
+    api_map[url](req_data, res);
   })
 }
 ```
