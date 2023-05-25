@@ -12,6 +12,7 @@ v1 part C I think
  - [ ] Make "user profile" and "logout" buttons a section with a toggleable display, instead of new code
 
 v1 part D:
+ - [ ] Make "update profile" update the user buttons correctly.  I guess this is in part E actually. 
  - [ ] "Delete account" button in user settings
 
 v1 part E? or A
