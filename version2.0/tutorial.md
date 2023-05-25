@@ -1,4 +1,4 @@
-# NodeJS Tutorial for rooftop-media.org, version 3.0
+# NodeJS Tutorial for rooftop-media.org, version 2.0
 
 This is a tutorial for building rooftop-media.org version 2.0.  
 This version creates a Content Management System (CMS), allowing users to:
@@ -28,12 +28,12 @@ Click a part title to jump down to it, in this file.
 | --------------------------- | ------ | ---------- |
 | [Part A - /create-page, /all-pages](#part-a) | 20 min. | 13 |
 | [Part B - Page editing](#part-b) | 0 min. | 0 |
-| [Part C - Page formatting](#part-c) | 0 min. | 0 |
+| [Part C - Page display](#part-c) | 0 min. | 0 |
 | [Part D - Image & file upload](#part-d) | 0 min. | 0 |
 | [Part E - User permissions](#part-e) | 0 min. | 0 |
-| [Part F - Drafting & previewing](#part-f) | 0 min. | 0 |
+| [Part F - Saving drafts](#part-f) | 0 min. | 0 |
 | [Part G - Edit history](#part-g) | 0 min. | 0 |
-| [Part H - Page styling](#part-h) | 0 min. | 0 |
+| [Part H - ](#part-h) | 0 min. | 0 |
 | [Version 3.0.](#v3) | Todo | ? |
 
 
@@ -666,11 +666,14 @@ let page_data = {};
 //  Renders the text editor, final page, or "page does not exist" message.
 function render_page() {
   let page_editor = `
+  Route: /
+  <input id="page-route" type="text" value="${page_route}" oninput="update_pageRoute()" /><br/><br/>
   <div class="page-title-editor">
     <input id="page-title" type="text" value="${page_data.page_title}" oninput="update_pageTitle()">
     <button onclick="cancel()">Cancel</button>
-    <button onclick="save()">Save</button>
+    <button style="background: #3A7B64;" onclick="save()">Save</button>
   </div>`;
+  page_editor += `<div id="error"></div>`;
   page_editor += `<textarea id="page-buffer" value="${page_buffer}" oninput="update_buffer()">${page_buffer}</textarea/><br/><br/>`;
   page_editor += `<button onclick="preview()">Preview</button>`;
   document.getElementById('dynamic-page').innerHTML = page_editor;
@@ -688,6 +691,10 @@ function update_pageTitle() {
   page_data.page_title = document.getElementById('page-title').value;
 }
 
+function update_pageRoute() {
+  page_route = document.getElementById('page-route').value;
+}
+
 //  Fires when "Save page changes" is clicked.
 function save() {
   console.log("saving...")
@@ -696,7 +703,8 @@ function save() {
   http.send(JSON.stringify({ 
     id: page_data.id,
     page_title: page_data.page_title,
-    content: page_buffer
+    content: page_buffer,
+    page_route: page_route
   }));
   http.onreadystatechange = (e) => {
     let response;      
@@ -705,12 +713,22 @@ function save() {
       if (!response.error) {
         console.log("Response recieved! Page updated.");
         console.log(response);
+        if (_current_page.split('/edit/')[1] != page_route) {
+          window.location.href = '/edit/' + page_route;
+        }
         render_page();
       } else {
         console.warn("Err")
         document.getElementById('error').innerHTML = response.msg;
       }
     }
+  }
+}
+
+//  Fires when the cancel button is clicked.
+function cancel() {
+  if (confirm("Are you sure? Changes will not be saved!")) {
+    window.location.href = '/edit/' + page_route;
   }
 }
 
@@ -776,6 +794,7 @@ load_page();
 
   #dynamic-page button {
     padding: 10px 0px;
+    border-radius: 5px;
     width: 15%;
     background: var(--light-brown);
     color: var(--yellow);
@@ -853,12 +872,16 @@ function POST_update_page(page_update, res) {
 <h3 id="b-5"> ☑️ Step 5:   ☞ Test the code!  </h3>
 
 Restart the server and go to `localhost:8080/edit/` followed by a dynamic page route name.  
-If it's a saved page rouute, you should see two buttons: One to add new elements, another to save the page.  
+If it's a saved page route, you should see several inputs, to edit the page's route, title, and content.
 
-Add a few elements to the page, with some text.  Right click on the elements to change their "type".  
+Try editing the page's title and content, and click save.  Refresh the page -- your changes should be saved.
 
-Then, save the page, and ensure the content saves in the database.  
-Refresh the page -- the saved changes should reload.
+Change the page's route and click save.  The page should refresh to that route. 
+
+Edit the page without saving, and then click "Cancel".  
+You should be prompted to confirm, and then the page should refresh.  
+
+The preview button will not do anything for the moment. 
 
 <br/>
 
@@ -868,11 +891,32 @@ Finally, go to `localhost:8080/edit/not-a-route` to display an error message.
 
 
 
-<h3 id="b-6">  ☑️ Step 6: Updating <code>respond_with_a_dynamic_page</code> in <code>/server/server.js</code>  </h3>
 
-Now that we can add elements to pages, we need to make sure those pages get rendered correctly. 
 
-In `server.js`, change `respond_with_a_dynamic_page` to this:
+
+
+<h3 id="b-6">☑️ Step 6. ❖ Part B review. </h3>
+
+The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_B).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+<h2 id="part-c" align="center">  Part C:  Page Display </h2>
+
+In this section, we'll display our pages.  
+This means turning [markdown](https://daringfireball.net/projects/markdown/syntax) into HTML.  
+There are already [libraries](https://showdownjs.com/) that can accomplish this, but we'll be doing it with vanilla JS. 
+
+
+<br/><br/><br/><br/>
+
+
+<h3 id="c-1">  ☑️ Step 1: Updating <code>respond_with_a_dynamic_page</code> in <code>/server/server.js</code>  </h3>
+
+In `server.js`, change `respond_with_a_dynamic_page` to send a new page, `cms/page-display.html`: 
 
 ```javascript
 function respond_with_a_dynamic_page(res, url) {
@@ -913,29 +957,6 @@ Open a dynamic page route that doesn't have content added -- the page title, and
 Open a URL that doesn't have a dynamic page.  You should get the 404 page.  
 
 <br/><br/><br/><br/>
-
-
-
-<h3 id="b-8">☑️ Step 8. ❖ Part B review. </h3>
-
-The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_B).
-
-<br/><br/><br/><br/>
-<br/><br/><br/><br/>
-
-
-
-<h2 id="part-c" align="center">  Part C:  Page Formatting </h2>
-
-In this section, we'll add page formatting abilities to our page editor.
-This includes:
- - Nested elements, like `a` tags in `p` tags in `div` tags in `div` tags.
- - Element css property editing, like text color, backgrounds, etc.
-
-
-<br/><br/><br/><br/>
-
-
 
 
 
