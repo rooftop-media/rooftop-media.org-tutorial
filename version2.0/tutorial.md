@@ -904,8 +904,20 @@ The complete code for Part B is available [here](https://github.com/rooftop-medi
 <h2 id="part-c" align="center">  Part C:  Page Display </h2>
 
 In this section, we'll display our pages.  
-This means turning [markdown](https://daringfireball.net/projects/markdown/syntax) into HTML.  
-There are already [libraries](https://showdownjs.com/) that can accomplish this, but we'll be doing it with vanilla JS. 
+Pages will be written in "Rooftop Markup", which is very basic.  
+The rules for Rooftop Markup: 
+ - The following html tags are allowed: 
+   - h1 - h6, p, div, span
+   - b, i
+   - code, pre
+   - ol, ul, li
+   - table, tr, th, td
+   - a, img
+ - The following attributes are allowed:
+   - style, img, alt, href
+ - The following shorthands can be used:
+   - \_italics\_, \*bold\*
+   - # header 1, ### header 3
 
 
 <br/><br/><br/><br/>
