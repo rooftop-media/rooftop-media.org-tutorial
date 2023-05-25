@@ -1,0 +1,319 @@
+<div class="p-3" id="dynamic-page">
+  <i>Loading page...</i>
+</div>
+
+<script>
+
+////  SECTION 1: Page memory
+let page_route = _current_page.split('/edit/')[1];
+let page_buffer = [];
+let page_data = {};
+let edit_el_index = -1;
+let show_settings = true;
+load_page_elements();
+
+////  SECTION 2: Boot
+//  Load all page elements from API, then render buffer
+function load_page_elements() {
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/get-page');
+  http.send(JSON.stringify({ page_route: page_route }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Creating page.");
+        console.log(response);
+        page_data = response.data;
+        page_buffer = page_data.content;
+        render_buffer();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+////  SECTION 3: Render
+
+//  Render the buffer as editable elements
+function render_buffer() {
+  document.getElementById('dynamic-page').innerHTML = "";
+  for (var i = 0; i < page_buffer.length; i++) {
+    if (i == edit_el_index) {
+      document.getElementById('dynamic-page').innerHTML += `
+      <div id="element-type-select" >
+        Element type: 
+        <select id="new-el-type" onchange="update_el(${i})">
+          <option value="p">p</option>
+          <option value="h1">h1</option>
+          <option value="h2">h2</option>
+          <option value="h3">h3</option>
+          <option value="h4">h4</option>
+          <option value="h5">h5</option>
+          <option value="h6">h6</option>
+          <option value="div">div</option>
+          <option value="hr">hr</option>
+        </select>
+      </div>`;
+    } else if (page_buffer[i].type == 'hr') {
+      document.getElementById('dynamic-page').innerHTML += `<hr 
+        oncontextmenu="context_menu(${i})" style="cursor:pointer"/>`;
+    } else {
+      document.getElementById('dynamic-page').innerHTML += `<div>
+        <input 
+        type="text" 
+        value="${page_buffer[i].text}" 
+        id="el-${i}" 
+        class="${page_buffer[i].type}"
+        oninput="update_text(${i})"
+        oncontextmenu="context_menu(${i})"
+      />
+      </div>`
+    }
+  }
+
+  document.getElementById('dynamic-page').innerHTML += `<div id="buttons"></div>`
+  render_buttons();
+  document.getElementById('dynamic-page').innerHTML += `<div id="settings"></div>`;
+  render_settings();
+}
+
+function render_buttons() {
+  document.getElementById('buttons').innerHTML += `<div id="new-el">
+    <button onclick="add_new_element(page_buffer.length)">+ add new element</button>
+  </div>`;
+  document.getElementById('buttons').innerHTML += `<br/>`;
+  document.getElementById('buttons').innerHTML += `<div id="save">
+    <button onclick="save_buffer()">Save page changes</button>
+  </div>`;
+  document.getElementById('buttons').innerHTML += `<div id="error"></div>`;
+}
+
+function render_settings() {
+  let settingsEl = document.getElementById('settings');
+  if (show_settings) {
+    let icons = `<div style="display: inline-flex;">`;
+    icons += `<div class="icon" onclick="">&nbsp;<i>i</i>&nbsp;</div>`;
+    icons += `<div class="icon" onclick="">&nbsp;<b>b</b>&nbsp;</div>`;
+    icons += `<div class="icon" onclick="">&#128279;</div>`;
+    icons += `<div class="icon" onclick="show_settings=false;render_settings();">&#9881;&#65039;</div>`;
+    icons += `</div>`;
+    settingsEl.innerHTML = icons;
+    settingsEl.innerHTML += `<div>Page title: 
+      <input value="${page_data.page_title}" id="page_title" oninput="update_title()"></div>`;
+    settingsEl.innerHTML += `<div>Page route: 
+      <input value="${page_data.page_route}" id="page_route" oninput="update_route()"></div>`;
+    settingsEl.innerHTML += `<div><a href="/${page_data.page_route}">View page</a></div>`;
+  } else {
+    settingsEl.innerHTML = `<div class="icon" onclick="show_settings=true;render_settings()">&#9881;&#65039;</div>`;
+  }
+}
+
+////  SECTION 4: Event reactions
+
+//  Fires when "New Element" button is clicked
+function add_new_element(index) {
+  page_buffer.splice(index, 0, { 
+    type: 'p', 
+    text: ""
+  })
+  render_buffer();
+}
+
+//  Fires when text of a given input is changed.
+function update_text(index) {
+  page_buffer[index].text = document.getElementById(`el-${index}`).value;
+}
+
+//  Fires when the title is updated in settings
+function update_title() {
+  page_data.page_title = document.getElementById(`page_title`).value;
+}
+
+//  Fires when the page route is updated in settings
+function update_route() {
+  page_data.page_route = document.getElementById(`page_route`).value;
+}
+
+//  Fires when "type" of a given input is selected
+function update_el(index) {
+  page_buffer[index].type = document.getElementById('new-el-type').value;
+  edit_el_index = -1;
+  render_buffer();
+}
+
+//  Fires when "edit type" is clicked in the context menu
+function edit_el(index) {
+  edit_el_index = index;
+  render_buffer();
+  let ctx_menu = document.getElementById("ctx_menu");
+  ctx_menu.remove();
+}
+
+//  Fires when "delete" is clicked in the context menu
+function delete_el(index) {
+  page_buffer.splice(index,1);
+  render_buffer();
+  document.getElementById("ctx_menu").remove();
+}
+
+//  Fires when the user right clicks on an input
+function context_menu(index) {
+  document.getElementById("ctx_menu") != null ? document.getElementById("ctx_menu").remove() : null;
+  let e = window.event;
+  e.preventDefault();
+  
+  document.body.innerHTML += `<div id="ctx_menu" style="left: ${e.clientX}px; top: ${e.clientY}px">
+    <div class="ctx_choice" onclick="edit_el(${index})">Edit type</div>
+    <div class="ctx_choice" onclick="delete_el(${index})">Delete</div>
+    <div class="ctx_choice" onclick="document.getElementById('ctx_menu').remove()">Close</div>
+  </div>`;
+}
+
+//  Fires whenever the user clicks on the page, to remove the custom context menu & set "edit element" to -1
+document.body.addEventListener('mousedown', function(ev) {
+  //  Don't remove context menu on right click
+  if (ev.which == 3) { return; }
+  //  Don't remove context menu when clicking the ctx menu (let the ctx menu handle that)
+  if (ev.target.id == 'ctx_menu' || ev.target.className == 'ctx_choice' ) {
+    return;
+  }
+  let ctx_menu = document.getElementById("ctx_menu");
+  if (ctx_menu != null) {
+    ctx_menu.remove();
+  }
+  if (ev.target.id == "dynamic-page") {
+    edit_el_index = -1;
+    render_buffer();
+  }
+}, true);
+
+//  Fires when "Save page changes" is clicked.
+function save_buffer() {
+  console.log("saving...")
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/update-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    content: page_buffer,
+    page_route: page_data.page_route,
+    page_title: page_data.page_title
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Page saved.");
+        console.log(response);
+        if (page_data.page_route != page_route) {
+          window.location.href = `/edit/${page_data.page_route}`;
+        }
+        render_buffer();
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+</script>
+
+<style> 
+  #dynamic-page {
+    position: relative;
+    min-height: calc(100vh - 200px);
+  }
+  input {
+    font-family: CrimsonText;
+    display: block;
+    background: none;
+    border: none;
+    border-bottom: solid 1px gray;
+    padding: 0px;
+  }
+  /* https://www.w3schools.com/cssref/css_default_values.php */
+  input.p {
+    margin: 1em 0px;
+    font-size: 1em;
+  }
+  input.h1, input.h2, input.h3, input.h4, input.h5, input.h6 {
+    font-weight: bold;
+  }
+  input.h1 {
+    margin: 0.67em 0px;
+    font-size: 2em;
+  }
+  input.h2 {
+    margin: 0.83em 0px;
+    font-size: 1.5em;
+  }
+  input.h3 {
+    margin: 1em 0px;
+    font-size: 1.17em;
+  }
+  input.h4 {
+    margin: 1.33em 0px;
+    font-size: 1em;
+  }
+  input.h5 {
+    margin: 1.67em 0px;
+    font-size: .83em;
+  }
+  input.h6 {
+    margin: 2.33em 0px;
+    font-size: .67em;
+  }
+
+  /*  Context menu  */
+  #ctx_menu {
+    position: absolute;
+    background: #efefef;
+    border: solid 1px #bfbfbf;
+    border-radius: 2px;
+    width: 100px;
+    min-height: 20px;
+  }
+  .ctx_choice {
+    padding: 5px;
+    cursor: pointer;
+  }
+  .ctx_choice:hover {
+    background: #dfdfdf;
+  }
+  #element-type-select {
+    border: solid 1px gray;
+    padding: 5px;
+    display: inline-block;
+  }
+
+  /*  Save and new element buttons */
+  #buttons {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    display: flex;
+  }
+  #buttons button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+
+  /*  Page settings menu */
+  #settings {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    text-align: right;
+    box-shadow: 0px 2px 2px rgba(0,0,0,.2);
+    padding: 10px;
+  }
+  #settings .icon {
+    cursor: pointer;
+    margin-left: 5px;
+  }
+</style>

@@ -1,22 +1,28 @@
 @font-face {
-    font-family: CrimsonText;
-    src: url(/assets/fonts/CrimsonText-Regular.ttf),
-        url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
-        url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
-        url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
-        Times New Roman, serif; /* Safari, Android, iOS */
+  font-family: CrimsonText;
+  src: url(/assets/fonts/CrimsonText-Regular.ttf),
+       url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+       url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
+       Times New Roman, serif; /* Safari, Android, iOS */
+}
+
+:root {
+    --spacer: 20px;
+    --dark-brown: #2E1F17;
+    --brown: #432D21;
+    --light-brown: #7F4C34;
+    --yellow: #E3D78F;
 }
 
 html, body {
     font-family: CrimsonText;
     margin: 0;
     min-height: 100vh;
+    background: var(--dark-brown);
+    color: white;
 }
 
-:root {
-    --spacer: 20px;
-}
-  
 /* The header, including the RTM logo and user profile buttons  */
 #header {
     width:           100%;
@@ -24,38 +30,33 @@ html, body {
     align-items:     center;
     justify-content: space-between;
     display:         flex;
-    background:      #efefef;
+    background:      var(--brown);
     box-shadow:      0px 0px 10px rgba(0,0,0,.5);
     padding:         10px 25px;
     box-sizing:      border-box;
     z-index:         10;
     position:        relative;
 }
-#header.dark {
-    background: #1f1f1f;
-    color: white;
-}
-  
+
 #logo {
     width:           100px;
     margin-top:      15px;
     margin-bottom:   25px;
     cursor:          pointer;
 }
-#header.dark #logo {
-    filter: invert(1);
-}
-  
+
 #user-buttons {
     position: relative;
     display: flex;
 }
 #user-buttons a, #user-buttons button {
     display:         block;
-    color:         black;
+    color:           var(--yellow);
     text-decoration: none;
-    border:          solid 1px #bbb;
-    background:      #f6f6f6;
+    border:          none;
+    font-family:     CrimsonText;
+    font-size:       1em;
+    background:      var(--light-brown);
     margin-left:     10px;
     padding:         5px 20px;
     cursor:          pointer;
@@ -67,41 +68,14 @@ html, body {
 #user-buttons a:active, #user-buttons button:active {
     filter:          brightness(1.01);
 }
-#header.dark #user-buttons a, #header.dark #user-buttons button {
-    background:      #2f2f2f;
-    color:         white;
-}
-
-#content {
-    min-height: calc(100vh - 100px);
-}
-#content.dark {
-    background:    black;
-    color:         white;
-}
-#content.dark input {
-    background: #2f2f2f;
-    color: white;
-    border: solid 1px #1f1f1f;
-}
-#content.dark button {
-    background: #2f2f2f;
-    color: white;
-    border: solid 1px #1f1f1f;
-}
-#content.dark button:hover {
-    background: #3f3f3f;
-    color: white;
-    border: solid 1px #1f1f1f;
-}
 
 #user-menu {
     position:        absolute;
     top:             30px;
     right:           0px;
     min-width:       120px;
-    border:          solid 1px #bbb;
-    background:      #f6f6f6;
+    border:          solid 1px var(--dark-brown);
+    background:      var(--light-brown);
     overflow-x:      hidden;
     border-radius:   4px;
 }
@@ -113,8 +87,11 @@ html, body {
     text-align:      left;
 }
 
-  
 /*  Global styles  */
+h1 {
+  text-align: center;
+}
+
 .px-1 {
     padding-left: calc(var(--spacer) * 0.25);
     padding-right: calc(var(--spacer) * 0.25);

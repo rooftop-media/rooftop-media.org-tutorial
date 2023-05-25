@@ -1,4 +1,11 @@
-<div class="p-3 center-column">
+<div class="p-3 center-column" id="invite-code-section">
+  <h3>Register</h3>
+  <div>Invite code: <input type="text" tabindex="0" id="invite_code" placeholder="1234"/></div>
+  <p><i>rooftop-media.org is currently invite-only, as we work out the website's features.</i></p>
+  <button onclick="enter()">Enter</button>
+  <p id="error"></p>
+</div>
+<div class="p-3 center-column" id="register-section" style="display: none;">
   <h3>Register</h3>
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
@@ -13,6 +20,7 @@
 <script>
 
 const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+let invite_code = "";
 
 //  Username -- lowercase alphanumeric and _ only
 const username_input = document.getElementById('username');
@@ -82,7 +90,8 @@ function register() {
     display_name,
     email,
     phone,
-    password
+    password,
+    invite_code
   }));
   http.onreadystatechange = (e) => {
     let response;      
@@ -93,6 +102,26 @@ function register() {
         localStorage.setItem('session_id', response.session_id);
         _session_id = response.session_id;
         window.location.href = '/';
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+function enter() {
+  invite_code = document.getElementById('invite_code').value;
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/check-invite-code');
+  http.send(JSON.stringify({invite_code: invite_code}));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Correct invite code");
+        document.getElementById('invite-code-section').style.display = 'none';
+        document.getElementById('register-section').style.display = 'block';
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }

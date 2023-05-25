@@ -1,0 +1,29 @@
+{
+  "name": "Pages",
+  "snakecase": "pages",
+  "max_id": 4,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "Page Title",
+      "snakecase": "page_title"
+    },
+    {
+      "name": "Page Route",
+      "snakecase": "page_route",
+      "unique": true
+    },
+    {
+      "name": "Is Public?",
+      "snakecase": "is_public"
+    },
+    {
+      "name": "Content",
+      "snakecase": "content"
+    }
+  ]
+}

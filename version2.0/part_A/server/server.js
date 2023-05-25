@@ -1,3 +1,5 @@
+////  SECTION 1: Imports.
+
 //  Importing NodeJS libraries.
 var http = require('http');     // listen to HTTP requests
 var path = require('path');     // manage filepath names
@@ -27,6 +29,7 @@ var mimeTypes = {
   '.otf': 'application/font-otf',
   '.wasm': 'application/wasm'
 };
+
 //  Mapping URLs to pages
 var pageURLs = {
   '/': '/pages/misc/landing.html',
@@ -121,10 +124,12 @@ function respond_with_asset(res, url, extname) {
 ////  SECTION 3: API.
 
 function api_GET_routes(url, res) {
-  if (url == '/api/all-pages') {
-    GET_all_pages(res);
+  let api_map = {
+    '/api/all-pages': GET_all_pages
   }
+  api_map[url](res);
 }
+
 
 function api_POST_routes(url, req, res) {
   let req_data = '';
@@ -134,21 +139,19 @@ function api_POST_routes(url, req, res) {
   req.on('end', function() {
     req_data = JSON.parse(req_data);
 
-    if (url == '/api/register') {
-      POST_register(req_data, res);
-    } else if (url == '/api/login') {
-      POST_login(req_data, res);
-    } else if (url == '/api/logout') {
-      POST_logout(req_data, res);
-    } else if (url == '/api/user-by-session') {
-      POST_user_by_session(req_data, res);
-    } else if (url == '/api/update-user') {
-      POST_update_user(req_data, res);
-    } else if (url == '/api/update-password') {
-      POST_update_password(req_data, res);
-    } else if (url == '/api/create-page') {
-      POST_create_page(req_data, res);
+    let api_map = {
+      '/api/register': POST_register,
+      '/api/login': POST_login,
+      '/api/logout': POST_logout,
+      '/api/user-by-session': POST_user_by_session,
+      '/api/update-user': POST_update_user,
+      '/api/update-password': POST_update_password,
+      '/api/check-invite-code': POST_check_invite_code,
+      '/api/create-page': POST_create_page
     }
+    
+    //  Calling the API route's function
+    api_map[url](req_data, res);
   })
 }
 
@@ -182,6 +185,11 @@ function POST_register(new_user, res) {
       break;
     }
   }
+  if (new_user.invite_code != 'secret123') {
+    response.error = true;
+    response.msg = 'Incorrect invite code!';
+  }
+
   //  If it's not a duplicate, encrypt the pass, and save it. 
   if (!response.error) {
     new_user.salt = crypto.randomBytes(16).toString('hex');
@@ -336,6 +344,16 @@ function POST_update_password(password_update, res) {
   }
 
   res.write(JSON.stringify(response));
+  res.end();
+}
+
+function POST_check_invite_code(data, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  if (data.invite_code == 'secret123') {
+    res.write(JSON.stringify({error: false}));
+  } else {
+    res.write(JSON.stringify({error: true, msg: "incorrect code"}));
+  }
   res.end();
 }
 

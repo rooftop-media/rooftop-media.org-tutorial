@@ -1,4 +1,4 @@
-////  SECTION 1: Imports
+////  SECTION 1: Imports.
 
 //  Importing NodeJS libraries.
 var http = require('http');     // listen to HTTP requests
@@ -29,6 +29,7 @@ var mimeTypes = {
   '.otf': 'application/font-otf',
   '.wasm': 'application/wasm'
 };
+
 //  Mapping URLs to pages
 var pageURLs = {
   '/': '/pages/misc/landing.html',
@@ -88,19 +89,12 @@ function respond_with_a_page(res, url) {
 }
 
 function respond_with_a_dynamic_page(res, url) {
-  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });
+  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
   let content_page = "";
   if (page_data.length < 1) {
     content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-  } else if (Array.isArray(page_data[0].content) && page_data[0].content.length > 0) {
-    for (let i = 0; i < page_data[0].content.length; i++) {
-      let el = page_data[0].content[i];
-      content_page += `<${el.type}>${el.text}</${el.type}>`
-    }
-    content_page = `<div class="p-3">${content_page}</div>`;
   } else {
-    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2>`
-    content_page += `<p>This page is still empty.</p></div>`;
+    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2></div>`
   }
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
   var page_halves = main_page.split('<!--  Insert page content here!  -->');
@@ -132,10 +126,12 @@ function respond_with_asset(res, url, extname) {
 ////  SECTION 3: API.
 
 function api_GET_routes(url, res) {
-  if (url == '/api/all-pages') {
-    GET_all_pages(res);
+  let api_map = {
+    '/api/all-pages': GET_all_pages
   }
+  api_map[url](res);
 }
+
 
 function api_POST_routes(url, req, res) {
   let req_data = '';
@@ -145,25 +141,21 @@ function api_POST_routes(url, req, res) {
   req.on('end', function() {
     req_data = JSON.parse(req_data);
 
-    if (url == '/api/register') {
-      POST_register(req_data, res);
-    } else if (url == '/api/login') {
-      POST_login(req_data, res);
-    } else if (url == '/api/logout') {
-      POST_logout(req_data, res);
-    } else if (url == '/api/user-by-session') {
-      POST_user_by_session(req_data, res);
-    } else if (url == '/api/update-user') {
-      POST_update_user(req_data, res);
-    } else if (url == '/api/update-password') {
-      POST_update_password(req_data, res);
-    } else if (url == '/api/create-page') {
-      POST_create_page(req_data, res);
-    } else if (url == '/api/get-page') {
-      POST_get_page(req_data, res);
-    } else if (url == '/api/update-page') {
-      POST_update_page(req_data, res);
+    let api_map = {
+      '/api/register': POST_register,
+      '/api/login': POST_login,
+      '/api/logout': POST_logout,
+      '/api/user-by-session': POST_user_by_session,
+      '/api/update-user': POST_update_user,
+      '/api/update-password': POST_update_password,
+      '/api/check-invite-code': POST_check_invite_code,
+      '/api/create-page': POST_create_page,
+      '/api/get-page': POST_get_page,
+      '/api/update-page': POST_update_page
     }
+    
+    //  Calling the API route's function
+    api_map[url](req_data, res);
   })
 }
 
@@ -197,6 +189,11 @@ function POST_register(new_user, res) {
       break;
     }
   }
+  if (new_user.invite_code != 'secret123') {
+    response.error = true;
+    response.msg = 'Incorrect invite code!';
+  }
+
   //  If it's not a duplicate, encrypt the pass, and save it. 
   if (!response.error) {
     new_user.salt = crypto.randomBytes(16).toString('hex');
@@ -351,6 +348,16 @@ function POST_update_password(password_update, res) {
   }
 
   res.write(JSON.stringify(response));
+  res.end();
+}
+
+function POST_check_invite_code(data, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  if (data.invite_code == 'secret123') {
+    res.write(JSON.stringify({error: false}));
+  } else {
+    res.write(JSON.stringify({error: true, msg: "incorrect code"}));
+  }
   res.end();
 }
 

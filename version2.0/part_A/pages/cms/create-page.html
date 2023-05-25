@@ -1,4 +1,4 @@
-<div class="p-3">
+<div class="p-3 center-column">
   <h3>Create a New Page</h3>
   <div>Page title: <input type="text" tabindex="1" id="page_title" placeholder="My Blog"/></div>
   <div>Page route: <input type="text" tabindex="2" id="page_route" placeholder="my-blog"/></div>
@@ -36,18 +36,18 @@ function create_page() {
     return;
   }
 
-  const http2 = new XMLHttpRequest();
-  http2.open('POST', '/api/create-page');
-  http2.send(JSON.stringify({
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/create-page');
+  http.send(JSON.stringify({
     page_title,
     page_route,
     is_public,
     created_by: _current_user.id
   }));
-  http2.onreadystatechange = (e) => {
+  http.onreadystatechange = (e) => {
     let response;      
-    if (http2.readyState == 4 && http2.status == 200) {
-      response = JSON.parse(http2.responseText);
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
       if (!response.error) {
         console.log("Response recieved! Creating page.");
         window.location.href = '/' + page_route;
