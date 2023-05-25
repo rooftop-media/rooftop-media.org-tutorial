@@ -642,9 +642,9 @@ function POST_get_page(route_data, res) {
 <h3 id="b-3">  ☑️ Step 3: Create <code>/pages/cms/edit-page.html</code>  </h3>
 
 This is another dynamic page. It will get a page's details via an API call to `POST_get_page`.  
-Then, it will load the page's content, as markup, into an editable box.
+Then, it will load the page's content, as markdown, into an editable box.
 
-A "buffer" (a draft) of the page's markup can then be edited.
+A "buffer" (a draft) of the page's markdown can then be edited.
 Finally, pages can be "saved", updating the published page.  
 
 Create the file `/pages/cms/edit-page.html`, with the following code:  
@@ -789,7 +789,7 @@ load_page();
   .page-title-editor {
     display: flex;
     justify-content: space-between;
-    align-items: center;;
+    align-items: center;
   }
 
   #dynamic-page button {
@@ -892,9 +892,6 @@ Finally, go to `localhost:8080/edit/not-a-route` to display an error message.
 
 
 
-
-
-
 <h3 id="b-6">☑️ Step 6. ❖ Part B review. </h3>
 
 The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_B).
@@ -916,23 +913,16 @@ There are already [libraries](https://showdownjs.com/) that can accomplish this,
 
 <h3 id="c-1">  ☑️ Step 1: Updating <code>respond_with_a_dynamic_page</code> in <code>/server/server.js</code>  </h3>
 
-In `server.js`, change `respond_with_a_dynamic_page` to send a new page, `cms/page-display.html`: 
+In `server.js`, change one line in `respond_with_a_dynamic_page` to send the page, `cms/display-page.html`: 
 
 ```javascript
 function respond_with_a_dynamic_page(res, url) {
-  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });
+  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
   let content_page = "";
   if (page_data.length < 1) {
     content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-  } else if (Array.isArray(page_data[0].content) && page_data[0].content.length > 0) {
-    for (let i = 0; i < page_data[0].content.length; i++) {
-      let el = page_data[0].content[i];
-      content_page += `<${el.type}>${el.text}</${el.type}>`
-    }
-    content_page = `<div class="p-3">${content_page}</div>`;
   } else {
-    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2>`
-    content_page += `<p>This page is still empty.</p></div>`;
+    content_page = fs.readFileSync(__dirname + '/../pages/cms/display-page.html', {encoding:'utf8'});
   }
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
   var page_halves = main_page.split('<!--  Insert page content here!  -->');
@@ -947,12 +937,133 @@ function respond_with_a_dynamic_page(res, url) {
 
 
 
+<h3 id="c-1">  ☑️ Step 2: Create <code>cms/display-page.html</code>  </h3>
+
+Create a new file called `/cms/display-page.html`. 
+
+<br/><br/><br/><br/>
+
+
+
 <h3 id="b-7"> ☑️ Step 7:   ☞ Test the code!  </h3>
 
 Refresh the server.  
-Open a dynamic page route that has content added.  The page should display!  
+Edit a dynamic page route and add the following content:
 
-Open a dynamic page route that doesn't have content added -- the page title, and a message about no content should display.  
+```
+Characters that need escaped in HTML:  
+The less than sign, <  
+The ampersand, &  
+
+# h1 Heading
+## h2 Heading
+### h3 Heading
+#### h4 Heading
+##### h5 Heading
+###### h6 Heading
+
+This is an H1
+=============
+This is an H2
+-------------
+<h1>This is also an H1</h1>
+<h2>And this is also
+an H2 </h2>
+
+This is one line of text!
+And this should be on the same line!  
+But this should be on a new line!  
+
+Here are some line breaks.  
+
+<br/><br/><br/><br/>
+
+## Horizontal Rules:
+___
+---
+***
+
+## Blockquotes
+
+> Blockquotes can also be nested...
+>> ...by using additional greater-than signs right next to each other...
+> > > ...or with spaces between arrows.
+
+## Lists
+Unordered  
++ Create a list by starting a line with `+`, `-`, or `*`
++ Sub-lists are made by indenting 2 spaces:
+  - Marker character change forces new list start:
+    * Ac tristique libero volutpat at
+    + Facilisis in pretium nisl aliquet
+    - Nulla volutpat aliquam velit
++ Very easy!
+
+Ordered
+
+1. Lorem ipsum dolor sit amet
+2. Consectetur adipiscing elit
+3. Integer molestie lorem at massa
+
+
+1. You can use sequential numbers...
+1. ...or keep all the numbers as `1.`
+
+## Code
+
+Inline `code` 
+
+Indented code
+
+    // Some comments
+    line 1 of code
+    line 2 of code
+    line 3 of code
+
+
+Block code "fences"
+
+\```
+Sample text here...
+\```
+
+Syntax highlighting
+
+\``` js
+var foo = function (bar) {
+  return bar++;
+};
+
+console.log(foo(5));
+\```
+
+## Emphasis
+Here is some **bold text**  
+Here is some __bold text__  
+*This is italic text*   
+_This is italic text_  
+~~Strikethrough~~  
+
+## Tables
+
+| Name | Description |
+| ------ | ----------- |
+| row 1   | The first row |
+| row 2 | A secondary row |
+| ro2 3    | A third, and final, row, for your viewing pleasure |
+
+## Links
+
+[link text](http://github.com)
+[link with title](http://github.com) "title text!")  
+
+
+## Images
+
+![An image](https://octodex.github.com/images/minion.png)
+```
+
+Open the page, and you should see the page title and content. 
 
 Open a URL that doesn't have a dynamic page.  You should get the 404 page.  
 
