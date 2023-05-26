@@ -666,24 +666,31 @@ let page_data = {};
 //  Renders the text editor, final page, or "page does not exist" message.
 function render_page() {
   let page_editor = `
-  Route: /
-  <input id="page-route" type="text" value="${page_route}" oninput="update_pageRoute()" /><br/><br/>
-  <div class="page-title-editor">
+  <div class="flex-row">
+    <div style="width:40%;">Route: / <input id="page-route" type="text" value="${page_route}" oninput="update_pageRoute()" /></div>
+    <button onclick="toggle_publicity()">Make ${page_data.is_public ? 'Private' : 'Public'}</button>
+  </div>
+  <div class="flex-row">
     <input id="page-title" type="text" value="${page_data.page_title}" oninput="update_pageTitle()">
     <button onclick="cancel()">Cancel</button>
     <button style="background: #3A7B64;" onclick="save()">Save</button>
   </div>`;
   page_editor += `<div id="error"></div>`;
-  page_editor += `<textarea id="page-buffer" value="${page_buffer}" oninput="update_buffer()">${page_buffer}</textarea/><br/><br/>`;
-  page_editor += `<button onclick="preview()">Preview</button>`;
+  page_editor += `<textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)">${page_buffer}</textarea/><br/><br/>`;
+  page_editor += `<button onclick="render_preview()">Preview</button>`;
   document.getElementById('dynamic-page').innerHTML = page_editor;
+}
+
+function render_preview() {
+  document.getElementById('dynamic-page').innerHTML = `<button onclick="render_page()">Edit</button><br/><hr/><br/>`;
+  document.getElementById('dynamic-page').innerHTML += page_buffer;
 }
 
 ////  SECTION 3: Event reactions
 
 //  Fires when new page content is typed.
-function update_buffer() {
-  page_buffer = document.getElementById('page-buffer').value;
+function update_buffer(newval) {
+  page_buffer = newval;
 }
 
 //  Fires when the page title is changed. 
@@ -695,6 +702,11 @@ function update_pageRoute() {
   page_route = document.getElementById('page-route').value;
 }
 
+function toggle_publicity() {
+  page_data.is_public = !page_data.is_public;
+  render_page();
+}
+
 //  Fires when "Save page changes" is clicked.
 function save() {
   console.log("saving...")
@@ -704,7 +716,8 @@ function save() {
     id: page_data.id,
     page_title: page_data.page_title,
     content: page_buffer,
-    page_route: page_route
+    page_route: page_route,
+    is_public: page_data.is_public
   }));
   http.onreadystatechange = (e) => {
     let response;      
@@ -712,7 +725,6 @@ function save() {
       response = JSON.parse(http.responseText);
       if (!response.error) {
         console.log("Response recieved! Page updated.");
-        console.log(response);
         if (_current_page.split('/edit/')[1] != page_route) {
           window.location.href = '/edit/' + page_route;
         }
@@ -743,8 +755,7 @@ function load_page() {
     if (http.readyState == 4 && http.status == 200) {
       response = JSON.parse(http.responseText);
       if (!response.error) {
-        console.log("Response recieved! Creating page.");
-        console.log(response.data);
+        console.log("Response recieved! Loading page.");
         page_data = response.data;
         page_buffer = page_data.content || "";
         render_page();
@@ -762,34 +773,39 @@ load_page();
   #dynamic-page {
     position: relative;
   }
-  input {
+  #dynamic-page input {
     font-family: CrimsonText;
     width: 60%;
   }
-  input, textarea {
+  #dynamic-page input, #dynamic-page textarea {
     background: var(--brown);
     color: white;
     border: solid 1px black;
     
   }
-  input:focus, textarea:focus {
+  #dynamic-page input:focus, #dynamic-page textarea:focus {
     outline: solid 1px var(--yellow);
   }
+
+  input#page-route {
+    font-size: 1em;
+  }
+
   input#page-title {
     margin: 0.67em 0px;
     padding: 0px;
     font-size: 2em;
   }
   
-  textarea {
+  #page-buffer {
     min-height: 60vh;
     min-width: 100%;
   }
 
-  .page-title-editor {
+  .flex-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: center;;
   }
 
   #dynamic-page button {
@@ -901,11 +917,10 @@ The complete code for Part B is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-c" align="center">  Part C:  Page Display </h2>
+<h2 id="part-c" align="center">  Part C:  Page Sanitizing & Display </h2>
 
 In this section, we'll display our pages.  
-Pages will be written in "Rooftop Markup", which is very basic.  
-The rules for Rooftop Markup are described in [step 3](#c-3)
+Pages will be written in "Rooftop Markup", which is just a "sanitized" version of HTML, with fewer tags.  
 
 
 <br/><br/><br/><br/>
@@ -1069,7 +1084,8 @@ Open the page, and you should see it display.  Note that it isn't sanitized yet.
 <h3 id="c-4">  ☑️ Step 4: Compile the markup to sanitized html, in <code>cms/display-page.html</code>  </h3>
 
 In this step, we'll sanitize our markup. Here are the steps to understand this function...
-
+_I'm postponing this entire section for now, due to complexity._
+<!--
 First, we'll _tokenize_ the text into the following tokens:
 | Symbol | Token name | 
 |--------|------------|
@@ -1094,7 +1110,7 @@ Next we'll parse the text, getting rid of the WHITESPACE tokens.
 |                 | Any `WHITESPACE TEXT` pattern is a TEXT token. | 
 |                 | Any `TEXT TEXT` pattern is a TEXT token.       |
 
-Next, we'll find one set of ATTR-NAME tokens: attributes named directly after the open tag name. 
+Next, we'll find one set of ATTR-NAME tokens: attributes named directly after the open tag name. -->
 <!--
 Next, we'll parse forward-slashes. Some forward slashes can be combined into text. 
 | Token name      | Production rules | 
@@ -1118,6 +1134,13 @@ Next, we'll parse forward-slashes. Some forward slashes can be combined into tex
 <br/><br/><br/><br/>
 
 
+
+<h3 id="c-5">  ☑️ Step 5: Display page preview in <code>cms/edit-page.html</code>  </h3>
+
+We'll make the page editor preview display the sanitized version of pages as well.   
+_This is also postponed for now._
+
+<br/><br/><br/><br/>
 
 
 
