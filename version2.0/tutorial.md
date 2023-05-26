@@ -27,13 +27,13 @@ Click a part title to jump down to it, in this file.
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
 | [Part A - /create-page, /all-pages](#part-a) | 20 min. | 13 |
-| [Part B - Page editing](#part-b) | 0 min. | 0 |
-| [Part C - Page display](#part-c) | 0 min. | 0 |
+| [Part B - Page editing](#part-b) | 15 min. | 6 |
+| [Part C - Page display](#part-c) | 15 min. | 8 |
 | [Part D - User permissions](#part-d) | 0 min. | 0 |
-| [Part E - Saving drafts](#part-e) | 0 min. | 0 |
-| [Part F - Edit history](#part-f) | 0 min. | 0 |
-| [Part G - ](#part-g) | 0 min. | 0 |
-| [Part H - Image & file upload](#part-h) | 0 min. | 0 |
+| [Part E - Image & file upload](#part-e) | 0 min. | 0 |
+| [Part F - Saving drafts](#part-f) | 0 min. | 0 |
+| [Part G - Edit history](#part-g) | 0 min. | 0 |
+| [Part H - ](#part-h) | 0 min. | 0 |
 | [Version 3.0.](#v3) | Todo | ? |
 
 
@@ -677,7 +677,8 @@ function render_page() {
   </div>`;
   page_editor += `<div id="error"></div>`;
   page_editor += `<textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)">${page_buffer}</textarea/><br/><br/>`;
-  page_editor += `<button onclick="render_preview()">Preview</button>`;
+  page_editor += `<button onclick="render_preview()">Preview</button>
+  <button style="margin-left:20px;" onclick="window.location.href = '/${page_route}'">Go to Page</button>`;
   document.getElementById('dynamic-page').innerHTML = page_editor;
 }
 
@@ -1135,7 +1136,15 @@ Next, we'll parse forward-slashes. Some forward slashes can be combined into tex
 
 
 
-<h3 id="c-5">  ☑️ Step 5: Display page preview in <code>cms/edit-page.html</code>  </h3>
+<h3 id="c-5"> ☑️ Step 5:   ☞ Test the code!  </h3>
+
+Load the page with our test markup.  It should appear sanitized! (_But actually not yet!_)
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-6">  ☑️ Step 6: Display page preview in <code>cms/edit-page.html</code>  </h3>
 
 We'll make the page editor preview display the sanitized version of pages as well.   
 _This is also postponed for now._
@@ -1144,7 +1153,15 @@ _This is also postponed for now._
 
 
 
-<h3 id="c-?">☑️ Step ?. ❖ Part C review. </h3>
+<h3 id="c-7"> ☑️ Step 7:   ☞ Test the code!  </h3>
+
+Open the page editor and click "preview".  It should appear sanitized! (_But actually not yet!_)
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-8">☑️ Step 8. ❖ Part C review. </h3>
 
 The complete code for Part C is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_C).
 
@@ -1155,12 +1172,102 @@ The complete code for Part C is available [here](https://github.com/rooftop-medi
 
 <h2 id="part-d" align="center">  Part D:  User Permissions </h2>
 
-In this section, we'll display our pages.  
-Pages will be written in "Rooftop Markup", which is very basic.  
-The rules for Rooftop Markup are described in [step 3](#c-3)
-
+In this section, we'll let users make pages public or private.  
+Public pages will be available to anyone on the internet who visits the page route.  
+Private pages will only be available on the edit page.  
+We'll also make sure that only the user who creates a page can edit it. 
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="d-1">  ☑️ Step 1: Editing <code>respond_with_a_dynamic_page</code> in <code>server.js</code>  </h3>
+
+If a requested page is private, we won't send it to the browser at all.  
+We'll check for that in the `respond_with_a_dynamic_page` function in `server/server.js`, by adding an "or" to the first "if". 
+
+```js
+function respond_with_a_dynamic_page(res, url) {
+  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
+  let content_page = "";
+  if (page_data.length < 1 || !page_data.is_public) {
+    content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+  } else {
+    content_page = fs.readFileSync(__dirname + '/../pages/cms/display-page.html', {encoding:'utf8'});
+  }
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+  var page_halves = main_page.split('<!--  Insert page content here!  -->');
+  content_page = page_halves[0] + content_page + page_halves[1];
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(content_page);
+  res.end();
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-2"> ☑️ Step 2:   ☞ Test the code!  </h3>
+
+Make sure one of your pages is public, and then view it.  It should display.  
+
+Edit the page to make it private, save it, and then view it.  It should appear as a 404 now.  
+
+Back on the edit page, you should still be able to see your private page by previewing it. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-3">  ☑️ Step 3: Editing <code>POST_get_page</code> in <code>server.js</code>  </h3>
+
+We now need to make sure that only the user that creates a page can edit that page.  
+We can do this by checking the user's id, and comparing it to the page's "created_by" user.  
+
+Open `/server/server.js` and edit the function `POST_get_page`. 
+
+```js
+
+```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="d-4">  ☑️ Step 4: Editing <code>load_page</code> <code>edit-page.html</code>  </h3>
+
+We now need to send the user's id in `cms/edit-page.html`.  
+
+Open that file and edit the `load_page` function:
+
+```js
+
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-5">  ☑️  ☞ Test the code!  </h3>
+
+While logged in as one user, create a page.  
+Then, log in as a different user, and try to edit that page.  
+You should get an error telling you that you don't have permission!
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-6">☑️ Step 6. ❖ Part D review. </h3>
+
+The complete code for Part D is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_D).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+
 
 
 
