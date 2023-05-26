@@ -29,11 +29,11 @@ Click a part title to jump down to it, in this file.
 | [Part A - /create-page, /all-pages](#part-a) | 20 min. | 13 |
 | [Part B - Page editing](#part-b) | 0 min. | 0 |
 | [Part C - Page display](#part-c) | 0 min. | 0 |
-| [Part D - Image & file upload](#part-d) | 0 min. | 0 |
-| [Part E - User permissions](#part-e) | 0 min. | 0 |
-| [Part F - Saving drafts](#part-f) | 0 min. | 0 |
-| [Part G - Edit history](#part-g) | 0 min. | 0 |
-| [Part H - ](#part-h) | 0 min. | 0 |
+| [Part D - User permissions](#part-d) | 0 min. | 0 |
+| [Part E - Saving drafts](#part-e) | 0 min. | 0 |
+| [Part F - Edit history](#part-f) | 0 min. | 0 |
+| [Part G - ](#part-g) | 0 min. | 0 |
+| [Part H - Image & file upload](#part-h) | 0 min. | 0 |
 | [Version 3.0.](#v3) | Todo | ? |
 
 
@@ -905,19 +905,7 @@ The complete code for Part B is available [here](https://github.com/rooftop-medi
 
 In this section, we'll display our pages.  
 Pages will be written in "Rooftop Markup", which is very basic.  
-The rules for Rooftop Markup: 
- - The following html tags are allowed: 
-   - h1 - h6, p, div, span
-   - b, i
-   - code, pre
-   - ol, ul, li
-   - table, tr, th, td
-   - a, img
- - The following attributes are allowed:
-   - style, img, alt, href
- - The following shorthands can be used:
-   - \_italics\_, \*bold\*
-   - # header 1, ### header 3
+The rules for Rooftop Markup are described in [step 3](#c-3)
 
 
 <br/><br/><br/><br/>
@@ -949,140 +937,207 @@ function respond_with_a_dynamic_page(res, url) {
 
 
 
-<h3 id="c-1">  ☑️ Step 2: Create <code>cms/display-page.html</code>  </h3>
+<h3 id="c-2">  ☑️ Step 2: Create <code>cms/display-page.html</code>  </h3>
 
 Create a new file called `/cms/display-page.html`. 
 
-<br/><br/><br/><br/>
+At this point, this file will insert the page's content as it is, with no changes.  
+In [step 4](#c-4), we'll edit this code to sanitize it of potentially harmful tags. 
 
+For now, here's the page's code:  
 
+```html
+<div class="p-3 center-column" id="dynamic-page">
+  <i>Loading page...</i>
+</div>
 
-<h3 id="b-7"> ☑️ Step 7:   ☞ Test the code!  </h3>
+<script>
+////  SECTION 1: Page memory
+let page_route = _current_page.split('/')[1];
+let page_data = {};
 
-Refresh the server.  
-Edit a dynamic page route and add the following content:
+////  SECTION 2: Render
+//  Renders the text editor, final page, or "page does not exist" message.
+function render_page() {
+  let page = `<h1>${page_data.page_title}</h1>`;
+  let markup = page_data.content;
+  page += markup_to_html(markup); //  markup -> html 
+  document.getElementById('dynamic-page').innerHTML = page;
+}
 
-```
-Characters that need escaped in HTML:  
-The less than sign, <  
-The ampersand, &  
+////  SECTION 3: Functions 
+function markup_to_html(markup) {
+  return markup;
+}
 
-# h1 Heading
-## h2 Heading
-### h3 Heading
-#### h4 Heading
-##### h5 Heading
-###### h6 Heading
+////  SECTION 4: Boot
+//  Load all page elements from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/get-page');
+  http.send(JSON.stringify({ page_route: page_route }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Creating page.");
+        console.log(response.data);
+        page_data = response.data;
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+load_page();
 
-This is an H1
-=============
-This is an H2
--------------
-<h1>This is also an H1</h1>
-<h2>And this is also
-an H2 </h2>
-
-This is one line of text!
-And this should be on the same line!  
-But this should be on a new line!  
-
-Here are some line breaks.  
-
-<br/><br/><br/><br/>
-
-## Horizontal Rules:
-___
----
-***
-
-## Blockquotes
-
-> Blockquotes can also be nested...
->> ...by using additional greater-than signs right next to each other...
-> > > ...or with spaces between arrows.
-
-## Lists
-Unordered  
-+ Create a list by starting a line with `+`, `-`, or `*`
-+ Sub-lists are made by indenting 2 spaces:
-  - Marker character change forces new list start:
-    * Ac tristique libero volutpat at
-    + Facilisis in pretium nisl aliquet
-    - Nulla volutpat aliquam velit
-+ Very easy!
-
-Ordered
-
-1. Lorem ipsum dolor sit amet
-2. Consectetur adipiscing elit
-3. Integer molestie lorem at massa
-
-
-1. You can use sequential numbers...
-1. ...or keep all the numbers as `1.`
-
-## Code
-
-Inline `code` 
-
-Indented code
-
-    // Some comments
-    line 1 of code
-    line 2 of code
-    line 3 of code
-
-
-Block code "fences"
-
-\```
-Sample text here...
-\```
-
-Syntax highlighting
-
-\``` js
-var foo = function (bar) {
-  return bar++;
-};
-
-console.log(foo(5));
-\```
-
-## Emphasis
-Here is some **bold text**  
-Here is some __bold text__  
-*This is italic text*   
-_This is italic text_  
-~~Strikethrough~~  
-
-## Tables
-
-| Name | Description |
-| ------ | ----------- |
-| row 1   | The first row |
-| row 2 | A secondary row |
-| ro2 3    | A third, and final, row, for your viewing pleasure |
-
-## Links
-
-[link text](http://github.com)
-[link with title](http://github.com) "title text!")  
-
-
-## Images
-
-![An image](https://octodex.github.com/images/minion.png)
+</script>
 ```
 
-Open the page, and you should see the page title and content. 
+<br/><br/><br/><br/>
 
-Open a URL that doesn't have a dynamic page.  You should get the 404 page.  
+
+
+<h3 id="c-3"> ☑️ Step 3:   ☞ Test the code!  </h3>
+
+In this section, we'll be writing a function to produce HTML text, following the Rooftop Markup rules.
+
+Rooftop Markup works like this...
+ - The following html tags are allowed: 
+   - h1 - h6, p, div, span
+   - b, i
+   - code, pre
+   - ol, ul, li
+   - table, tr, th, td
+   - a
+   - img
+   - br, hr
+ - The following attributes are allowed:
+   - style, img, alt, href
+ - Those tags and attributes are kept. 
+ - All other tags and attributes are removed.
+
+The main purpose of this is to prevent users from adding malicious scripts to dynamic pages.  
+Consider it dangerous to have SCRIPT tags, or ONCLICK or ONLOAD attributes.  
+
+Edit a dynamic page route and add the following text, to test it:
+
+```
+<h1>Hello! This is an h1 tag!</h1>
+<h3>And this is an h3 tag!</h3>
+<p>This is a p tag, with some <b>bold</b>, <i>italic</i>, and <i><b>both</b></i>.</p>
+
+<p><button>This text should <i>not</i> be in a button. </button></p>
+
+<div style="color:red; background: blue;cursor:pointer;" onclick="alert('hacked')">This p should be red on blue, but should not have an onclick event.</div>
+
+<script> alert("This text should appear, but the script tag should not."); </script>
+
+<p>Here's a <a href="http://link.com">link</a>. And an image:</p>
+
+<img src="https://upload.wikimedia.org/wikipedia/en/e/ed/Nyan_cat_250px_frame.PNG" />
+
+<p>Here's a nested list:</p>
+<ol>
+  <li>Item one</li>
+  <ul>
+    <li>A subitem</li>
+    <li>Another subitem</li>
+  </ul>
+  <li>Item two</li>
+  <li>Item threee</li>
+</ol>
+
+<p>Here's a table...</p>
+<table>
+  <tr> <th>Company</th><th>Contact</th><th>Country</th> </tr>
+  <tr> <td>Alfreds Futterkiste</td><td>Maria Anders</td><td>Germany</td> </tr>
+  <tr> <td>Centro comercial Moctezuma</td><td>Francisco Chang</td><td>Mexico</td> </tr>
+</table>
+
+<p>Here's a properly escaped less than sign: &lt;3 </p>
+```
+
+Open the page, and you should see it display.  Note that it isn't sanitized yet.  
 
 <br/><br/><br/><br/>
 
 
 
+<h3 id="c-4">  ☑️ Step 4: Compile the markup to sanitized html, in <code>cms/display-page.html</code>  </h3>
+
+In this step, we'll sanitize our markup. Here are the steps to understand this function...
+
+First, we'll _tokenize_ the text into the following tokens:
+| Symbol | Token name | 
+|--------|------------|
+| < | LESS-THAN |
+| / | FORWARD-SLASH |
+| = | EQUALS | 
+| " | DOUBLE-QUOTE |
+| ' | SINGLE-QUOTE |
+| > | GREATER-THAN |
+|   | WHITESPACE |
+| (all other text) | TEXT |
+
+We'll then run a parsing function, creating a new token using the following rule:  
+| Token name      | Production rule | 
+|-----------------|------------------|
+| OPEN-TAG        | Any `LESS-THAN TEXT` pattern is an OPEN-TAG.                                                |
+
+Next we'll parse the text, getting rid of the WHITESPACE tokens. 
+| Token name      | Production rules | 
+|-----------------|------------------|
+| TEXT            | Any `TEXT WHITESPACE` pattern is a TEXT token. |
+|                 | Any `WHITESPACE TEXT` pattern is a TEXT token. | 
+|                 | Any `TEXT TEXT` pattern is a TEXT token.       |
+
+Next, we'll find one set of ATTR-NAME tokens: attributes named directly after the open tag name. 
+<!--
+Next, we'll parse forward-slashes. Some forward slashes can be combined into text. 
+| Token name      | Production rules | 
+|-----------------|------------------|
+| TEXT            | Any `TEXT FORWARD-SLASH` pattern is a TEXT token. |
+|                 | Any `FORWARD-SLASH TEXT` pattern is a TEXT token. | 
+|                 | Any `FORWARD-SLASH` _not_ after a `LESS-THAN` _or_ before a `GREATER-THAN` is a TEXT token. | -->
+
+<!--| Token name      | Production rules | 
+|-----------------|------------------|
+| ATTR-NAME       | Any `OPEN-TAG TEXT` pattern is an ATTR-NAME.                                                |
+|                 | After an `ATTR-VALUE`, any `TEXT` pattern is an ATTR-NAME.                      | 
+| ATTR-VALUE      | After an `ATTR-NAME`, any `EQUALS DOUBLE-QUOTE TEXT DOUBLE-QUOTE` pattern is an ATTR-VALUE. |
+|                 | After an `ATTR-NAME`, any `EQUALS SINGLE-QUOTE TEXT SINGLE-QUOTE` pattern is an ATTR-VALUE. |
+| \*END-OPEN-TAG  | After an `OPEN-TAG`, a `GREATER-THAN` token is a END-CLOSE-TAG.                           |
+|                 | After an `ATTR-VALUE`, a `GREATER-THAN` token is a END-CLOSE-TAG.                         |
+| CLOSE-TAG       | Any `LESS-THAN FORWARD-SLASH TEXT` pattern is a CLOSE-TAG.                                |
+|                 | After an `OPEN-TAG`, a `FORWARD-SLASH` token is a CLOSE-TAG.  (ex: <br/>)                 |
+|                 | After an `ATTR-VALUE`, a `FORWARD-SLASH` token is a CLOSE TAG. (ex: <img src=".png" />    |-->
+
+<br/><br/><br/><br/>
+
+
+
+
+
+<h3 id="c-?">☑️ Step ?. ❖ Part C review. </h3>
+
+The complete code for Part C is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_C).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+
+<h2 id="part-d" align="center">  Part D:  User Permissions </h2>
+
+In this section, we'll display our pages.  
+Pages will be written in "Rooftop Markup", which is very basic.  
+The rules for Rooftop Markup are described in [step 3](#c-3)
+
+
+<br/><br/><br/><br/>
 
 
 
