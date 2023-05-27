@@ -12,9 +12,16 @@ v1 part C I think
  - [ ] Make "user profile" and "logout" buttons a section with a toggleable display, instead of new code
 
 v1 part D:
- - [ ] Make "update profile" update the user buttons correctly.  I guess this is in part E actually. 
+ - [ ] Make "update profile" update the user buttons correctly.  I guess this is in part E too. 
  - [ ] "Delete account" button in user settings
 
 v1 part E? or A
  - [ ] Add better default CSS for inputs and buttons
  - [ ] Add darker- and lighter- variants of brown, add green and red
+
+
+v2 part A:
+ - [ ] Make the `/all-pages` table show page permissions, and ownership
+
+v2 part B: 
+ - [ ] Make the "is public" button on the page editor into a checkbox, or switch
