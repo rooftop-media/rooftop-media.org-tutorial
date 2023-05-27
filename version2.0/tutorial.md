@@ -689,23 +689,33 @@ function render_preview() {
 
 ////  SECTION 3: Event reactions
 
+//  Fired if unsaved changes exist
+function beforeUnloadListener(event) {
+  event.preventDefault();
+  return (event.returnValue = "");
+};
+
 //  Fires when new page content is typed.
 function update_buffer(newval) {
   page_buffer = newval;
+  addEventListener("beforeunload", beforeUnloadListener, { capture: true })
 }
 
 //  Fires when the page title is changed. 
 function update_pageTitle() {
   page_data.page_title = document.getElementById('page-title').value;
+  addEventListener("beforeunload", beforeUnloadListener, { capture: true })
 }
 
 function update_pageRoute() {
   page_route = document.getElementById('page-route').value;
+  addEventListener("beforeunload", beforeUnloadListener, { capture: true })
 }
 
 function toggle_publicity() {
   page_data.is_public = !page_data.is_public;
   render_page();
+  addEventListener("beforeunload", beforeUnloadListener, { capture: true })
 }
 
 //  Fires when "Save page changes" is clicked.
@@ -729,6 +739,7 @@ function save() {
         if (_current_page.split('/edit/')[1] != page_route) {
           window.location.href = '/edit/' + page_route;
         }
+        removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
         render_page();
       } else {
         console.warn("Err")
@@ -744,6 +755,8 @@ function cancel() {
     window.location.href = '/edit/' + page_route;
   }
 }
+
+
 
 ////  SECTION 4: Boot
 //  Load all page elements from API, then render buffer
