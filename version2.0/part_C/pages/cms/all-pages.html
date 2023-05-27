@@ -1,0 +1,54 @@
+<div class="p-3 center-column">
+  <h3>All dynamic pages:</h3>
+  <table id="page-table">
+    <tr>
+      <th>Page title</th>
+      <th>Page route</th>
+      <th>Edit link</th>
+    </tr>
+  </table>
+</div>
+
+<script>
+  let pageTable = document.getElementById('page-table');
+  get_all_pages();
+
+  function get_all_pages() {
+    pageTable.innerHTML = `<tr>
+      <th>Page title</th>
+      <th>Page route</th>
+    </tr>`;
+    const http = new XMLHttpRequest();
+    http.open('GET', '/api/all-pages');
+    http.send();
+    http.onreadystatechange = (e) => {
+      let response;      
+      if (http.readyState == 4 && http.status == 200) {
+        response = JSON.parse(JSON.parse(http.responseText)); // gotta run it twice 
+        console.log("Pages loaded!");
+        for (var i = 0; i < response.length; i++) {
+          pageTable.innerHTML += `<tr>
+            <td>${response[i].page_title}</td>
+            <td><a href="/${response[i].page_route}">/${response[i].page_route}</a></td>
+            <td><a href="/edit/${response[i].page_route}">Edit</a></td>
+          </tr>`;
+        }
+      }
+    }
+  }
+  
+</script>
+
+<style>
+  table, th, td {
+    border: solid 1px var(--brown);
+    border-collapse: collapse;
+  }
+  th, td {
+    min-width: 100px;
+    padding: 5px;
+  }
+  a {
+    color: var(--yellow);
+  }
+</style>

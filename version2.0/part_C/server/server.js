@@ -36,7 +36,9 @@ var pageURLs = {
   '/landing': '/pages/misc/landing.html',
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
-  '/profile': '/pages/misc/profile.html'
+  '/profile': '/pages/misc/profile.html',
+  '/create-page': '/pages/cms/create-page.html',
+  '/all-pages': '/pages/cms/all-pages.html',
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -65,6 +67,10 @@ function server_request(req, res) {
 function respond_with_a_page(res, url) {
   if (pageURLkeys.includes(url)) {
     url = pageURLs[url];
+  } else if (url.substring(0, 6) == '/edit/') {
+    url = '/pages/cms/edit-page.html';
+  } else  {
+    return respond_with_a_dynamic_page(res, url);
   }
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     var content_page = "";
@@ -80,6 +86,22 @@ function respond_with_a_page(res, url) {
     res.write(rendered);
     res.end();
   });
+}
+
+function respond_with_a_dynamic_page(res, url) {
+  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
+  let content_page = "";
+  if (page_data.length < 1) {
+    content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+  } else {
+    content_page = fs.readFileSync(__dirname + '/../pages/cms/display-page.html', {encoding:'utf8'});
+  }
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+  var page_halves = main_page.split('<!--  Insert page content here!  -->');
+  content_page = page_halves[0] + content_page + page_halves[1];
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(content_page);
+  res.end();
 }
 
 function respond_with_asset(res, url, extname) {
@@ -104,7 +126,10 @@ function respond_with_asset(res, url, extname) {
 ////  SECTION 3: API.
 
 function api_GET_routes(url, res) {
-
+  let api_map = {
+    '/api/all-pages': GET_all_pages
+  }
+  api_map[url](res);
 }
 
 
@@ -124,11 +149,21 @@ function api_POST_routes(url, req, res) {
       '/api/update-user': POST_update_user,
       '/api/update-password': POST_update_password,
       '/api/check-invite-code': POST_check_invite_code,
+      '/api/create-page': POST_create_page,
+      '/api/get-page': POST_get_page,
+      '/api/update-page': POST_update_page
     }
     
     //  Calling the API route's function
     api_map[url](req_data, res);
   })
+}
+
+function GET_all_pages(res) {
+  let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(all_pages));
+  res.end();
 }
 
 function POST_register(new_user, res) {
@@ -323,6 +358,68 @@ function POST_check_invite_code(data, res) {
   } else {
     res.write(JSON.stringify({error: true, msg: "incorrect code"}));
   }
+  res.end();
+}
+
+function POST_create_page(new_page_data, res) {
+  let page_data = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
+  page_data = JSON.parse(page_data);
+  let response = {
+    error: false,
+    msg: '',
+  }
+  for (let i = 0; i < page_data.length; i++) {
+    if (page_data[i].page_route == new_page_data.page_route) {
+      response.error = true;
+      response.msg = 'Route name already taken.';
+      break;
+    } 
+  }
+  //  If it's a valid page, save it
+  if (!response.error) {
+    DataBase.table('pages').insert(new_page_data);
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
+
+function POST_get_page(route_data, res) {
+  let page_data = DataBase.table('pages').find({ page_route: route_data.page_route });
+  let response = {
+    error: false,
+    data: null
+  }
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = `The page ${route_data.page_route} was not found.`;
+  } else {
+    response.data =  page_data[0];
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(JSON.stringify(response));
+  res.end();
+}
+
+function POST_update_page(page_update, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  
+  let response = {
+    error: false,
+    msg: '',
+    updated_page: ''
+  }
+
+  //  If the update is valid, save it.
+  if (!response.error) {
+    response.updated_page = DataBase.table('pages').update(page_update.id, page_update);
+    if (response.updated_page == null) {
+      response.error = true;
+      response.msg = `No page found for ${page_update.id}.`
+    }
+  }
+
+  res.write(JSON.stringify(response));
   res.end();
 }
 

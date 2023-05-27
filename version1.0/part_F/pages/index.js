@@ -45,7 +45,6 @@ function update_header() {
 
 
 ////  SECTION 3: Boot.
-////  SECTION 3: Boot.
 function boot() {
   console.log("Welcome to Rooftop Media Dot Org!");
 

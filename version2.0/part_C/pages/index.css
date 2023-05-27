@@ -1,0 +1,114 @@
+@font-face {
+  font-family: CrimsonText;
+  src: url(/assets/fonts/CrimsonText-Regular.ttf),
+       url('/assets/fonts/crimsontext-regular-webfont.woff2') format('woff2'), /* Super Modern Browsers */
+       url('/assets/fonts/crimsontext-regular-webfont.woff') format('woff'), /* Pretty Modern Browsers */
+       url('/assets/fonts/CrimsonText-Regular.ttf') format('truetype'),
+       Times New Roman, serif; /* Safari, Android, iOS */
+}
+
+:root {
+    --spacer: 20px;
+    --dark-brown: #2E1F17;
+    --brown: #432D21;
+    --light-brown: #7F4C34;
+    --yellow: #E3D78F;
+}
+
+html, body {
+    font-family: CrimsonText;
+    margin: 0;
+    min-height: 100vh;
+    background: var(--dark-brown);
+    color: white;
+}
+
+/* The header, including the RTM logo and user profile buttons  */
+#header {
+    width:           100%;
+    height:          105px;
+    align-items:     center;
+    justify-content: space-between;
+    display:         flex;
+    background:      var(--brown);
+    box-shadow:      0px 0px 10px rgba(0,0,0,.5);
+    padding:         10px 25px;
+    box-sizing:      border-box;
+    z-index:         10;
+    position:        relative;
+}
+
+#logo {
+    width:           100px;
+    margin-top:      15px;
+    margin-bottom:   25px;
+    cursor:          pointer;
+}
+
+#user-buttons {
+    position: relative;
+    display: flex;
+}
+#user-buttons a, #user-buttons button {
+    display:         block;
+    color:           var(--yellow);
+    text-decoration: none;
+    border:          none;
+    font-family:     CrimsonText;
+    font-size:       1em;
+    background:      var(--light-brown);
+    margin-left:     10px;
+    padding:         5px 20px;
+    cursor:          pointer;
+    border-radius:   4px;
+}
+#user-buttons a:hover, #user-buttons button:hover {
+    filter:          brightness(1.05);
+}
+#user-buttons a:active, #user-buttons button:active {
+    filter:          brightness(1.01);
+}
+
+#user-menu {
+    position:        absolute;
+    top:             30px;
+    right:           0px;
+    min-width:       120px;
+    border:          solid 1px var(--dark-brown);
+    background:      var(--light-brown);
+    overflow-x:      hidden;
+    border-radius:   4px;
+}
+#user-menu a, #user-menu button {
+    border:          none;
+    border-radius:   0px;
+    width:           100%;
+    margin:          0px;
+    text-align:      left;
+}
+
+/*  Global styles  */
+h1 {
+  text-align: center;
+}
+
+.px-1 {
+    padding-left: calc(var(--spacer) * 0.25);
+    padding-right: calc(var(--spacer) * 0.25);
+}
+.px-2 {
+    padding-left: calc(var(--spacer) * 0.5);
+    padding-right: calc(var(--spacer) * 0.5);
+}
+.px-3 {
+    padding-left: var(--spacer);
+    padding-right: var(--spacer);
+}
+.p-3 {
+    padding: var(--spacer);
+}
+
+.center-column {
+    max-width: 800px;
+    margin: 0 auto;
+}

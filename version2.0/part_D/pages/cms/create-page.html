@@ -1,0 +1,60 @@
+<div class="p-3 center-column">
+  <h3>Create a New Page</h3>
+  <div>Page title: <input type="text" tabindex="1" id="page_title" placeholder="My Blog"/></div>
+  <div>Page route: <input type="text" tabindex="2" id="page_route" placeholder="my-blog"/></div>
+  <div>Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
+  <p id="error"></p>
+  <button onclick="create_page()">Create Page</button>
+</div>
+
+<script>
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+//  Page route -- lowercase, alphanumeric, and these special characters: - / _ 
+const page_route_input = document.getElementById('page_route');
+const page_route_regex = /^[a-z0-9_\-\/]*$/;
+page_route_input.addEventListener("keydown", event => {
+  if (!page_route_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    event.preventDefault();
+    document.getElementById('error').innerHTML = "Page route can only contain lowercase letters, numbers, underscores and dashes.";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+function create_page() {
+  var page_title = document.getElementById('page_title').value;
+  var page_route = document.getElementById('page_route').value;
+  var is_public = document.getElementById('is_public').checked;
+  
+  if (page_route.length < 2) {
+    document.getElementById('error').innerHTML = 'Page route must be at least 2 characters..';
+    return;
+  } else if (page_title.length < 2) {
+    document.getElementById('error').innerHTML = 'Page title must be at least 2 characters..';
+    return;
+  }
+
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/create-page');
+  http.send(JSON.stringify({
+    page_title,
+    page_route,
+    is_public,
+    created_by: _current_user.id
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Creating page.");
+        window.location.href = '/' + page_route;
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+</script>
