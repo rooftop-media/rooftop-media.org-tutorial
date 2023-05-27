@@ -1271,6 +1271,18 @@ You should get an error telling you that you don't have permission!
 
 
 
+<h3 id="d-6">  ☑️ Step 6: Security concern: Identity fraud for page access  </h3>
+
+What's to stop a user from editing the JS code to request a page, and changing their user id?  '
+All it would take is for the user to know the user ID of the page owner.  
+
+This can be fixed by also requiring the session key?
+
+<br/><br/><br/><br/>
+
+
+
+
 <h3 id="d-6">☑️ Step 6. ❖ Part D review. </h3>
 
 The complete code for Part D is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_D).
