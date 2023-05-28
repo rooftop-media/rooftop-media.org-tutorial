@@ -33,7 +33,7 @@ Click a part title to jump down to it, in this file.
 | [Part E - Image & file upload](#part-e) | 0 min. | 0 |
 | [Part F - Saving drafts](#part-f) | 0 min. | 0 |
 | [Part G - Edit history](#part-g) | 0 min. | 0 |
-| [Part H - ](#part-h) | 0 min. | 0 |
+| [Part H - Data Download](#part-h) | 0 min. | 0 |
 | [Version 3.0.](#v3) | Todo | ? |
 
 
@@ -1233,28 +1233,126 @@ Back on the edit page, you should still be able to see your private page by prev
 
 
 
-<h3 id="d-3">  ☑️ Step 3: Editing <code>POST_get_page</code> in <code>server.js</code>  </h3>
+<h3 id="d-3">  ☑️ Step 3: Editing <code>POST_update_page</code> in <code>server.js</code>  </h3>
 
 We now need to make sure that only the user that creates a page can edit that page.  
-We can do this by checking the user's id, and comparing it to the page's "created_by" user.  
 
-Open `/server/server.js` and edit the function `POST_get_page`. 
+We _could_ do this by sending the user's id to the server, and comparing it to the page's "created_by" user.  
+But then, users could gain access to pages by editing the request code -- they'd just need to know the "created_by" user's id. 
+The user's id might be public, for example, in data sent for a user's page.  
+
+Instead, we'll send a user's current session id.  On the server, we'll use that to get their user id, and compare that to the page's "created_by" user.  
+
+Open `/server/server.js` and edit the function `POST_update_page`. 
 
 ```js
+function POST_update_page(page_update, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  
+  let response = {
+    error: false,
+    msg: '',
+    updated_page: ''
+  }
 
+  //  Make sure the current user created the current page
+  let page_data = DataBase.table('pages').find({ page_route: page_update.page_route });
+  let session_data = DataBase.table('sessions').find({ id: page_update.session_id });
+  if (page_data[0].created_by != session_data[0].user_id) {
+    response.error = true;
+    response.msg = `You don't have permission to update this page.`;
+  }
+
+  //  If the update is valid, save it.
+  if (!response.error) {
+    response.updated_page = DataBase.table('pages').update(page_update.id, page_update);
+    if (response.updated_page == null) {
+      response.error = true;
+      response.msg = `No page found for ${page_update.id}.`
+    }
+  }
+
+  res.write(JSON.stringify(response));
+  res.end();
+}
 ```
 
 <br/><br/><br/><br/>
 
 
-<h3 id="d-4">  ☑️ Step 4: Editing <code>load_page</code> <code>edit-page.html</code>  </h3>
+<h3 id="d-4">  ☑️ Step 4: Editing <code>load_page</code> and <code>save</code> in <code>edit-page.html</code>  </h3>
 
-We now need to send the user's id in `cms/edit-page.html`.  
+We now need to edit `cms/edit-page.html`, to prevent the user from editing the page if their user id doesn't match the page's creator.  
 
 Open that file and edit the `load_page` function:
 
 ```js
+////  SECTION 4: Boot
+//  Load all page elements from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/get-page');
+  http.send(JSON.stringify({ 
+    page_route: page_route
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Loading page.");
+        page_data = response.data;
+        if (page_data.created_by != _current_user.id) {
+          document.getElementById('dynamic-page').innerHTML = "You don't have permission to edit this page.";
+          return;
+        }
+        page_buffer = page_data.content || "";
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+function current_user_loaded() {
+  load_page();
+}
+```
 
+We also need to update the `save` function, to send the user's session_id, ensuring they have permission to update the page.
+
+```js
+//  Fires when "Save page changes" is clicked.
+function save() {
+  console.log("saving...")
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/update-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    page_title: page_data.page_title,
+    content: page_buffer,
+    page_route: page_route,
+    is_public: page_data.is_public, 
+    session_id: _session_id
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Page updated.");
+        if (_current_page.split('/edit/')[1] != page_route) {
+          window.location.href = '/edit/' + page_route;
+        }
+        removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
+        render_page();
+      } else {
+        console.warn(`Err: ${response.msg}`);
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
 ```
 
 <br/><br/><br/><br/>
@@ -1263,23 +1361,19 @@ Open that file and edit the `load_page` function:
 
 <h3 id="d-5">  ☑️  ☞ Test the code!  </h3>
 
-While logged in as one user, create a page.  
+Restart the server.
+
+While logged in as one user, create a page.  Make sure you can still edit the page and save it with no problems.  
 Then, log in as a different user, and try to edit that page.  
-You should get an error telling you that you don't have permission!
+You should get an error telling you that you don't have permission!  
+
+Now, right click, inspect the page's elements, find the script tag, and find the `load_page` function.  
+Change the line that says `if (page_data.created_by != _current_user.id) {` to `if (false) {`.  
+Then, copy paste the entire contents of the `load_page` function into the console.  The edit page should load, even though you're not the correct user!!  
+
+Edit the page and click "save".  Our "update-page" api route should prevent the page from being updated, since it checks the user's session id. 
 
 <br/><br/><br/><br/>
-
-
-
-<h3 id="d-6">  ☑️ Step 6: Security concern: Identity fraud for page access  </h3>
-
-What's to stop a user from editing the JS code to request a page, and changing their user id?  '
-All it would take is for the user to know the user ID of the page owner.  
-
-This can be fixed by also requiring the session key?
-
-<br/><br/><br/><br/>
-
 
 
 
