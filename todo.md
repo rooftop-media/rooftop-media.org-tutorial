@@ -19,8 +19,8 @@ v1 part E? or A
  - [ ] Add better default CSS for inputs and buttons
  - [ ] Add darker- and lighter- variants of brown, add green and red
 
-v1 part F
- - [ ] Fix issue where all API requests return a 502 for API calls
+v1 
+ - [ ] Fix issue where visiting `/api/login`, or similar, as a webpage, crashes the server
 
 
 v2 part A:
