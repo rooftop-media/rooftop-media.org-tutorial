@@ -2877,13 +2877,41 @@ So, follow all those, and _then_, follow [this tutorial](https://www.digitalocea
 
 <h3 id="g-5"> ☑️ Step 5.  ☞  Test the code! </h3>
 
-Test our new set up by going to your domain on a web browser. 
+Test our new set up by going to your domain on a web browser.  
+The website should display!  
+
+However, if you try to log in, register, or make any API calls, you may get a 502 error.  
+That's because the non-root user who ran the server doesn't own the files in the database, 
+so the process can't read or write to those files. 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="G-6"> ☑️ Step 6. ❖ Part G review. </h3>
+<h3 id="g-6"> ☑️ Step 6.  Change file ownership </h3>
+
+Go back into the server, switch to the user who is running the server, navigate to `/var/www/rooftop-media.org`, and run this:
+
+```
+chown -r $USER ./server
+```
+Then, restart the pm2 process
+```
+pm2 restart server
+```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="g-7"> ☑️ Step 7.  ☞  Test the code! </h3>
+
+Go back to your domain on the web browser and click refresh.  The login should now work!
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="g-8"> ☑️ Step 8. ❖ Part G review. </h3>
 
 There is no additional code for part G, but congrats on the publically live website!
 
