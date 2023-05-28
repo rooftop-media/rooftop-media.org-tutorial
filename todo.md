@@ -19,6 +19,9 @@ v1 part E? or A
  - [ ] Add better default CSS for inputs and buttons
  - [ ] Add darker- and lighter- variants of brown, add green and red
 
+v1 part F
+ - [ ] Fix issue where all API requests return a 502 for API calls
+
 
 v2 part A:
  - [ ] Make the `/all-pages` table show page permissions, and ownership
