@@ -187,21 +187,29 @@ function api_POST_routes(url, req, res) {
     req_data += chunk;
   })
   req.on('end', function() {
-    req_data = JSON.parse(req_data);
+    //  Parse the data to JSON.
+    try {
+      req_data = JSON.parse(req_data);
+    } catch (e) {
+      return api_response(res, 400, `Improper data in your request.`);
+    }
 
     let api_map = {
       '/api/register': POST_register,
       '/api/login': POST_login,
       '/api/logout': POST_logout,
-      '/api/user-by-session': POST_user_by_session,
       '/api/update-user': POST_update_user,
       '/api/update-password': POST_update_password,
       '/api/check-invite-code': POST_check_invite_code,
       '/api/create-page': POST_create_page
     }
     
-    //  Calling the API route's function
-    api_map[url](req_data, res);
+    //  Call the API route function, if it exists.
+    if (typeof api_map[url] == 'function') {
+      api_map[url](req_data, res);
+    } else {
+      api_response(res, 404, `The POST API route ${url} does not exist.`);
+    }
   })
 }
 ```
@@ -227,9 +235,7 @@ function POST_create_page(new_page_data, res) {
   if (!response.error) {
     DataBase.table('pages').insert(new_page_data);
   }
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 ```
 
@@ -238,7 +244,7 @@ function POST_create_page(new_page_data, res) {
 
 <h3 id="a-4">  ☑️ Step 4: Add new URL routes to <code>/server/server.js</code>  </h3>
 
-We're also going to add our new static page URL routes to `server.js`:  
+We're also going to add two new static page URL routes to `server.js`:  
 
 ```javascript
 //  Mapping URLs to pages
@@ -296,13 +302,13 @@ We'll also redirect to the home page if on `/create-page` or `/all-pages` and no
 ```javascript
 ////  SECTION 3: Boot.
 function boot() {
-  console.log("Welcome to Rooftop Media Dot Org!");
+  console.log('Welcome to Rooftop Media Dot Org!');
 
   //  Log user in if they have a session id. 
   if (_session_id) {
     const http = new XMLHttpRequest();
-    http.open("POST", "/api/user-by-session");
-    http.send(_session_id);
+    http.open('GET', `/api/user-by-session?session_id=${_session_id}`);
+    http.send();
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
@@ -427,21 +433,42 @@ URLs that are neither in the `pages` database, nor hardcoded, static pagess, sho
 
 <h3 id="a-9"> ☑️ Step 9:  Making an API route for getting all pages, in <code>server.js</code> </h3>
 
-Finally, we'll add an API route using the GET protocol!  
 First, edit `api_GET_routes`:
 
 ```javascript
 function api_GET_routes(url, res) {
+  //  Get data, for example /api/users?userid=22&username=ben
+  let req_data = {};
+  if (url.indexOf('?') != -1) {
+    let params = url.split('?')[1];
+    url = url.split('?')[0];
+    params = params.split('&');
+    for (let i = 0; i < params.length; i++) {
+      let parts = params[i].split('=');
+      if (parts.length != 2) {
+        return api_response(res, 400, `Improper data in your request.`);
+      }
+      req_data[parts[0]] = parts[1];
+    }
+  }
+  
   let api_map = {
+    '/api/user-by-session': GET_user_by_session,
     '/api/all-pages': GET_all_pages
   }
-  api_map[url](res);
+
+  //  Call the API route function, if it exists.
+  if (typeof api_map[url] == 'function') {
+    api_map[url](req_data, res);
+  } else {
+    api_response(res, 404, `The GET API route ${url} does not exist.`);
+  }
 }
 ```
 
-Then, right under `api_POST_routes`, add a new function, `GET_all_pages`:
+Then, right under `GET_user_by_session`, add a new function, `GET_all_pages`:
 ```javascript
-function GET_all_pages(res) {
+function GET_all_pages(req_data, res) {
   let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
   res.writeHead(200, {'Content-Type': 'text/html'});
   res.write(JSON.stringify(all_pages));
@@ -581,44 +608,49 @@ function respond_with_a_page(res, url) {
 
 
 
-<h3 id="b-2">  ☑️ Step 2: Adding <code>POST_get_page</code> to <code>/server/server.js</code>  </h3>
+<h3 id="b-2">  ☑️ Step 2: Adding <code>GET_page</code> to <code>/server/server.js</code>  </h3>
 
 This route will return a page's details and content, given a page's route.  
 
-First, we'll add the API route:
+First, we'll add the API route to `api_GET_routes`:
 
 ```javascript
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    req_data = JSON.parse(req_data);
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/user-by-session': POST_user_by_session,
-      '/api/update-user': POST_update_user,
-      '/api/update-password': POST_update_password,
-      '/api/check-invite-code': POST_check_invite_code,
-      '/api/create-page': POST_create_page,
-      '/api/get-page': POST_get_page
+function api_GET_routes(url, res) {
+  //  Get data, for example /api/users?userid=22&username=ben
+  let req_data = {};
+  if (url.indexOf('?') != -1) {
+    let params = url.split('?')[1];
+    url = url.split('?')[0];
+    params = params.split('&');
+    for (let i = 0; i < params.length; i++) {
+      let parts = params[i].split('=');
+      if (parts.length != 2) {
+        return api_response(res, 400, `Improper data in your request.`);
+      }
+      req_data[parts[0]] = parts[1];
     }
-    
-    //  Calling the API route's function
+  }
+  
+  let api_map = {
+    '/api/user-by-session': GET_user_by_session,
+    '/api/all-pages': GET_all_pages,
+    '/api/page': GET_page,
+  }
+
+  //  Call the API route function, if it exists.
+  if (typeof api_map[url] == 'function') {
     api_map[url](req_data, res);
-  })
+  } else {
+    api_response(res, 404, `The GET API route ${url} does not exist.`);
+  }
 }
 ```
 
-Then, below `POST_create_page`, we'll write the function, `POST_get_page`:  
+Then, below `GET_all_pages`, we'll write the function, `GET_page`:  
 
 ```javascript
-function POST_get_page(route_data, res) {
-  let page_data = DataBase.table('pages').find({ page_route: route_data.page_route });
+function GET_page(req_data, res) {
+  let page_data = DataBase.table('pages').find({ page_route: req_data.page_route });
   let response = {
     error: false,
     data: null
@@ -629,9 +661,7 @@ function POST_get_page(route_data, res) {
   } else {
     response.data =  page_data[0];
   }
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 ```
 
@@ -762,8 +792,8 @@ function cancel() {
 //  Load all page elements from API, then render buffer
 function load_page() {
   const http = new XMLHttpRequest();
-  http.open('POST', '/api/get-page');
-  http.send(JSON.stringify({ page_route: page_route }));
+  http.open('GET', `/api/page?page_route=${page_route}`);
+  http.send();
   http.onreadystatechange = (e) => {
     let response;      
     if (http.readyState == 4 && http.status == 200) {
@@ -849,23 +879,30 @@ function api_POST_routes(url, req, res) {
     req_data += chunk;
   })
   req.on('end', function() {
-    req_data = JSON.parse(req_data);
+    //  Parse the data to JSON.
+    try {
+      req_data = JSON.parse(req_data);
+    } catch (e) {
+      return api_response(res, 400, `Improper data in your request.`);
+    }
 
     let api_map = {
       '/api/register': POST_register,
       '/api/login': POST_login,
       '/api/logout': POST_logout,
-      '/api/user-by-session': POST_user_by_session,
       '/api/update-user': POST_update_user,
       '/api/update-password': POST_update_password,
       '/api/check-invite-code': POST_check_invite_code,
       '/api/create-page': POST_create_page,
-      '/api/get-page': POST_get_page,
       '/api/update-page': POST_update_page
     }
     
-    //  Calling the API route's function
-    api_map[url](req_data, res);
+    //  Call the API route function, if it exists.
+    if (typeof api_map[url] == 'function') {
+      api_map[url](req_data, res);
+    } else {
+      api_response(res, 404, `The POST API route ${url} does not exist.`);
+    }
   })
 }
 ```
@@ -1003,8 +1040,8 @@ function markup_to_html(markup) {
 //  Load all page elements from API, then render buffer
 function load_page() {
   const http = new XMLHttpRequest();
-  http.open('POST', '/api/get-page');
-  http.send(JSON.stringify({ page_route: page_route }));
+  http.open('GET', `/api/page?page_route=${page_route}`);
+  http.send();
   http.onreadystatechange = (e) => {
     let response;      
     if (http.readyState == 4 && http.status == 200) {
@@ -1246,9 +1283,7 @@ Instead, we'll send a user's current session id.  On the server, we'll use that 
 Open `/server/server.js` and edit the function `POST_update_page`. 
 
 ```js
-function POST_update_page(page_update, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  
+function POST_update_page(page_update, res) {  
   let response = {
     error: false,
     msg: '',
@@ -1272,8 +1307,7 @@ function POST_update_page(page_update, res) {
     }
   }
 
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 ```
 
@@ -1291,10 +1325,8 @@ Open that file and edit the `load_page` function:
 //  Load all page elements from API, then render buffer
 function load_page() {
   const http = new XMLHttpRequest();
-  http.open('POST', '/api/get-page');
-  http.send(JSON.stringify({ 
-    page_route: page_route
-  }));
+  http.open('GET', `/api/page?page_route=${page_route}`);
+  http.send();
   http.onreadystatechange = (e) => {
     let response;      
     if (http.readyState == 4 && http.status == 200) {
