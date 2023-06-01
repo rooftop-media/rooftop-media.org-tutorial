@@ -29,7 +29,7 @@ function boot() {
   if (_session_id) {
     const http = new XMLHttpRequest();
     http.open('GET', `/api/user-by-session?session_id=${_session_id}`);
-    http.send(_session_id);
+    http.send();
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
