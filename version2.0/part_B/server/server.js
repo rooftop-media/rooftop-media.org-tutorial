@@ -187,7 +187,7 @@ function GET_page(req_data, res) {
   }
   if (page_data.length < 1) {
     response.error = true;
-    response.msg = `The page ${route_data.page_route} was not found.`;
+    response.msg = `The page ${req_data.page_route} was not found.`;
   } else {
     response.data =  page_data[0];
   }
