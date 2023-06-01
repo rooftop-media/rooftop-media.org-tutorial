@@ -657,7 +657,7 @@ function GET_page(req_data, res) {
   }
   if (page_data.length < 1) {
     response.error = true;
-    response.msg = `The page ${route_data.page_route} was not found.`;
+    response.msg = `The page ${req_data.page_route} was not found.`;
   } else {
     response.data =  page_data[0];
   }
@@ -688,8 +688,9 @@ Create the file `/pages/cms/edit-page.html`, with the following code:
 
 ////  SECTION 1: Page memory
 let page_route = _current_page.split('/edit/')[1];
-let page_buffer = '';
+let buffer_data = {};
 let page_data = {};
+let is_saved = true;
 
 ////  SECTION 2: Render
 
@@ -697,24 +698,25 @@ let page_data = {};
 function render_page() {
   let page_editor = `
   <div class="flex-row">
-    <div style="width:40%;">Route: / <input id="page-route" type="text" value="${page_route}" oninput="update_pageRoute()" /></div>
-    <button onclick="toggle_publicity()">Make ${page_data.is_public ? 'Private' : 'Public'}</button>
+    <div style="width:40%;">Route: / <input id="page-route" type="text" value="${buffer_data.page_route}" oninput="update_pageRoute()" /></div>
+    <button onclick="toggle_publicity()">Make ${buffer_data.is_public ? 'Private' : 'Public'}</button>
   </div>
   <div class="flex-row">
-    <input id="page-title" type="text" value="${page_data.page_title}" oninput="update_pageTitle()">
+    <input id="page-title" type="text" value="${buffer_data.page_title}" oninput="update_pageTitle()">
     <button onclick="cancel()">Cancel</button>
-    <button style="background: #3A7B64;" onclick="save()">Save</button>
+    <button id="save" onclick="save()">Save</button>
   </div>`;
   page_editor += `<div id="error"></div>`;
-  page_editor += `<textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)">${page_buffer}</textarea/><br/><br/>`;
+  page_editor += `<textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)">${buffer_data.content}</textarea/><br/><br/>`;
   page_editor += `<button onclick="render_preview()">Preview</button>
   <button style="margin-left:20px;" onclick="window.location.href = '/${page_route}'">Go to Page</button>`;
   document.getElementById('dynamic-page').innerHTML = page_editor;
+  check_if_saved();
 }
 
 function render_preview() {
   document.getElementById('dynamic-page').innerHTML = `<button onclick="render_page()">Edit</button><br/><hr/><br/>`;
-  document.getElementById('dynamic-page').innerHTML += page_buffer;
+  document.getElementById('dynamic-page').innerHTML += buffer_data.content;
 }
 
 ////  SECTION 3: Event reactions
@@ -725,27 +727,39 @@ function beforeUnloadListener(event) {
   return (event.returnValue = "");
 };
 
+//  Fired in render_page() and in any buffer editing function
+function check_if_saved() {
+  is_saved = (buffer_data.content == page_data.content) && (buffer_data.page_title == page_data.page_title) 
+    && (buffer_data.is_public == page_data.is_public) && (buffer_data.page_route == page_data.page_route);
+  if (!is_saved) {
+    addEventListener("beforeunload", beforeUnloadListener, { capture: true });
+    document.getElementById('save').classList.remove('inactive');
+  } else {
+    removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
+    document.getElementById('save').classList.add('inactive');
+  }
+}
+
 //  Fires when new page content is typed.
 function update_buffer(newval) {
-  page_buffer = newval;
-  addEventListener("beforeunload", beforeUnloadListener, { capture: true })
+  buffer_data.content = newval;
+  check_if_saved();
 }
 
 //  Fires when the page title is changed. 
 function update_pageTitle() {
-  page_data.page_title = document.getElementById('page-title').value;
-  addEventListener("beforeunload", beforeUnloadListener, { capture: true })
+  buffer_data.page_title = document.getElementById('page-title').value;
+  check_if_saved();
 }
 
 function update_pageRoute() {
-  page_route = document.getElementById('page-route').value;
-  addEventListener("beforeunload", beforeUnloadListener, { capture: true })
+  buffer_data.page_route = document.getElementById('page-route').value;
+  check_if_saved();
 }
 
 function toggle_publicity() {
-  page_data.is_public = !page_data.is_public;
+  buffer_data.is_public = !buffer_data.is_public;
   render_page();
-  addEventListener("beforeunload", beforeUnloadListener, { capture: true })
 }
 
 //  Fires when "Save page changes" is clicked.
@@ -755,10 +769,10 @@ function save() {
   http.open('POST', '/api/update-page');
   http.send(JSON.stringify({ 
     id: page_data.id,
-    page_title: page_data.page_title,
-    content: page_buffer,
-    page_route: page_route,
-    is_public: page_data.is_public
+    page_title: buffer_data.page_title,
+    content: buffer_data.content,
+    page_route: buffer_data.page_route,
+    is_public: buffer_data.is_public
   }));
   http.onreadystatechange = (e) => {
     let response;      
@@ -766,11 +780,14 @@ function save() {
       response = JSON.parse(http.responseText);
       if (!response.error) {
         console.log("Response recieved! Page updated.");
-        if (_current_page.split('/edit/')[1] != page_route) {
-          window.location.href = '/edit/' + page_route;
-        }
-        removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
+        page_data.content = buffer_data.content;
+        page_data.page_title = buffer_data.page_title;
+        page_data.page_route = buffer_data.page_route;
+        page_data.is_public = buffer_data.is_public;
         render_page();
+        if (_current_page.split('/edit/')[1] != buffer_data.page_route) {
+          window.location.href = '/edit/' + buffer_data.page_route;
+        }
       } else {
         console.warn("Err")
         document.getElementById('error').innerHTML = response.msg;
@@ -801,7 +818,10 @@ function load_page() {
       if (!response.error) {
         console.log("Response recieved! Loading page.");
         page_data = response.data;
-        page_buffer = page_data.content || "";
+        buffer_data.content = page_data.content || "";
+        buffer_data.page_title = page_data.page_title || "";
+        buffer_data.page_route = page_data.page_route;
+        buffer_data.is_public = page_data.is_public;
         render_page();
       } else {
         document.getElementById('dynamic-page').innerHTML = response.msg;
@@ -860,6 +880,13 @@ load_page();
     color: var(--yellow);
     border: 1px solid var(--brown);
     cursor: pointer;
+  }
+
+  #dynamic-page button#save {
+    background: #3A7B64;
+  }
+  .inactive {
+    opacity: 0.5;
   }
 
 </style>
@@ -1291,7 +1318,7 @@ function POST_update_page(page_update, res) {
   }
 
   //  Make sure the current user created the current page
-  let page_data = DataBase.table('pages').find({ page_route: page_update.page_route });
+  let page_data = DataBase.table('pages').find({ page_route: page_update.id });
   let session_data = DataBase.table('sessions').find({ id: page_update.session_id });
   if (page_data[0].created_by != session_data[0].user_id) {
     response.error = true;
@@ -1338,7 +1365,10 @@ function load_page() {
           document.getElementById('dynamic-page').innerHTML = "You don't have permission to edit this page.";
           return;
         }
-        page_buffer = page_data.content || "";
+        buffer_data.content = page_data.content || "";
+        buffer_data.page_title = page_data.page_title || "";
+        buffer_data.page_route = page_data.page_route;
+        buffer_data.is_public = page_data.is_public;
         render_page();
       } else {
         document.getElementById('dynamic-page').innerHTML = response.msg;
@@ -1361,10 +1391,10 @@ function save() {
   http.open('POST', '/api/update-page');
   http.send(JSON.stringify({ 
     id: page_data.id,
-    page_title: page_data.page_title,
-    content: page_buffer,
-    page_route: page_route,
-    is_public: page_data.is_public, 
+    page_title: buffer_data.page_title,
+    content: buffer_data.content,
+    page_route: buffer_data.page_route,
+    is_public: buffer_data.is_public,
     session_id: _session_id
   }));
   http.onreadystatechange = (e) => {
@@ -1373,13 +1403,16 @@ function save() {
       response = JSON.parse(http.responseText);
       if (!response.error) {
         console.log("Response recieved! Page updated.");
-        if (_current_page.split('/edit/')[1] != page_route) {
-          window.location.href = '/edit/' + page_route;
-        }
-        removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
+        page_data.content = buffer_data.content;
+        page_data.page_title = buffer_data.page_title;
+        page_data.page_route = buffer_data.page_route;
+        page_data.is_public = buffer_data.is_public;
         render_page();
+        if (_current_page.split('/edit/')[1] != buffer_data.page_route) {
+          window.location.href = '/edit/' + buffer_data.page_route;
+        }
       } else {
-        console.warn(`Err: ${response.msg}`);
+        console.warn("Err")
         document.getElementById('error').innerHTML = response.msg;
       }
     }
