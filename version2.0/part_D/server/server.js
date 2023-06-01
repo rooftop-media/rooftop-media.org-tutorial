@@ -413,7 +413,7 @@ function POST_update_page(page_update, res) {
   }
 
   //  Make sure the current user created the current page
-  let page_data = DataBase.table('pages').find({ page_route: page_update.page_route });
+  let page_data = DataBase.table('pages').find({ id: page_update.id });
   let session_data = DataBase.table('sessions').find({ id: page_update.session_id });
   if (page_data[0].created_by != session_data[0].user_id) {
     response.error = true;
