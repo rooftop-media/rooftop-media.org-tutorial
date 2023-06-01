@@ -48,13 +48,13 @@ function update_header() {
 
 ////  SECTION 3: Boot.
 function boot() {
-  console.log("Welcome to Rooftop Media Dot Org!");
+  console.log('Welcome to Rooftop Media Dot Org!');
 
   //  Log user in if they have a session id. 
   if (_session_id) {
     const http = new XMLHttpRequest();
-    http.open("POST", "/api/user-by-session");
-    http.send(_session_id);
+    http.open('GET', `/api/user-by-session?session_id=${_session_id}`);
+    http.send();
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);

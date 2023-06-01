@@ -106,8 +106,8 @@ function parse_whitespace(tokens) {
 //  Load all page elements from API, then render buffer
 function load_page() {
   const http = new XMLHttpRequest();
-  http.open('POST', '/api/get-page');
-  http.send(JSON.stringify({ page_route: page_route }));
+  http.open('GET', `/api/page?page_route=${page_route}`);
+  http.send();
   http.onreadystatechange = (e) => {
     let response;      
     if (http.readyState == 4 && http.status == 200) {
