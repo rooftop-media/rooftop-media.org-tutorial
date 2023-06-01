@@ -1,10 +1,20 @@
 [
   {
-    "page_title": "My Blog - public!",
+    "page_title": "My Blog",
     "page_route": "my-blog",
-    "is_public": false,
+    "is_public": true,
     "created_by": 0,
     "id": 2,
-    "content": "Hello world!\n\n<div style=\"width:100px;height:200px;background:pink;color:green;\">Graphic design is my passion</div>"
+    "content": "Hello world!\n\n<div style=\"width:100px;height:200px;background:pink;color:green;\">Graphic design is my passion</div>adsf",
+    "session_id": "10"
+  },
+  {
+    "page_title": "Clubhouse",
+    "page_route": "clubhouse",
+    "is_public": true,
+    "created_by": 1,
+    "id": 3,
+    "content": "Come inside, it's fun inside!",
+    "session_id": "10"
   }
 ]

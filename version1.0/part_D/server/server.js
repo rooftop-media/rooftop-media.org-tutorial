@@ -103,10 +103,52 @@ function respond_with_asset(res, url, extname) {
 
 ////  SECTION 3: API.
 
-function api_GET_routes(url, res) {
-
+function api_response(res, code, text) {
+  res.writeHead(code, {'Content-Type': 'text/html'});
+  res.write(text);
+  return res.end();
 }
 
+function api_GET_routes(url, res) {
+  //  Get data, for example /api/users?userid=22&username=ben
+  let req_data = {};
+  if (url.indexOf('?') != -1) {
+    let params = url.split('?')[1];
+    url = url.split('?')[0];
+    params = params.split('&');
+    for (let i = 0; i < params.length; i++) {
+      let parts = params[i].split('=');
+      if (parts.length != 2) {
+        return api_response(res, 400, `Improper data in your request.`);
+      }
+      req_data[parts[0]] = parts[1];
+    }
+  }
+  
+  let api_map = {
+    '/api/user-by-session': GET_user_by_session
+  }
+
+  //  Call the API route function, if it exists.
+  if (typeof api_map[url] == 'function') {
+    api_map[url](req_data, res);
+  } else {
+    api_response(res, 404, `The GET API route ${url} does not exist.`);
+  }
+}
+
+function GET_user_by_session(req_data, res) {
+  let session_data = DataBase.table('sessions').find({ id: parseInt(req_data.session_id) });
+  if (session_data.length < 1) {
+    return api_response(res, 404, 'No session found');
+  }
+  let user_data = DataBase.table('users').find({ id: session_data[0].user_id });
+  if (user_data.length < 1) {
+    api_response(res, 404, `No user found for session ${session_data[0].id}.`);
+  } else {
+    api_response(res, 200, JSON.stringify(user_data[0]));
+  }
+}
 
 function api_POST_routes(url, req, res) {
   let req_data = '';
@@ -114,19 +156,27 @@ function api_POST_routes(url, req, res) {
     req_data += chunk;
   })
   req.on('end', function() {
-    req_data = JSON.parse(req_data);
+    //  Parse the data to JSON.
+    try {
+      req_data = JSON.parse(req_data);
+    } catch (e) {
+      return api_response(res, 400, `Improper data in your request.`);
+    }
 
     let api_map = {
       '/api/register': POST_register,
       '/api/login': POST_login,
       '/api/logout': POST_logout,
-      '/api/user-by-session': POST_user_by_session,
       '/api/update-user': POST_update_user,
       '/api/update-password': POST_update_password
     }
     
-    //  Calling the API route's function
-    api_map[url](req_data, res);
+    //  Call the API route function, if it exists.
+    if (typeof api_map[url] == 'function') {
+      api_map[url](req_data, res);
+    } else {
+      api_response(res, 404, `The POST API route ${url} does not exist.`);
+    }
   })
 }
 
@@ -167,13 +217,10 @@ function POST_register(new_user, res) {
       expires: expire_date
     })
   }
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 
 function POST_login(login_info, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
   let user_data = DataBase.table('users').find({ username: login_info.username });
   let response = {
     error: false,
@@ -184,9 +231,7 @@ function POST_login(login_info, res) {
   if (user_data.length < 1) {
     response.error = true;
     response.msg = 'No user found.';
-    res.write(JSON.stringify(response));
-    res.end();
-    return;
+    return api_response(res, 200, JSON.stringify(response));
   }
   let password = crypto.pbkdf2Sync(login_info.password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
   if (password != user_data[0].password) {
@@ -201,39 +246,15 @@ function POST_login(login_info, res) {
       expires: expire_date
     })
   }
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 
 function POST_logout(session_id, res) {
   let success_msg = DataBase.table('sessions').delete(session_id);
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(success_msg);
-  res.end();
-}
-
-function POST_user_by_session(session_id, res) {
-  let session_data = DataBase.table('sessions').find({ id: session_id });
-  if (session_data.length < 1) {
-    res.writeHead(404, {'Content-Type': 'text/html'});
-    res.write("No session found.");
-    res.end();
-    return;
-  }
-  let user_data = DataBase.table('users').find({ id: session_data[0].user_id });
-  if (user_data.length < 1) {
-    res.writeHead(404, {'Content-Type': 'text/html'});
-    res.write(`No user found for session ${session_data[0].id}.`);
-    res.end();
-  } else {
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write(JSON.stringify(user_data[0]));
-    res.end();
-  }
+  api_response(res, 200, success_msg);
 }
 
 function POST_update_user(user_update, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
 
   //  Make sure the username, email, and phone are unique. 
   let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
@@ -270,13 +291,10 @@ function POST_update_user(user_update, res) {
     }
   }
 
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 
 function POST_update_password(password_update, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
-
   let user_data = DataBase.table('users').find({ id: password_update.id });
   let response = {
     error: false,
@@ -285,9 +303,7 @@ function POST_update_password(password_update, res) {
   if (user_data.length < 1) {
     response.error = true;
     response.msg = 'No user found.';
-    res.write(JSON.stringify(response));
-    res.end();
-    return;
+    return api_response(res, 200, JSON.stringify(response));
   }
   let password = crypto.pbkdf2Sync(password_update.old_password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
   let new_pass = '';
@@ -306,8 +322,7 @@ function POST_update_password(password_update, res) {
     }
   }
 
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 
 ////  SECTION 4: Boot.

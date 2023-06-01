@@ -89,8 +89,8 @@ function respond_with_asset(res, url, extname) {
           res.end('404 -- asset not found', 'utf-8');
         }
         else {
-      res.writeHead(500);
-      res.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
+          res.writeHead(500);
+          res.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
         }
     } else {
         var contentType = mimeTypes[extname] || 'application/octet-stream';
@@ -102,10 +102,15 @@ function respond_with_asset(res, url, extname) {
 
 ////  SECTION 3: API.
 
+function api_response(res, code, text) {
+  res.writeHead(code, {'Content-Type': 'text/html'});
+  res.write(text);
+  return res.end();
+}
+
 function api_GET_routes(url, res) {
 
 }
-
 
 function api_POST_routes(url, req, res) {
   let req_data = '';
@@ -113,14 +118,23 @@ function api_POST_routes(url, req, res) {
     req_data += chunk;
   })
   req.on('end', function() {
-    req_data = JSON.parse(req_data);
+    //  Parse the data to JSON.
+    try {
+      req_data = JSON.parse(req_data);
+    } catch (e) {
+      return api_response(res, 400, `Improper data in your request.`);
+    }
 
     let api_map = {
       '/api/register': POST_register,
     }
 
-    //  Calling the API route's function
-    api_map[url](req_data, res);
+    //  Call the API route function, if it exists.
+    if (typeof api_map[url] == 'function') {
+      api_map[url](req_data, res);
+    } else {
+      api_response(res, 404, `The POST API route ${url} does not exist.`);
+    }
   })
 }
 
@@ -154,9 +168,7 @@ function POST_register(new_user, res) {
     //  Add the user to the db.
     let user_id = DataBase.table('users').insert(new_user);
   }
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 
 ////  SECTION 4: Boot.
