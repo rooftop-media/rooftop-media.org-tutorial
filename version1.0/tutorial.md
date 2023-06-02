@@ -261,10 +261,16 @@ First, create `/pages/index.css`, and add this:
 
 :root {
     --spacer: 20px;
+    --darker-brown: #1A110D;
     --dark-brown: #2E1F17;
     --brown: #432D21;
     --light-brown: #7F4C34;
+    --lighter-brown: #533E2E;
+    --dark-yellow: #E7B75E;
     --yellow: #E3D78F;
+    --light-yellow: #F0EAC3;
+    --green: #3A7B64;
+    --red: #832A28;
 }
 
 html, body {
@@ -309,6 +315,30 @@ html, body {
 /*  Global styles  */
 h1 {
   text-align: center;
+}
+
+input, textarea {
+  background: var(--brown);
+  color: white;
+  border: solid 1px black;
+}
+input:focus, textarea:focus {
+  outline: solid 1px var(--yellow);
+}
+
+button {
+  padding: 10px 10px;
+  border-radius: 5px;
+  background: var(--light-brown);
+  color: var(--yellow);
+  border: 1px solid var(--brown);
+  cursor: pointer;
+}
+button:hover {
+  filter: brightness(1.1);
+}
+button:active {
+  filter: brightness(0.9);
 }
 
 .px-1 {
@@ -698,10 +728,16 @@ We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
 
 :root {
     --spacer: 20px;
+    --darker-brown: #1A110D;
     --dark-brown: #2E1F17;
     --brown: #432D21;
     --light-brown: #7F4C34;
+    --lighter-brown: #533E2E;
+    --dark-yellow: #E7B75E;
     --yellow: #E3D78F;
+    --light-yellow: #F0EAC3;
+    --green: #3A7B64;
+    --red: #832A28;
 }
 
 html, body {
@@ -757,6 +793,30 @@ html, body {
 /*  Global styles  */
 h1 {
   text-align: center;
+}
+
+input, textarea {
+  background: var(--brown);
+  color: white;
+  border: solid 1px black;
+}
+input:focus, textarea:focus {
+  outline: solid 1px var(--yellow);
+}
+
+button {
+  padding: 10px 10px;
+  border-radius: 5px;
+  background: var(--light-brown);
+  color: var(--yellow);
+  border: 1px solid var(--brown);
+  cursor: pointer;
+}
+button:hover {
+  filter: brightness(1.1);
+}
+button:active {
+  filter: brightness(0.9);
 }
 
 .px-1 {
