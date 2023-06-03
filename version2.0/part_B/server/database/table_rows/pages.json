@@ -6,5 +6,12 @@
     "created_by": 0,
     "id": 2,
     "content": "Hello world!!!!!\n\n<div style=\"width:100px;height:200px;background:pink;color:green;\">Graphic design is my passion</div>"
+  },
+  {
+    "page_title": "Page 2",
+    "page_route": "page-2",
+    "is_public": false,
+    "created_by": 0,
+    "id": 3
   }
 ]

@@ -34,6 +34,9 @@ function create_page() {
   } else if (page_title.length < 2) {
     document.getElementById('error').innerHTML = 'Page title must be at least 2 characters..';
     return;
+  } else if (!page_route_regex.test(page_route)) {
+    document.getElementById('error').innerHTML = "Page route can only contain lowercase letters, numbers, underscores and dashes.";
+    return;
   }
 
   const http = new XMLHttpRequest();
