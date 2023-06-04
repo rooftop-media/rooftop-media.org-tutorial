@@ -2990,7 +2990,7 @@ so the process can't read or write to those files.
 Go back into the server, switch to the user who is running the server, navigate to `/var/www/rooftop-media.org`, and run this:
 
 ```
-chown -r $USER ./server
+chown -R $USER ./server
 ```
 Then, restart the pm2 process
 ```
