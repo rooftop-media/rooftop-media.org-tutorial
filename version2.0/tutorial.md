@@ -1270,7 +1270,7 @@ We'll check for that in the `respond_with_a_dynamic_page` function in `server/se
 function respond_with_a_dynamic_page(res, url) {
   let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
   let content_page = "";
-  if (page_data.length < 1 || !page_data.is_public) {
+  if (page_data.length < 1 || !page_data[0].is_public) {
     content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
   } else {
     content_page = fs.readFileSync(__dirname + '/../pages/cms/display-page.html', {encoding:'utf8'});
