@@ -91,7 +91,7 @@ function respond_with_a_page(res, url) {
 function respond_with_a_dynamic_page(res, url) {
   let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
   let content_page = "";
-  if (page_data.length < 1 || !page_data.is_public) {
+  if (page_data.length < 1 || !page_data[0].is_public) {
     content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
   } else {
     content_page = fs.readFileSync(__dirname + '/../pages/cms/display-page.html', {encoding:'utf8'});
@@ -176,6 +176,11 @@ function GET_user_by_session(req_data, res) {
 
 function GET_all_pages(req_data, res) {
   let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
+  all_pages = JSON.parse(all_pages);
+  for (let i = 0; i < all_pages.length; i++) {
+    let owner_id = parseInt(all_pages[i].created_by);
+    all_pages[i].owner = DataBase.table('users').find({id: owner_id})[0].username;
+  }
   api_response(res, 200, JSON.stringify(all_pages));
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "Pages",
   "snakecase": "pages",
-  "max_id": 6,
+  "max_id": 8,
   "columns": [
     {
       "name": "Id",

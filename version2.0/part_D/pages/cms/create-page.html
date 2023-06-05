@@ -45,7 +45,8 @@ function create_page() {
     page_title,
     page_route,
     is_public,
-    created_by: _current_user.id
+    created_by: _current_user.id,
+    content: ''
   }));
   http.onreadystatechange = (e) => {
     let response;      

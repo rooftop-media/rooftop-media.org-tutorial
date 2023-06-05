@@ -16,5 +16,29 @@
     "id": 3,
     "content": "Come inside, it's fun inside!!",
     "session_id": "10"
+  },
+  {
+    "page_title": "New Page",
+    "page_route": "new-page",
+    "is_public": true,
+    "created_by": 1,
+    "id": 4,
+    "content": "",
+    "session_id": "10"
+  },
+  {
+    "page_title": "New page 2",
+    "page_route": "new-page-2",
+    "is_public": true,
+    "created_by": 1,
+    "id": 5
+  },
+  {
+    "page_title": "my page 3",
+    "page_route": "my-page-3",
+    "is_public": true,
+    "created_by": 1,
+    "content": "",
+    "id": 6
   }
 ]

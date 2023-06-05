@@ -5,5 +5,21 @@
     "is_public": false,
     "created_by": 0,
     "id": 2
+  },
+  {
+    "page_title": "test-page",
+    "page_route": "test-page",
+    "is_public": true,
+    "created_by": 0,
+    "content": "",
+    "id": 6
+  },
+  {
+    "page_title": "test page 2",
+    "page_route": "test-2",
+    "is_public": true,
+    "created_by": 0,
+    "content": "",
+    "id": 7
   }
 ]

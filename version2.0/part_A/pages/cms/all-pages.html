@@ -2,9 +2,11 @@
   <h3>All dynamic pages:</h3>
   <table id="page-table">
     <tr>
-      <th>Page title</th>
-      <th>Page route</th>
+      <th>Title</th>
+      <th>Route</th>
       <th>Edit link</th>
+      <th>Public?</th>
+      <th>Owned by</th>
     </tr>
   </table>
 </div>
@@ -15,8 +17,11 @@
 
   function get_all_pages() {
     pageTable.innerHTML = `<tr>
-      <th>Page title</th>
-      <th>Page route</th>
+      <th>Title</th>
+      <th>Route</th>
+      <th>Edit link</th>
+      <th>Public?</th>
+      <th>Owned by</th>
     </tr>`;
     const http = new XMLHttpRequest();
     http.open('GET', '/api/all-pages');
@@ -24,13 +29,15 @@
     http.onreadystatechange = (e) => {
       let response;      
       if (http.readyState == 4 && http.status == 200) {
-        response = JSON.parse(JSON.parse(http.responseText)); // gotta run it twice 
+        response = JSON.parse(http.responseText); 
         console.log("Pages loaded!");
         for (var i = 0; i < response.length; i++) {
-          pageTable.innerHTML += `<tr>
+          pageTable.insertRow().innerHTML += `<tr>
             <td>${response[i].page_title}</td>
             <td><a href="/${response[i].page_route}">/${response[i].page_route}</a></td>
             <td><a href="/edit/${response[i].page_route}">Edit</a></td>
+            <td>${response[i].is_public ? 'Yes' : 'No'}</td>
+            <td>${response[i].owner}</td>
           </tr>`;
         }
       }
@@ -44,9 +51,20 @@
     border: solid 1px var(--brown);
     border-collapse: collapse;
   }
+  table {
+    box-shadow: 2px 2px 10px rgba(0,0,0,.5);
+  }
   th, td {
-    min-width: 100px;
-    padding: 5px;
+    padding: 5px 10px;
+  }
+  th {
+    background: var(--brown);
+  }
+  tr {
+    background: var(--lighter-brown);
+  }
+  tr:nth-child(even) {
+    background: #5a4433;
   }
   a {
     color: var(--yellow);
