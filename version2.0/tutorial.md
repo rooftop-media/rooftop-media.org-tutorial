@@ -474,9 +474,12 @@ Then, right under `GET_user_by_session`, add a new function, `GET_all_pages`:
 ```javascript
 function GET_all_pages(req_data, res) {
   let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(all_pages));
-  res.end();
+  all_pages = JSON.parse(all_pages);
+  for (let i = 0; i < all_pages.length; i++) {
+    let owner_id = parseInt(all_pages[i].created_by);
+    all_pages[i].owner = DataBase.table('users').find({id: owner_id})[0].username;
+  }
+  api_response(res, 200, JSON.stringify(all_pages));
 }
 ```
 
@@ -490,13 +493,15 @@ This page will allow us to view all pages created in our database.
 Create a new page, `/pages/cms/all-pages.html`, and add this:
 
 ```html
-<div class="p-3">
+<div class="p-3 center-column">
   <h3>All dynamic pages:</h3>
   <table id="page-table">
     <tr>
-      <th>Page title</th>
-      <th>Page route</th>
+      <th>Title</th>
+      <th>Route</th>
       <th>Edit link</th>
+      <th>Public?</th>
+      <th>Owned by</th>
     </tr>
   </table>
 </div>
@@ -507,8 +512,11 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
 
   function get_all_pages() {
     pageTable.innerHTML = `<tr>
-      <th>Page title</th>
-      <th>Page route</th>
+      <th>Title</th>
+      <th>Route</th>
+      <th>Edit link</th>
+      <th>Public?</th>
+      <th>Owned by</th>
     </tr>`;
     const http = new XMLHttpRequest();
     http.open('GET', '/api/all-pages');
@@ -516,13 +524,15 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
     http.onreadystatechange = (e) => {
       let response;      
       if (http.readyState == 4 && http.status == 200) {
-        response = JSON.parse(JSON.parse(http.responseText)); // gotta run it twice 
+        response = JSON.parse(http.responseText); 
         console.log("Pages loaded!");
         for (var i = 0; i < response.length; i++) {
-          pageTable.innerHTML += `<tr>
+          pageTable.insertRow().innerHTML += `<tr>
             <td>${response[i].page_title}</td>
             <td><a href="/${response[i].page_route}">/${response[i].page_route}</a></td>
             <td><a href="/edit/${response[i].page_route}">Edit</a></td>
+            <td>${response[i].is_public ? 'Yes' : 'No'}</td>
+            <td>${response[i].owner}</td>
           </tr>`;
         }
       }
@@ -533,12 +543,23 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
 
 <style>
   table, th, td {
-    border: solid 1px gray;
+    border: solid 1px var(--brown);
     border-collapse: collapse;
   }
+  table {
+    box-shadow: 2px 2px 10px rgba(0,0,0,.5);
+  }
   th, td {
-    min-width: 100px;
-    padding: 5px;
+    padding: 5px 10px;
+  }
+  th {
+    background: var(--brown);
+  }
+  tr {
+    background: var(--lighter-brown);
+  }
+  tr:nth-child(even) {
+    background: #5a4433;
   }
   a {
     color: var(--yellow);
