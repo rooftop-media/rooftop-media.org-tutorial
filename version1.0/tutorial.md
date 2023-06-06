@@ -2083,8 +2083,9 @@ var pageURLkeys = Object.keys(pageURLs);
 
 <h3 id="d-3"> ☑️ Step 3.  Edit <code>/index.js</code>  </h3>
 
-We're going to add a new mechanism in `index.js`, which we'll use in `/profile.html`.  
-We'll need an empty function called `current_user_loaded`:  
+We're going to add two functions in `index.js`, which we'll use in `/profile.html`.  
+The first is a function to update the user buttons, in the header, called `render_user_buttons`.
+The second is an empty function called `current_user_loaded`, which we'll call in `boot`, to reprogram on other pages.  
 
 ```javascript
 ////  SECTION 2: Functions.
@@ -2102,10 +2103,14 @@ function logout() {
   }
 }
 
+function render_user_buttons() {
+  
+}
+
 function current_user_loaded() {}
 ```
 
-Then, we'll call `current_user_loaded` in `boot()`, right after we get the session and load the user.  
+Then, we'll call both functions in `boot()`, right after we get the session and load the user.  
 
 ```javascript
 function boot() {
@@ -2120,8 +2125,7 @@ function boot() {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
         current_user_loaded();
-        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
-        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+        render_user_buttons();
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
@@ -2252,8 +2256,7 @@ function update_profile() {
         document.getElementById('error').innerHTML = 'Profile updated!';
         _current_user = response.updated_user;
         update_form();
-        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
-        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+        render_user_buttons();
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }
@@ -2506,11 +2509,11 @@ var _current_user = null;
 var _show_user_menu = false;
 ```
 
-Then we'll add a function `update_header`, right below `current_user_loaded`:  
+Then we'll edit `render_user_buttons`:  
 
 ```javascript
 // Update the "user buttons" in the header
-function update_header() {
+function render_user_buttons() {
   let userButtonsEl = document.getElementById('user-buttons');
   let buttonText = `Menu`;
   let menuHTML = `<div id="user-menu">`;
@@ -2524,7 +2527,7 @@ function update_header() {
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
 
-  userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">${buttonText}</button>`;
+  userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;render_user_buttons();">${buttonText}</button>`;
   if (_show_user_menu) {
     userButtonsEl.innerHTML += menuHTML + `</div>`;
   }
@@ -2552,10 +2555,10 @@ function boot() {
         console.log('No session found.');
         localStorage.removeItem('session_id');
       }
-      update_header();
+      render_user_buttons();
     }
   } else {
-    update_header();
+    render_user_buttons();
   }
   
   //  Redirect away from register or login if we're logged in.
