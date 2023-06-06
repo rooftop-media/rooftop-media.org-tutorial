@@ -17,7 +17,7 @@ function render_page() {
   let page_editor = `
   <div class="flex-row">
     <div style="width:40%;">Route: / <input id="page-route" type="text" value="${buffer_data.page_route}" oninput="update_pageRoute()" /></div>
-    <button onclick="toggle_publicity()">Make ${buffer_data.is_public ? 'Private' : 'Public'}</button>
+    <div style="display: flex; align-items: center;">Public? <input type="checkbox" onclick="toggle_publicity()" ${buffer_data.is_public ? 'checked' : ''}/></div>
   </div>
   <div class="flex-row">
     <input id="page-title" type="text" value="${buffer_data.page_title}" oninput="update_pageTitle()">
@@ -155,7 +155,7 @@ load_page();
   #dynamic-page {
     position: relative;
   }
-  #dynamic-page input {
+  #dynamic-page input[type="text"] {
     font-family: CrimsonText;
     width: 60%;
   }
