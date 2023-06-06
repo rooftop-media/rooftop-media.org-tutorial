@@ -18,6 +18,11 @@ function logout() {
   }
 }
 
+function render_user_buttons() {
+  document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
+  document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+}
+
 function current_user_loaded() {}
 
 
@@ -34,8 +39,7 @@ function boot() {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
         current_user_loaded();
-        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
-        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+        render_user_buttons();
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');

@@ -102,8 +102,7 @@ function update_profile() {
         document.getElementById('error').innerHTML = 'Profile updated!';
         _current_user = response.updated_user;
         update_form();
-        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
-        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+        render_user_buttons();
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }
