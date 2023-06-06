@@ -229,6 +229,8 @@ In `/rooftop-media.org/`, create a folder called `/assets/`, and add the followi
    - `/site.webmanifest`
  - [`/fonts`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/fonts)
    - `/CrimsonText-Regular.ttf`
+ - [`/icons`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/icons)
+   - `/check.svg`
  - [`/landing`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/landing)
    - `/clock_parts.svg`
    - `/raised_fist.svg`
@@ -236,7 +238,7 @@ In `/rooftop-media.org/`, create a folder called `/assets/`, and add the followi
  - [`/logo.png`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/logo.png)
 
 
-I made the logo and images for the landing page in a vector image editor (Affinity Designer).  
+I made the logo and images for the landing page, and the icon, in a vector image editor (Affinity Designer).  
 I generated the favicons by uploading the logo to a [favicon generator](https://favicon.io/) website.  
 I downloaded the font from [Google Fonts](https://fonts.google.com/specimen/Crimson+Text/about) -- after checking the license to make sure I could use it!
 
@@ -264,11 +266,10 @@ First, create `/pages/index.css`, and add this:
     --darker-brown: #1A110D;
     --dark-brown: #2E1F17;
     --brown: #432D21;
-    --light-brown: #7F4C34;
-    --lighter-brown: #533E2E;
-    --dark-yellow: #E7B75E;
+    --light-brown: #533E2E;
+    --lighter-brown: #604836;
+    --action-brown: #7F4C34;
     --yellow: #E3D78F;
-    --light-yellow: #F0EAC3;
     --green: #3A7B64;
     --red: #832A28;
 }
@@ -329,7 +330,7 @@ input:focus, textarea:focus {
 button {
   padding: 10px 10px;
   border-radius: 5px;
-  background: var(--light-brown);
+  background: var(--action-brown);
   color: var(--yellow);
   border: 1px solid var(--brown);
   cursor: pointer;
@@ -715,6 +716,7 @@ In `index.html`, we'll add three links in the header div:
 
 We'll also restyle our header a bit, in `index.css`.  
 We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
+We'll also add styling to other inputs here.
 
 ```css
 @font-face {
@@ -727,67 +729,66 @@ We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
 }
 
 :root {
-    --spacer: 20px;
-    --darker-brown: #1A110D;
-    --dark-brown: #2E1F17;
-    --brown: #432D21;
-    --light-brown: #7F4C34;
-    --lighter-brown: #533E2E;
-    --dark-yellow: #E7B75E;
-    --yellow: #E3D78F;
-    --light-yellow: #F0EAC3;
-    --green: #3A7B64;
-    --red: #832A28;
+  --spacer: 20px;
+  --darker-brown: #1A110D;
+  --dark-brown: #2E1F17;
+  --brown: #432D21;
+  --light-brown: #533E2E;
+  --lighter-brown: #604836;
+  --action-brown: #7F4C34;
+  --yellow: #E3D78F;
+  --green: #3A7B64;
+  --red: #832A28;
 }
 
 html, body {
-    font-family: CrimsonText;
-    margin: 0;
-    min-height: 100vh;
-    background: var(--dark-brown);
-    color: white;
+  font-family: CrimsonText;
+  margin: 0;
+  min-height: 100vh;
+  background: var(--dark-brown);
+  color: white;
 }
 
 /* The header, including the RTM logo and user profile buttons  */
 #header {
-    width:           100%;
-    height:          105px;
-    align-items:     center;
-    justify-content: space-between;
-    display:         flex;
-    background:      var(--brown);
-    box-shadow:      0px 0px 10px rgba(0,0,0,.5);
-    padding:         10px 25px;
-    box-sizing:      border-box;
-    z-index:         10;
-    position:        relative;
+  width:           100%;
+  height:          105px;
+  align-items:     center;
+  justify-content: space-between;
+  display:         flex;
+  background:      var(--brown);
+  box-shadow:      0px 0px 10px rgba(0,0,0,.5);
+  padding:         10px 25px;
+  box-sizing:      border-box;
+  z-index:         10;
+  position:        relative;
 }
 
 #logo {
-    width:           100px;
-    margin-top:      15px;
-    margin-bottom:   25px;
-    cursor:          pointer;
+  width:           100px;
+  margin-top:      15px;
+  margin-bottom:   25px;
+  cursor:          pointer;
 }
 
 #user-buttons {
-    display: flex;
+  display: flex;
 }
 #user-buttons a {
-    display:         block;
-    color:           var(--yellow);
-    text-decoration: none;
-    background:      var(--light-brown);
-    margin-left:     10px;
-    padding:         5px 20px;
-    cursor:          pointer;
-    border-radius:   4px;
+  display:         block;
+  color:           var(--yellow);
+  text-decoration: none;
+  background:      var(--action-brown);
+  margin-left:     10px;
+  padding:         5px 20px;
+  cursor:          pointer;
+  border-radius:   4px;
 }
 #user-buttons a:hover {
-    filter:          brightness(1.05);
+  filter:          brightness(1.1);
 }
 #user-buttons a:active {
-    filter:          brightness(1.01);
+  filter:          brightness(.9);
 }
 
 /*  Global styles  */
@@ -804,10 +805,29 @@ input:focus, textarea:focus {
   outline: solid 1px var(--yellow);
 }
 
-button {
-  padding: 10px 10px;
+input[type="checkbox"] {
+  width: 30px;
+  height: 30px;
+  appearance: none;
+  background: var(--action-brown);
   border-radius: 5px;
-  background: var(--light-brown);
+  cursor: pointer;
+}
+input[type="checkbox"]:checked::after {
+  content: '';
+  display: block;
+  background-size: 80%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url(/assets/icons/check.svg);
+  width: 30px;
+  height: 30px;
+}
+
+button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  background: var(--action-brown);
   color: var(--yellow);
   border: 1px solid var(--brown);
   cursor: pointer;
@@ -820,24 +840,24 @@ button:active {
 }
 
 .px-1 {
-    padding-left: calc(var(--spacer) * 0.25);
-    padding-right: calc(var(--spacer) * 0.25);
+  padding-left: calc(var(--spacer) * 0.25);
+  padding-right: calc(var(--spacer) * 0.25);
 }
 .px-2 {
-    padding-left: calc(var(--spacer) * 0.5);
-    padding-right: calc(var(--spacer) * 0.5);
+  padding-left: calc(var(--spacer) * 0.5);
+  padding-right: calc(var(--spacer) * 0.5);
 }
 .px-3 {
-    padding-left: var(--spacer);
-    padding-right: var(--spacer);
+  padding-left: var(--spacer);
+  padding-right: var(--spacer);
 }
 .p-3 {
-    padding: var(--spacer);
+  padding: var(--spacer);
 }
 
 .center-column {
-    max-width: 800px;
-    margin: 0 auto;
+  max-width: 800px;
+  margin: 0 auto;
 }
 ```
 
@@ -1634,7 +1654,7 @@ Change `#user-buttons a`, and that selector with `:hover` and `:active`, to:
     border:          none;
     font-family:     CrimsonText;
     font-size:       1em;
-    background:      var(--light-brown);
+    background:      var(--action-brown);
     margin-left:     10px;
     padding:         5px 20px;
     cursor:          pointer;
@@ -2573,7 +2593,7 @@ Then, we'll add this, right below the `#user-buttons` section:
     right:           0px;
     min-width:       120px;
     border:          solid 1px var(--dark-brown);
-    background:      var(--light-brown);
+    background:      var(--action-brown);
     overflow-x:      hidden;
     border-radius:   4px;
 }
