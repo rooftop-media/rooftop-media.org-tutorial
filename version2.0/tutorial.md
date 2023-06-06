@@ -272,10 +272,10 @@ var pageURLkeys = Object.keys(pageURLs);
 
 Open up `/pages/index.js`.  We'll make two changes.
 
-First, we'll update the`update_ header` function, to include links to `/create-page` and `/all-pages`.
+First, we'll update the`render_user_buttons` function, to include links to `/create-page` and `/all-pages`.
 ```
 // Update the "user buttons" in the header
-function update_header() {
+function render_user_buttons() {
   let userButtonsEl = document.getElementById('user-buttons');
   let buttonText = `Menu`;
   let menuHTML = `<div id="user-menu">`;
@@ -291,7 +291,7 @@ function update_header() {
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
   
-  userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;update_header();">${buttonText}</button>`;
+  userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;render_user_buttons();">${buttonText}</button>`;
   if (_show_user_menu) {
     userButtonsEl.innerHTML += menuHTML + `</div>`;
   }
@@ -321,10 +321,10 @@ function boot() {
         console.log('No session found.');
         localStorage.removeItem('session_id');
       }
-      update_header();
+      render_user_buttons();
     }
   } else {
-    update_header();
+    render_user_buttons();
   }
   
   //  Redirect to home if...
