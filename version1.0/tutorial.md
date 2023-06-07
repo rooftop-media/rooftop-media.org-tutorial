@@ -2168,6 +2168,13 @@ We'll write the function to update the user's password in the next few steps.
   <div>Confirm new password: <input type="password" tabindex="7" id="confirm_new_password"/></div>
   <p id="pass_error"></p>
   <button onclick="update_password()">Update password</button>
+ 
+  <br/><br/><br/><br/>
+  <h4>Delete account</h4>
+  <div style="font-style:italic">Warning: This cannot be undone!</div>
+  <div>Confirm password: <input type="password" id="delete_account_password"/></div>
+  <br/>
+  <button onclick="delete_profile()" style="background: var(--red)">Delete profile</button>
 </div>
 
 <script>
@@ -2267,6 +2274,10 @@ function update_profile() {
 function update_password() {
   
 }
+ 
+ function delete_user() {
+ 
+ }
 </script>
 ```
 
@@ -2403,6 +2414,56 @@ Log out and log back in again to make sure the password is changed.
 
 <br/><br/><br/><br/>
 
+
+
+<h3 id="d-7"> ☑️ Step 8. Adding <code>POST_delete_user</code> to <code>server.js</code>  </h3>
+
+This method will require the user's password.   
+Also, I'm not using the DELETE http method because it seems unnecessary for a mostly closed API. 
+
+In `server.js`, add `POST_delete_user` to `api_POST_routes`:
+
+```js
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    //  Parse the data to JSON.
+    try {
+      req_data = JSON.parse(req_data);
+    } catch (e) {
+      return api_response(res, 400, `Improper data in your request.`);
+    }
+
+    let api_map = {
+      '/api/register': POST_register,
+      '/api/login': POST_login,
+      '/api/logout': POST_logout,
+      '/api/update-user': POST_update_user,
+      '/api/update-password': POST_update_password,
+      '/api/delete-user': POST_delete_user
+    }
+    
+    //  Call the API route function, if it exists.
+    if (typeof api_map[url] == 'function') {
+      api_map[url](req_data, res);
+    } else {
+      api_response(res, 404, `The POST API route ${url} does not exist.`);
+    }
+  })
+}
+```
+
+Then, create the function `POST_delete_user`:
+
+```js
+
+```
+
+
+<br/><br/><br/><br/>
 
 
 
