@@ -69,7 +69,7 @@ This page will be a form to create new dynamic pages.
   <div>Page route: <input type="text" tabindex="2" id="page_route" placeholder="my-blog"/></div>
   <div>Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
   <p id="error"></p>
-  <button onclick="create_page()">Create Page</button>
+  <button onclick="create_page()" tabindex="4">Create Page</button>
 </div>
 
 <script>
@@ -723,16 +723,16 @@ let is_saved = true;
 function render_page() {
   let page_editor = `
   <div class="flex-row">
-    <div style="width:40%;">Route: / <input id="page-route" type="text" value="${buffer_data.page_route}" oninput="update_pageRoute()" /></div>
-    <button onclick="toggle_publicity()">Make ${buffer_data.is_public ? 'Private' : 'Public'}</button>
+    <div style="width:40%;">Route: / <input id="page-route" type="text" value="${buffer_data.page_route}" oninput="update_pageRoute()" tabindex="1" /></div>
+    <div style="display: flex; align-items: center;">Public? <input type="checkbox" onclick="toggle_publicity()" ${buffer_data.is_public ? 'checked' : ''} tabindex="2"/></div>
   </div>
   <div class="flex-row">
-    <input id="page-title" type="text" value="${buffer_data.page_title}" oninput="update_pageTitle()">
+    <input id="page-title" type="text" value="${buffer_data.page_title}" oninput="update_pageTitle()" tabindex="3">
     <button onclick="cancel()">Cancel</button>
-    <button id="save" onclick="save()">Save</button>
+    <button id="save" onclick="save()" tabindex="6">Save</button>
   </div>`;
   page_editor += `<div id="error"></div>`;
-  page_editor += `<textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)">${buffer_data.content}</textarea/><br/><br/>`;
+  page_editor += `<textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)" tabindex="5">${buffer_data.content}</textarea/><br/><br/>`;
   page_editor += `<button onclick="render_preview()">Preview</button>
   <button style="margin-left:20px;" onclick="window.location.href = '/${page_route}'">Go to Page</button>`;
   document.getElementById('dynamic-page').innerHTML = page_editor;
