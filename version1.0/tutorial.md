@@ -2791,7 +2791,7 @@ Here's the full code:
   <div>Invite code: <input type="text" tabindex="0" id="invite_code" placeholder="1234"/></div>
   <p><i>rooftop-media.org is currently invite-only, as we work out the website's features.</i></p>
   <button onclick="enter()">Enter</button>
-  <p id="error"></p>
+  <p id="invite-error"></p>
 </div>
 <div class="p-3 center-column" id="register-section" style="display: none;">
   <h3>Register</h3>
@@ -2911,7 +2911,7 @@ function enter() {
         document.getElementById('invite-code-section').style.display = 'none';
         document.getElementById('register-section').style.display = 'block';
       } else {
-        document.getElementById('error').innerHTML = response.msg;
+        document.getElementById('invite-error').innerHTML = response.msg;
       }
     }
   }
