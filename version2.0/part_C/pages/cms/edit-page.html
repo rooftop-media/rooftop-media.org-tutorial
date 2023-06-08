@@ -28,6 +28,7 @@ function render_page() {
   page_editor += `<textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)" tabindex="5">${buffer_data.content}</textarea/><br/><br/>`;
   page_editor += `<button onclick="render_preview()">Preview</button>
   <button style="margin-left:20px;" onclick="window.location.href = '/${page_route}'">Go to Page</button>`;
+  page_editor += `<br/><br/><br/><hr/><br/><br/><button style="background: var(--red);" onclick="delete_page()">Delete Page</button>`;
   document.getElementById('dynamic-page').innerHTML = page_editor;
   check_if_saved();
 }
@@ -116,8 +117,32 @@ function save() {
 
 //  Fires when the cancel button is clicked.
 function cancel() {
-  if (confirm("Are you sure? Changes will not be saved!")) {
+  if (confirm('Are you sure? Changes will not be saved!')) {
     window.location.href = '/edit/' + page_route;
+  }
+}
+
+//  Fired when the delete page button is clicked
+function delete_page() {
+  if (!confirm(`Are you sure you want to permanently delete /${page_route}?`)) {
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/delete-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id
+  }));
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = "Page deleted.  Redirecting you...";
+        window.location.href = '/';
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
   }
 }
 

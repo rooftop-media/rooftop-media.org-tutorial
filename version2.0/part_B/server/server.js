@@ -221,7 +221,8 @@ function api_POST_routes(url, req, res) {
       '/api/delete-user': POST_delete_user,
       '/api/check-invite-code': POST_check_invite_code,
       '/api/create-page': POST_create_page,
-      '/api/update-page': POST_update_page
+      '/api/update-page': POST_update_page,
+      '/api/delete-page': POST_delete_page
     }
     
     //  Call the API route function, if it exists.
@@ -450,6 +451,21 @@ function POST_update_page(page_update, res) {
   }
 
   api_response(res, 200, JSON.stringify(response));
+}
+
+function POST_delete_page(request_info, res) {
+  let page_data = DataBase.table('pages').find({ id: request_info.id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = 'No page found.';
+  } else {
+    response.msg = DataBase.table('pages').delete(request_info.id);
+  }
+  return api_response(res, 200, JSON.stringify(response));
 }
 
 ////  SECTION 4: Boot.
