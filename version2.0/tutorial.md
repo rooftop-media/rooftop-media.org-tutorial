@@ -27,7 +27,7 @@ Click a part title to jump down to it, in this file.
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
 | [Part A - /create-page, /all-pages](#part-a) | 20 min. | 13 |
-| [Part B - Page editing](#part-b) | 15 min. | 6 |
+| [Part B - Page editing](#part-b) | 15 min. | 8 |
 | [Part C - Page display](#part-c) | 15 min. | 8 |
 | [Part D - User permissions](#part-d) | 0 min. | 0 |
 | [Part E - Data Download](#part-e) | 0 min. | 0 |
@@ -735,6 +735,7 @@ function render_page() {
   page_editor += `<textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)" tabindex="5">${buffer_data.content}</textarea/><br/><br/>`;
   page_editor += `<button onclick="render_preview()">Preview</button>
   <button style="margin-left:20px;" onclick="window.location.href = '/${page_route}'">Go to Page</button>`;
+  page_editor += `<br/><br/><br/><hr/><br/><br/><button style="background: var(--red);" onclick="delete_page()">Delete Page</button>`;
   document.getElementById('dynamic-page').innerHTML = page_editor;
   check_if_saved();
 }
@@ -823,12 +824,34 @@ function save() {
 
 //  Fires when the cancel button is clicked.
 function cancel() {
-  if (confirm("Are you sure? Changes will not be saved!")) {
+  if (confirm('Are you sure? Changes will not be saved!')) {
     window.location.href = '/edit/' + page_route;
   }
 }
 
-
+//  Fired when the delete page button is clicked
+function delete_page() {
+  if (!confirm(`Are you sure you want to permanently delete /${page_route}?`)) {
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/delete-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id
+  }));
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = "Page deleted.  Redirecting you...";
+        window.location.href = '/';
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
 
 ////  SECTION 4: Boot
 //  Load all page elements from API, then render buffer
@@ -1010,8 +1033,80 @@ Finally, go to `localhost:8080/edit/not-a-route` to display an error message.
 
 
 
+<h3 id="b-6">  ☑️ Step 6: Adding <code>POST_delete_page</code> to <code>/server/server.js</code>  </h3>
 
-<h3 id="b-6">☑️ Step 6. ❖ Part B review. </h3>
+Add `POST_delete_page` to the api routes:
+
+```js
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    //  Parse the data to JSON.
+    try {
+      req_data = JSON.parse(req_data);
+    } catch (e) {
+      return api_response(res, 400, `Improper data in your request.`);
+    }
+
+    let api_map = {
+      '/api/register': POST_register,
+      '/api/login': POST_login,
+      '/api/logout': POST_logout,
+      '/api/update-user': POST_update_user,
+      '/api/update-password': POST_update_password,
+      '/api/delete-user': POST_delete_user,
+      '/api/check-invite-code': POST_check_invite_code,
+      '/api/create-page': POST_create_page,
+      '/api/update-page': POST_update_page,
+      '/api/delete-page': POST_delete_page
+    }
+    
+    //  Call the API route function, if it exists.
+    if (typeof api_map[url] == 'function') {
+      api_map[url](req_data, res);
+    } else {
+      api_response(res, 404, `The POST API route ${url} does not exist.`);
+    }
+  })
+}
+```
+
+And then we'll add the  `POST_delete_page` function: 
+
+```js
+function POST_delete_page(request_info, res) {
+  let page_data = DataBase.table('pages').find({ id: request_info.id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = 'No page found.';
+  } else {
+    response.msg = DataBase.table('pages').delete(request_info.id);
+  }
+  return api_response(res, 200, JSON.stringify(response));
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-7"> ☑️ Step 7:   ☞ Test the code!  </h3>
+
+Restart the server. Open a page in the page editor.  Try to delete it!  
+Make sure the page is deleted in the database, and no longer appears in the table of all pages. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-8">☑️ Step 8. ❖ Part B review. </h3>
 
 The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_B).
 
@@ -1437,7 +1532,7 @@ function save() {
           window.location.href = '/edit/' + buffer_data.page_route;
         }
       } else {
-        console.warn("Err")
+        console.warn(response.msg);
         document.getElementById('error').innerHTML = response.msg;
       }
     }
@@ -1465,6 +1560,82 @@ Edit the page and click "save".  Our "update-page" api route should prevent the 
 
 <br/><br/><br/><br/>
 
+
+<h3 id="d-6">  ☑️ Step 6: Editing <code>POST_delete_page</code> in <code>server.js</code>  </h3>
+
+We're going to edit `POST_delete_page` to require the user's session id, just like `POST_update_page`.  
+
+```js
+function POST_delete_page(request_info, res) {
+  let page_data = DataBase.table('pages').find({ id: request_info.id });
+  let session_data = DataBase.table('sessions').find({ id: request_info.session_id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = 'No page found.';
+  } else if  (page_data[0].created_by != session_data[0].user_id) {
+    response.error = true;
+    response.msg = `You don't have permission to delete this page.`;
+  } else {
+    response.msg = DataBase.table('pages').delete(request_info.id);
+  }
+  return api_response(res, 200, JSON.stringify(response));
+}
+```
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-7">  ☑️ Step 7: Editing <code>delete_page</code> in <code>edit-page.html</code>  </h3>
+
+Now, we need to edit `delete_page()` in `edit-page.html`, to submit the user's `session_id` with the delete request. 
+
+```js
+//  Fired when the delete page button is clicked
+function delete_page() {
+  if (!confirm(`Are you sure you want to permanently delete /${page_route}?`)) {
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/delete-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    session_id: _session_id
+  }));
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = "Page deleted.  Redirecting you...";
+        window.location.href = '/';
+      } else {
+        console.warn(response.msg);
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-8">  ☑️  Step 8: ☞ Test the code!  </h3>
+
+Restart the server.  Try to delete a page like before -- you should have no problem. 
+
+Now, right click, inspect the page's elements, find the script tag, and find the `load_page` function.  
+Change the line that says `if (page_data.created_by != _current_user.id) {` to `if (false) {`.  
+Then, copy paste the entire contents of the `load_page` function into the console.  The edit page should load, even though you're not the correct user!!  
+
+Edit the page and click "save".  Our "update-page" api route should prevent the page from being updated, since it checks the user's session id. 
+
+<br/><br/><br/><br/>
 
 
 <h3 id="d-6">☑️ Step 6. ❖ Part D review. </h3>
