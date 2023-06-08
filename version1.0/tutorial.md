@@ -1697,7 +1697,8 @@ In `/server/database/database.js`, add this after our `insert` function:
     for (let i = 0; i < this.rows.length; i++) {
       if (this.rows[i].id == id_to_delete) {
         this.rows.splice(i, 1);
-        return ``;
+        fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
+        return `Deleted the row with id ${id_to_delete}`;
       }
     }
     return `No row found with id ${id_to_delete}`;
@@ -1783,7 +1784,11 @@ function logout() {
 <h3 id="c-10"> ☑️ Step 10. ☞  Test the code!  </h3>
 
 Refresh the server, and make sure you're logged in -- if not, register a new user.  
-Try the logout button.  You should be logged out and directed to `/login`. 
+Find out what session id you're using.  You can do this by going to the browser's dev console, typing `_session_id`, and hitting enter.  
+
+Try the logout button.  You should be logged out and directed to `/login`.  
+Open the file `/server/database/table_rows/sessions.json` and make sure the session with that session ID was deleted.  
+
 
 <br/><br/><br/><br/>
 
@@ -2173,8 +2178,9 @@ We'll write the function to update the user's password in the next few steps.
   <h4>Delete account</h4>
   <div style="font-style:italic">Warning: This cannot be undone!</div>
   <div>Confirm password: <input type="password" id="delete_account_password"/></div>
+  <p id="delete_error"></p>
   <br/>
-  <button onclick="delete_profile()" style="background: var(--red)">Delete profile</button>
+  <button onclick="delete_user()" style="background: var(--red)">Delete account</button>
 </div>
 
 <script>
@@ -2275,9 +2281,9 @@ function update_password() {
   
 }
  
- function delete_user() {
+function delete_user() {
  
- }
+}
 </script>
 ```
 
@@ -2416,7 +2422,7 @@ Log out and log back in again to make sure the password is changed.
 
 
 
-<h3 id="d-7"> ☑️ Step 8. Adding <code>POST_delete_user</code> to <code>server.js</code>  </h3>
+<h3 id="d-9"> ☑️ Step 9. Adding <code>POST_delete_user</code> to <code>server.js</code>  </h3>
 
 This method will require the user's password.   
 Also, I'm not using the DELETE http method because it seems unnecessary for a mostly closed API. 
@@ -2459,7 +2465,28 @@ function api_POST_routes(url, req, res) {
 Then, create the function `POST_delete_user`:
 
 ```js
+function POST_delete_user(user_info, res) {
+  let user_data = DataBase.table('users').find({ id: user_info.id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (user_data.length < 1) {
+    response.error = true;
+    response.msg = 'No user found.';
+    return api_response(res, 200, JSON.stringify(response));
+  }
+  let password = crypto.pbkdf2Sync(user_info.password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
+  if (password != user_data[0].password) {
+    response.error = true;
+    response.msg = 'Incorrect password.';
+  } else {
+    let success_msg = DataBase.table('users').delete(user_info.id);
+    response.msg = `Deleted user ${user_info.id} successfully.`;
+  }
 
+  api_response(res, 200, JSON.stringify(response));
+}
 ```
 
 
@@ -2467,7 +2494,50 @@ Then, create the function `POST_delete_user`:
 
 
 
-<h3 id="d-9"> ☑️ Step 9. ❖ Part D review. </h3>
+<h3 id="d-10"> ☑️ Step 10. Adding <code>delete_user</code> to <code>profile.html</code>  </h3>
+
+In `profile.html`, add this to our `delete_user()` function:  
+
+```javascript
+function delete_user() {
+  var confirm_password = document.getElementById('delete_account_password').value;
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/delete-user");
+  http.send(JSON.stringify({
+    id: _current_user.id,
+    password: confirm_password
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('pass_error').innerHTML = 'Password updated!';
+        _current_user = response.updated_user;
+      } else {
+        document.getElementById('pass_error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-11"> ☑️ Step 11. ☞  Test the code!  </h3>
+
+Log in or create a new user, and navigate to the `/profile` page.  
+
+Enter the incorrect password, and try to delete your account.  An error should display.  
+Now, 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-12"> ☑️ Step 12. ❖ Part D review. </h3>
 
 The complete code for Part D is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_D).
 
@@ -2877,6 +2947,7 @@ function api_POST_routes(url, req, res) {
       '/api/logout': POST_logout,
       '/api/update-user': POST_update_user,
       '/api/update-password': POST_update_password,
+      '/api/delete-user': POST_delete_user,
       '/api/check-invite-code': POST_check_invite_code
     }
     
@@ -2890,7 +2961,7 @@ function api_POST_routes(url, req, res) {
 }
 ```
 
-And add this function after `POST_update_password`:
+And add this function after `POST_delete_user`:
 
 ```js
 function POST_check_invite_code(data, res) {
