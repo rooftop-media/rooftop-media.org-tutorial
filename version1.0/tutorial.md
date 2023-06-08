@@ -342,6 +342,10 @@ button:active {
   filter: brightness(0.9);
 }
 
+hr {
+  border-color: var(--yellow);
+}
+
 .px-1 {
     padding-left: calc(var(--spacer) * 0.25);
     padding-right: calc(var(--spacer) * 0.25);
@@ -837,6 +841,10 @@ button:hover {
 }
 button:active {
   filter: brightness(0.9);
+}
+
+hr {
+  border-color: var(--yellow);
 }
 
 .px-1 {
