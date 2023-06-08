@@ -43,7 +43,8 @@ class Table {
     for (let i = 0; i < this.rows.length; i++) {
       if (this.rows[i].id == id_to_delete) {
         this.rows.splice(i, 1);
-        return ``;
+        fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
+        return `Deleted the row with id ${id_to_delete}`;
       }
     }
     return `No row found with id ${id_to_delete}`;

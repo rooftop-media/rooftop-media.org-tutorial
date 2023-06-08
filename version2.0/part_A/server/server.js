@@ -200,6 +200,7 @@ function api_POST_routes(url, req, res) {
       '/api/logout': POST_logout,
       '/api/update-user': POST_update_user,
       '/api/update-password': POST_update_password,
+      '/api/delete-user': POST_delete_user,
       '/api/check-invite-code': POST_check_invite_code,
       '/api/create-page': POST_create_page
     }
@@ -357,6 +358,28 @@ function POST_update_password(password_update, res) {
       response.error = true;
       response.msg = `No user found for session ${password_update.id}.`
     }
+  }
+
+  api_response(res, 200, JSON.stringify(response));
+}
+
+function POST_delete_user(user_info, res) {
+  let user_data = DataBase.table('users').find({ id: user_info.id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (user_data.length < 1) {
+    response.error = true;
+    response.msg = 'No user found.';
+    return api_response(res, 200, JSON.stringify(response));
+  }
+  let password = crypto.pbkdf2Sync(user_info.password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
+  if (password != user_data[0].password) {
+    response.error = true;
+    response.msg = 'Incorrect password.';
+  } else {
+    response.msg = DataBase.table('users').delete(user_info.id);
   }
 
   api_response(res, 200, JSON.stringify(response));
