@@ -569,7 +569,7 @@ Create a new file, `/pages/misc/register.html`, and add:
   <div>Password: <input type="password" tabindex="5" id="password"/></div>
   <div>Confirm password: <input type="password" tabindex="6" id="confirm_password"/></div>
   <p id="error"></p>
-  <button onclick="register()">Register</button>
+  <button onclick="register()" tabindex="7">Register</button>
 </div>
 ```
 
@@ -581,7 +581,7 @@ Create another new file, `/pages/misc/login.html`, and add:
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Password: <input type="password" tabindex="2" id="password"/></div>
   <p id="error"></p>
-  <button onclick="login()">Login</button>
+  <button onclick="login()" tabindex="3">Login</button>
 </div>
 ```
 
@@ -1176,7 +1176,7 @@ Open `register.html` and add this:
   <div>Password: <input type="password" tabindex="5" id="password"/></div>
   <div>Confirm password: <input type="password" tabindex="6" id="confirm_password"/></div>
   <p id="error"></p>
-  <button onclick="register()">Register</button>
+  <button onclick="register()" tabindex="7">Register</button>
 </div>
 
 <script>
@@ -1263,7 +1263,7 @@ For example, a username should be only lowercase letters, numbers, and underscor
   <div>Password: <input type="password" tabindex="5" id="password"/></div>
   <div>Confirm password: <input type="password" tabindex="6" id="confirm_password"/></div>
   <p id="error"></p>
-  <button onclick="register()">Register</button>
+  <button onclick="register()" tabindex="7">Register</button>
 </div>
 
 <script>
@@ -1879,7 +1879,7 @@ We'll also add validation for the form fields.
   <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
   <div>Password: <input type="password" tabindex="2" id="password"/></div>
   <p id="error"></p>
-  <button onclick="login()">Login</button>
+  <button onclick="login()" tabindex="3">Login</button>
 </div>
 
 <script>
@@ -2164,15 +2164,15 @@ We'll write the function to update the user's password in the next few steps.
   <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
   <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
   <p id="error"></p>
-  <button onclick="update_profile()">Update profile</button>
+  <button onclick="update_profile()" tabindex="5">Update profile</button>
 
   <br/>
   <h4>Change your password:</h4>
-  <div>Old password: <input type="password" tabindex="5" id="old_password"/></div>
-  <div>New password: <input type="password" tabindex="6" id="new_password"/></div>
-  <div>Confirm new password: <input type="password" tabindex="7" id="confirm_new_password"/></div>
+  <div>Old password: <input type="password" tabindex="6" id="old_password"/></div>
+  <div>New password: <input type="password" tabindex="7" id="new_password"/></div>
+  <div>Confirm new password: <input type="password" tabindex="8" id="confirm_new_password"/></div>
   <p id="pass_error"></p>
-  <button onclick="update_password()">Update password</button>
+  <button onclick="update_password()" tabindex="9">Update password</button>
  
   <br/><br/><br/><br/>
   <h4>Delete account</h4>
@@ -2790,19 +2790,19 @@ Here's the full code:
   <h3>Register</h3>
   <div>Invite code: <input type="text" tabindex="0" id="invite_code" placeholder="1234"/></div>
   <p><i>rooftop-media.org is currently invite-only, as we work out the website's features.</i></p>
-  <button onclick="enter()">Enter</button>
+  <button onclick="enter()" tabindex="1">Enter</button>
   <p id="invite-error"></p>
 </div>
 <div class="p-3 center-column" id="register-section" style="display: none;">
   <h3>Register</h3>
-  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
-  <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
-  <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
-  <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
-  <div>Password: <input type="password" tabindex="5" id="password"/></div>
-  <div>Confirm password: <input type="password" tabindex="6" id="confirm_password"/></div>
+  <div>Username: <input type="text" tabindex="2" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="3" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="4" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="5" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" tabindex="6" id="password"/></div>
+  <div>Confirm password: <input type="password" tabindex="7" id="confirm_password"/></div>
   <p id="error"></p>
-  <button onclick="register()">Register</button>
+  <button onclick="register()" tabindex="8">Register</button>
 </div>
 
 <script>
