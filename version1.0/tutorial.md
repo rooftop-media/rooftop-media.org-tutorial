@@ -1956,25 +1956,99 @@ In this part, we'll create a new page called `/profile`, where the user can edit
 
 
 
-<h3 id="d-1"> ☑️ Step 1.  Add an update function to <code>database.js</code>  </h3>
+<h3 id="d-1"> ☑️ Step 1.  Add an <code>update</code> function to <code>database.js</code>  </h3>
 
-In `/server/database/database.js`, add this after our `insert` function:
+In `/server/database/database.js`, we need a new function to _update existing_ data rows, instead of adding new data.  
+
+Our update function will also need to check for properties that are *required* or properties that must be *unique*.  
+We already have code that does that in the `insert` function, so we're going to "factor that out" so we can reuse it. 
+
+In `database.js`, add this right after the constructor:  
+
+```js
+  //  Ensure a row has all required fields, and has all unique unique fields. 
+  _check_for_unique_and_required(row_data, index_to_skip) {
+    let response = {
+      error: false,
+      msg: ''
+    }
+    for (let i = 0; i < this.columns.columns.length; i++) {
+      let column_data = this.columns.columns[i];
+      if (column_data.unique === true && !(column_data.required === false && !row_data[column_data.snakecase])) {
+        for (let j = 0; j < this.rows.length; j++) {
+          if (this.rows[j][column_data.snakecase] == row_data[column_data.snakecase]) {
+            response.error = true;
+            response.msg = `${column_data.name} must be unique.`;
+            return response;
+          }
+        }
+      }
+      if (column_data.require === true && !row_data[column_data.snakecase]) {
+        response.error = true;
+        response.msg = `${column_data.name} is required.`;
+        return response;
+      }
+    }
+    return response;
+  }
+```
+
+Now, we can simplify our `insert` method, like this:
+
+```js
+  insert(row_data) {
+    let response = {
+      error: false,
+      msg: '',
+      id: null
+    }
+    response = this._check_for_unique_and_required(row_data, -1);
+    if (response.error) {
+      return response;
+    }
+    row_data.id = this.columns.max_id;
+    response.id = row_data.id;
+    this.columns.max_id++;
+    this.rows.push(row_data);
+    fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
+    fs.writeFileSync(`${__dirname}/table_columns/${this.name}.json`, JSON.stringify(this.columns, null, 2));
+    return response;
+  }
+```
+
+And add this method right *after* our `insert` method:
 ```javascript
   update(id, update) {
     //  Look for row to update...
+    let index_to_update = -1;
     for (let i = 0; i < this.rows.length; i++) {
       if (this.rows[i].id == id) {
-        let update_keys = Object.keys(update);
-        for (let j = 0; j < update_keys.length; j++) {
-          if (update_keys[j] != 'id') {
-            this.rows[i][update_keys[j]] = update[update_keys[j]];
-          }
-        }
-        fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
-        return this.rows[i];
+        index_to_update = i;
+        break;
       }
     }
-    return null;
+    if (index_to_update == -1) {
+      return { error: true, msg: `Couldn't find the data to update.` };
+    }
+    //  Update it!
+    let updated_row_copy = JSON.parse(JSON.stringify(this.rows[index_to_update]));
+    let update_keys = Object.keys(update);
+    for (let j = 0; j < update_keys.length; j++) {
+      if (update_keys[j] != 'id') {
+        updated_row_copy[update_keys[j]] = update[update_keys[j]];
+      }
+    }
+    //  Validate it! 
+    let response = this._check_for_unique_and_required(updated_row_copy, index_to_update);
+    if (response.error) {
+      return response;
+    } else {  //  Save it!
+      this.rows[index_to_update] = updated_row_copy;
+      fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
+      response.id = this.rows[index_to_update].id;
+    }
+    
+    return response;
   }
 ```
 
@@ -2022,42 +2096,7 @@ Then, add this beneath `POST_logout`:
 
 ```javascript
 function POST_update_user(user_update, res) {
-
-  //  Make sure the username, email, and phone are unique. 
-  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
-  user_data = JSON.parse(user_data);
-  let response = {
-    error: false,
-    msg: '',
-    updated_user: ''
-  }
-  for (let i = 0; i < user_data.length; i++) {
-    if (user_data[i].id != user_update.id) {
-      if (user_data[i].username == user_update.username) {
-        response.error = true;
-        response.msg = 'Username already taken.';
-        break;
-      } else if (user_data[i].email == user_update.email) {
-        response.error = true;
-        response.msg = 'Email already taken.';
-        break;
-      } else if (user_data[i].phone == user_update.phone) {
-        response.error = true;
-        response.msg = 'Phone number already taken.';
-        break;
-      }
-    }
-  }
-
-  //  If the update is valid, save it.
-  if (!response.error) {
-    response.updated_user = DataBase.table('users').update(user_update.id, user_update);
-    if (response.updated_user == null) {
-      response.error = true;
-      response.msg = `No user found for ${user_update.id}.`
-    }
-  }
-
+  let response = DataBase.table('users').update(user_update.id, user_update);
   api_response(res, 200, JSON.stringify(response));
 }
 ```
@@ -2261,7 +2300,10 @@ function update_profile() {
       response = JSON.parse(http.responseText);
       if (!response.error) {
         document.getElementById('error').innerHTML = 'Profile updated!';
-        _current_user = response.updated_user;
+        _current_user.username = username;
+        _current_user.display_name = display_name,
+        _current_user.email = email;
+        _current_user.phone = phone;
         update_form();
         render_user_buttons();
       } else {
