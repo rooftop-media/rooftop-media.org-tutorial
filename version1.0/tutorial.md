@@ -1847,10 +1847,12 @@ function POST_login(login_info, res) {
     response.user_data = user_data[0];
     let expire_date = new Date()
     expire_date.setDate(expire_date.getDate() + 30);
-    response.session_id = DataBase.table('sessions').insert({
+    let session_data = DataBase.table('sessions').insert({
       user_id: user_data[0].id,
       expires: expire_date
     })
+    response.error = session_data.error;
+    response.session_id = session_data.id;
   }
   api_response(res, 200, JSON.stringify(response));
 }
