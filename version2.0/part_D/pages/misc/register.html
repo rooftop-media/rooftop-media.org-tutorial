@@ -1,20 +1,20 @@
 <div class="p-3 center-column" id="invite-code-section">
   <h3>Register</h3>
-  <div>Invite code: <input type="text" tabindex="0" id="invite_code" placeholder="1234"/></div>
+  <div>Invite code: <input type="text" tabindex="1" id="invite_code" placeholder="1234"/></div>
   <p><i>rooftop-media.org is currently invite-only, as we work out the website's features.</i></p>
-  <button onclick="enter()" tabindex="1">Enter</button>
+  <button onclick="enter()" tabindex="2">Enter</button>
   <p id="invite-error"></p>
 </div>
 <div class="p-3 center-column" id="register-section" style="display: none;">
   <h3>Register</h3>
-  <div>Username: <input type="text" tabindex="2" id="username" placeholder="mickeymouse"/></div>
-  <div>Display name: <input type="text" tabindex="3" id="display_name" placeholder="Mickey Mouse"/></div>
-  <div>Email: <input type="text" tabindex="4" id="email" placeholder="mickey@mouse.org"/></div>
-  <div>Phone #: <input type="text" tabindex="5" id="phone" placeholder="555-555-5555"/></div>
-  <div>Password: <input type="password" tabindex="6" id="password"/></div>
-  <div>Confirm password: <input type="password" tabindex="7" id="confirm_password"/></div>
+  <div>Username: <input type="text" tabindex="3" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="4" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="5" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="6" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" tabindex="7" id="password"/></div>
+  <div>Confirm password: <input type="password" tabindex="8" id="confirm_password"/></div>
   <p id="error"></p>
-  <button onclick="register()" tabindex="8">Register</button>
+  <button onclick="register()" tabindex="9">Register</button>
 </div>
 
 <script>
@@ -74,12 +74,18 @@ function register() {
   var phone = document.getElementById('phone').value;
   var password = document.getElementById('password').value;
   var confirm_password = document.getElementById('confirm_password').value;
+  
   if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
-  }
-  if (username.length < 2) {
-    document.getElementById('error').innerHTML = 'Valid username required.';
+  } else if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
+    return;
+  } else if (phone.length < 12 && phone.length > 0) {
+    document.getElementById('error').innerHTML = 'Phone number must be 10 digits, or blank.';
+    return;
+  } else if (password.length < 8) {
+    document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
     return;
   }
 

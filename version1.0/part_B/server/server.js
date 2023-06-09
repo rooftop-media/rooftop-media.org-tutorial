@@ -139,35 +139,10 @@ function api_POST_routes(url, req, res) {
 }
 
 function POST_register(new_user, res) {
-  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
-  user_data = JSON.parse(user_data);
-  let response = {
-    error: false,
-    msg: '',
-    session_id: ''
-  }
-  for (let i = 0; i < user_data.length; i++) {
-    if (user_data[i].username == new_user.username) {
-      response.error = true;
-      response.msg = 'Username already taken.';
-      break;
-    } else if (user_data[i].email == new_user.email) {
-      response.error = true;
-      response.msg = 'Email already taken.';
-      break;
-    } else if (user_data[i].phone == new_user.phone) {
-      response.error = true;
-      response.msg = 'Phone number already taken.';
-      break;
-    }
-  }
-  //  If it's not a duplicate, encrypt the pass, and save it. 
-  if (!response.error) {
-    new_user.salt = crypto.randomBytes(16).toString('hex');
-    new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
-    //  Add the user to the db.
-    let user_id = DataBase.table('users').insert(new_user);
-  }
+  new_user.salt = crypto.randomBytes(16).toString('hex');
+  new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
+  //  Add the user to the db.
+  let response = DataBase.table('users').insert(new_user);
   api_response(res, 200, JSON.stringify(response));
 }
 

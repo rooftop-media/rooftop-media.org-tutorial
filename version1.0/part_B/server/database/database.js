@@ -31,12 +31,35 @@ class Table {
   }
 
   insert(row_data) {
+    let response = {
+      error: false,
+      msg: '',
+      id: null
+    }
+    for (let i = 0; i < this.columns.columns.length; i++) {
+      let column_data = this.columns.columns[i];
+      if (column_data.unique === true && !(column_data.required === false && !row_data[column_data.snakecase])) {
+        for (let j = 0; j < this.rows.length; j++) {
+          if (this.rows[j][column_data.snakecase] == row_data[column_data.snakecase]) {
+            response.error = true;
+            response.msg = `${column_data.name} must be unique.`;
+            return response;
+          }
+        }
+      }
+      if (column_data.require === true && !row_data[column_data.snakecase]) {
+        response.error = true;
+        response.msg = `${column_data.name} is required.`;
+        return response;
+      }
+    }
     row_data.id = this.columns.max_id;
+    response.id = row_data.id;
     this.columns.max_id++;
     this.rows.push(row_data);
     fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
     fs.writeFileSync(`${__dirname}/table_columns/${this.name}.json`, JSON.stringify(this.columns, null, 2));
-    return row_data.id;
+    return response;
   }
   
 }

@@ -16,5 +16,15 @@
     "password": "194a0f88e66fc76b94a38b91da1bd60b2391fdd540a02a36444a402742b46b02dcc8751a8b008fa2947ef1b6a8d7f4093e7c57360caa3513b6b02b23faa96d13",
     "salt": "e9ac5ddc48af527e3ab4f59f7b43af4d",
     "id": 1
+  },
+  {
+    "username": "newuser",
+    "display_name": "",
+    "email": "",
+    "phone": "",
+    "password": "0ce9117ff65bc47f0acd4fba2063829feca3206cc52e6b420fda8a37960c68b1f20b3ff9d0ba0810a54a4ab5666f98748273b2dc29a3f79bb5a1065a7ccd8583",
+    "invite_code": "secret123",
+    "salt": "0c4209c17dbbb4431c05f9b85fbdf54c",
+    "id": 7
   }
 ]

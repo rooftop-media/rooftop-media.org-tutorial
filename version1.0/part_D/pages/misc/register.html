@@ -70,7 +70,10 @@ function register() {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
   } else if (username.length < 2) {
-    document.getElementById('error').innerHTML = 'Valid username required.';
+    document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
+    return;
+  } else if (phone.length < 12 && phone.length > 0) {
+    document.getElementById('error').innerHTML = 'Phone number must be 10 digits, or blank.';
     return;
   } else if (password.length < 8) {
     document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';

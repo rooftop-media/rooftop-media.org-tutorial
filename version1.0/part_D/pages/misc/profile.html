@@ -106,7 +106,10 @@ function update_profile() {
       response = JSON.parse(http.responseText);
       if (!response.error) {
         document.getElementById('error').innerHTML = 'Profile updated!';
-        _current_user = response.updated_user;
+        _current_user.username = username;
+        _current_user.display_name = display_name,
+        _current_user.email = email;
+        _current_user.phone = phone;
         update_form();
         render_user_buttons();
       } else {
