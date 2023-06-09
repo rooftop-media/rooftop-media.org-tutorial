@@ -222,23 +222,7 @@ Then, after the function `POST_check_invite_code`, add this function:
 
 ```javascript
 function POST_create_page(new_page_data, res) {
-  let page_data = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
-  page_data = JSON.parse(page_data);
-  let response = {
-    error: false,
-    msg: '',
-  }
-  for (let i = 0; i < page_data.length; i++) {
-    if (page_data[i].page_route == new_page_data.page_route) {
-      response.error = true;
-      response.msg = 'Route name already taken.';
-      break;
-    } 
-  }
-  //  If it's a valid page, save it
-  if (!response.error) {
-    DataBase.table('pages').insert(new_page_data);
-  }
+  let response = DataBase.table('pages').insert(new_page_data);
   api_response(res, 200, JSON.stringify(response));
 }
 ```
@@ -985,26 +969,9 @@ function api_POST_routes(url, req, res) {
 Then add the new function, `POST_update_page`:  
 
 ```javascript
-function POST_update_page(page_update, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  
-  let response = {
-    error: false,
-    msg: '',
-    updated_page: ''
-  }
-
-  //  If the update is valid, save it.
-  if (!response.error) {
-    response.updated_page = DataBase.table('pages').update(page_update.id, page_update);
-    if (response.updated_page == null) {
-      response.error = true;
-      response.msg = `No page found for ${page_update.id}.`
-    }
-  }
-
-  res.write(JSON.stringify(response));
-  res.end();
+function POST_update_page(page_update, res) {  
+  let response = DataBase.table('pages').update(page_update.id, page_update);
+  api_response(res, 200, JSON.stringify(response));
 }
 ```
 
@@ -1430,30 +1397,17 @@ Instead, we'll send a user's current session id.  On the server, we'll use that 
 Open `/server/server.js` and edit the function `POST_update_page`. 
 
 ```js
-function POST_update_page(page_update, res) {  
-  let response = {
-    error: false,
-    msg: '',
-    updated_page: ''
-  }
-
-  //  Make sure the current user created the current page
-  let page_data = DataBase.table('pages').find({ page_route: page_update.id });
+function POST_update_page(page_update, res) {
+  let response = { error: false };
+  let page_data = DataBase.table('pages').find({ id: page_update.id });
   let session_data = DataBase.table('sessions').find({ id: page_update.session_id });
   if (page_data[0].created_by != session_data[0].user_id) {
     response.error = true;
     response.msg = `You don't have permission to update this page.`;
   }
-
-  //  If the update is valid, save it.
   if (!response.error) {
-    response.updated_page = DataBase.table('pages').update(page_update.id, page_update);
-    if (response.updated_page == null) {
-      response.error = true;
-      response.msg = `No page found for ${page_update.id}.`
-    }
+    response = DataBase.table('pages').update(page_update.id, page_update);
   }
-
   api_response(res, 200, JSON.stringify(response));
 }
 ```

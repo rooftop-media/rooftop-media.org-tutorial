@@ -933,7 +933,7 @@ Add the file `/server/database/table_columns/users.json`, and add all this:
 {
   "name": "Users",
   "snakecase": "users",
-  "max_id": 0,
+  "max_id": 3,
   "columns": [
     {
       "name": "Id",
@@ -953,12 +953,14 @@ Add the file `/server/database/table_columns/users.json`, and add all this:
     {
       "name": "Email",
       "snakecase": "email",
-      "unique": true
+      "unique": true,
+      "required": false
     },
     {
       "name": "Phone",
       "snakecase": "phone",
-      "unique": true
+      "unique": true,
+      "required": false
     },
     {
       "name": "Password hash",
@@ -987,7 +989,7 @@ It provides a Javascript class describing a `Table` data object, with these prop
 
 A `Table` object also has two methods:
  - `find(query)` - Returns a set of rows from the table
- - `insert(row_data)` - Inserts a new row into the table
+ - `insert(row_data)` - Inserts a new row into the table, checking for uniqueness and requiredness. 
 
 Here's the code:  
 ```javascript
@@ -1024,7 +1026,30 @@ class Table {
   }
 
   insert(row_data) {
+    let response = {
+      error: false,
+      msg: '',
+      id: null
+    }
+    for (let i = 0; i < this.columns.columns.length; i++) {
+      let column_data = this.columns.columns[i];
+      if (column_data.unique === true && !(column_data.required === false && !row_data[column_data.snakecase])) {
+        for (let j = 0; j < this.rows.length; j++) {
+          if (this.rows[j][column_data.snakecase] == row_data[column_data.snakecase]) {
+            response.error = true;
+            response.msg = `${column_data.name} must be unique.`;
+            return response;
+          }
+        }
+      }
+      if (column_data.require === true && !row_data[column_data.snakecase]) {
+        response.error = true;
+        response.msg = `${column_data.name} is required.`;
+        return response;
+      }
+    }
     row_data.id = this.columns.max_id;
+    response = row_data.id;
     this.columns.max_id++;
     this.rows.push(row_data);
     fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
@@ -1133,38 +1158,16 @@ function api_POST_routes(url, req, res) {
 }
 
 function POST_register(new_user, res) {
-  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
-  user_data = JSON.parse(user_data);
-  let response = {
-    error: false,
-    msg: '',
-    session_id: ''
-  }
-  for (let i = 0; i < user_data.length; i++) {
-    if (user_data[i].username == new_user.username) {
-      response.error = true;
-      response.msg = 'Username already taken.';
-      break;
-    } else if (user_data[i].email == new_user.email) {
-      response.error = true;
-      response.msg = 'Email already taken.';
-      break;
-    } else if (user_data[i].phone == new_user.phone) {
-      response.error = true;
-      response.msg = 'Phone number already taken.';
-      break;
-    }
-  }
-  //  If it's not a duplicate, encrypt the pass, and save it. 
-  if (!response.error) {
-    new_user.salt = crypto.randomBytes(16).toString('hex');
-    new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
-    //  Add the user to the db.
-    let user_id = DataBase.table('users').insert(new_user);
-  }
+  new_user.salt = crypto.randomBytes(16).toString('hex');
+  new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
+  //  Add the user to the db.
+  let response = DataBase.table('users').insert(new_user);
   api_response(res, 200, JSON.stringify(response));
 }
 ```
+
+Note that in `POST_register`, we're also adding a *salt* to our password, and then turning the password plus the salt into a *hash*.  
+This way, even those with access to the user's data on the server (like me, the administrator) can't see people's plaintext passwords.  
 
 <br/><br/><br/><br/>
 
@@ -1201,6 +1204,9 @@ function register() {
     return;
   } else if (username.length < 2) {
     document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
+    return;
+  } else if (phone.length < 12 && phone.length > 0) {
+    document.getElementById('error').innerHTML = 'Phone number must be 10 digits, or blank.';
     return;
   } else if (password.length < 8) {
     document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
@@ -1337,6 +1343,9 @@ function register() {
   } else if (username.length < 2) {
     document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
     return;
+  } else if (phone.length < 12 && phone.length > 0) {
+    document.getElementById('error').innerHTML = 'Phone number must be 10 digits, or blank.';
+    return;
   } else if (password.length < 8) {
     document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
     return;
@@ -1446,49 +1455,22 @@ We'll edit the function `function POST_register(new_user, res)` in `server.js`, 
 
 ```javascript
 function POST_register(new_user, res) {
-  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
-  user_data = JSON.parse(user_data);
-  let response = {
-    error: false,
-    msg: '',
-    session_id: ''
-  }
-  for (let i = 0; i < user_data.length; i++) {
-    if (user_data[i].username == new_user.username) {
-      response.error = true;
-      response.msg = 'Username already taken.';
-      break;
-    } else if (user_data[i].email == new_user.email) {
-      response.error = true;
-      response.msg = 'Email already taken.';
-      break;
-    } else if (user_data[i].phone == new_user.phone) {
-      response.error = true;
-      response.msg = 'Phone number already taken.';
-      break;
-    }
-  }
-  //  If it's not a duplicate, encrypt the pass, and save it. 
+  new_user.salt = crypto.randomBytes(16).toString('hex');
+  new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
+  //  Add the user to the db.
+  let response = DataBase.table('users').insert(new_user);
   if (!response.error) {
-    new_user.salt = crypto.randomBytes(16).toString('hex');
-    new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
-    //  Add the user to the db.
-    let user_id = DataBase.table('users').insert(new_user);
     //  Add a session to the db.
     let expire_date = new Date()
     expire_date.setDate(expire_date.getDate() + 30);
     response.session_id = DataBase.table('sessions').insert({
-      user_id: user_id,
+      user_id: response.id,
       expires: expire_date
     })
   }
   api_response(res, 200, JSON.stringify(response));
 }
 ```
-
-Note that we're finally using the `user_id` we get from the database.  
-<!--  Also note that this function is now 40 lines long, which is longer than I'd like...  
-TODO  -->
 
 <br/><br/><br/><br/>
 
@@ -1507,11 +1489,15 @@ function register() {
   var phone = document.getElementById('phone').value;
   var password = document.getElementById('password').value;
   var confirm_password = document.getElementById('confirm_password').value;
+  
   if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
   } else if (username.length < 2) {
-    document.getElementById('error').innerHTML = 'Valid username required.';
+    document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
+    return;
+  } else if (phone.length < 12 && phone.length > 0) {
+    document.getElementById('error').innerHTML = 'Phone number must be 10 digits, or blank.';
     return;
   } else if (password.length < 8) {
     document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
@@ -1861,10 +1847,12 @@ function POST_login(login_info, res) {
     response.user_data = user_data[0];
     let expire_date = new Date()
     expire_date.setDate(expire_date.getDate() + 30);
-    response.session_id = DataBase.table('sessions').insert({
+    let session_data = DataBase.table('sessions').insert({
       user_id: user_data[0].id,
       expires: expire_date
     })
+    response.error = session_data.error;
+    response.session_id = session_data.id;
   }
   api_response(res, 200, JSON.stringify(response));
 }
@@ -1970,25 +1958,99 @@ In this part, we'll create a new page called `/profile`, where the user can edit
 
 
 
-<h3 id="d-1"> ☑️ Step 1.  Add an update function to <code>database.js</code>  </h3>
+<h3 id="d-1"> ☑️ Step 1.  Add an <code>update</code> function to <code>database.js</code>  </h3>
 
-In `/server/database/database.js`, add this after our `insert` function:
+In `/server/database/database.js`, we need a new function to _update existing_ data rows, instead of adding new data.  
+
+Our update function will also need to check for properties that are *required* or properties that must be *unique*.  
+We already have code that does that in the `insert` function, so we're going to "factor that out" so we can reuse it. 
+
+In `database.js`, add this right after the constructor:  
+
+```js
+  //  Ensure a row has all required fields, and has all unique unique fields. 
+  _check_for_unique_and_required(row_data, index_to_skip) {
+    let response = {
+      error: false,
+      msg: ''
+    }
+    for (let i = 0; i < this.columns.columns.length; i++) {
+      let column_data = this.columns.columns[i];
+      if (column_data.unique === true && !(column_data.required === false && !row_data[column_data.snakecase])) {
+        for (let j = 0; j < this.rows.length; j++) {
+          if (this.rows[j][column_data.snakecase] == row_data[column_data.snakecase]) {
+            response.error = true;
+            response.msg = `${column_data.name} must be unique.`;
+            return response;
+          }
+        }
+      }
+      if (column_data.require === true && !row_data[column_data.snakecase]) {
+        response.error = true;
+        response.msg = `${column_data.name} is required.`;
+        return response;
+      }
+    }
+    return response;
+  }
+```
+
+Now, we can simplify our `insert` method, like this:
+
+```js
+  insert(row_data) {
+    let response = {
+      error: false,
+      msg: '',
+      id: null
+    }
+    response = this._check_for_unique_and_required(row_data, -1);
+    if (response.error) {
+      return response;
+    }
+    row_data.id = this.columns.max_id;
+    response.id = row_data.id;
+    this.columns.max_id++;
+    this.rows.push(row_data);
+    fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
+    fs.writeFileSync(`${__dirname}/table_columns/${this.name}.json`, JSON.stringify(this.columns, null, 2));
+    return response;
+  }
+```
+
+And add this method right *after* our `insert` method:
 ```javascript
   update(id, update) {
     //  Look for row to update...
+    let index_to_update = -1;
     for (let i = 0; i < this.rows.length; i++) {
       if (this.rows[i].id == id) {
-        let update_keys = Object.keys(update);
-        for (let j = 0; j < update_keys.length; j++) {
-          if (update_keys[j] != 'id') {
-            this.rows[i][update_keys[j]] = update[update_keys[j]];
-          }
-        }
-        fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
-        return this.rows[i];
+        index_to_update = i;
+        break;
       }
     }
-    return null;
+    if (index_to_update == -1) {
+      return { error: true, msg: `Couldn't find the data to update.` };
+    }
+    //  Update it!
+    let updated_row_copy = JSON.parse(JSON.stringify(this.rows[index_to_update]));
+    let update_keys = Object.keys(update);
+    for (let j = 0; j < update_keys.length; j++) {
+      if (update_keys[j] != 'id') {
+        updated_row_copy[update_keys[j]] = update[update_keys[j]];
+      }
+    }
+    //  Validate it! 
+    let response = this._check_for_unique_and_required(updated_row_copy, index_to_update);
+    if (response.error) {
+      return response;
+    } else {  //  Save it!
+      this.rows[index_to_update] = updated_row_copy;
+      fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
+      response.id = this.rows[index_to_update].id;
+    }
+    
+    return response;
   }
 ```
 
@@ -2036,42 +2098,7 @@ Then, add this beneath `POST_logout`:
 
 ```javascript
 function POST_update_user(user_update, res) {
-
-  //  Make sure the username, email, and phone are unique. 
-  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
-  user_data = JSON.parse(user_data);
-  let response = {
-    error: false,
-    msg: '',
-    updated_user: ''
-  }
-  for (let i = 0; i < user_data.length; i++) {
-    if (user_data[i].id != user_update.id) {
-      if (user_data[i].username == user_update.username) {
-        response.error = true;
-        response.msg = 'Username already taken.';
-        break;
-      } else if (user_data[i].email == user_update.email) {
-        response.error = true;
-        response.msg = 'Email already taken.';
-        break;
-      } else if (user_data[i].phone == user_update.phone) {
-        response.error = true;
-        response.msg = 'Phone number already taken.';
-        break;
-      }
-    }
-  }
-
-  //  If the update is valid, save it.
-  if (!response.error) {
-    response.updated_user = DataBase.table('users').update(user_update.id, user_update);
-    if (response.updated_user == null) {
-      response.error = true;
-      response.msg = `No user found for ${user_update.id}.`
-    }
-  }
-
+  let response = DataBase.table('users').update(user_update.id, user_update);
   api_response(res, 200, JSON.stringify(response));
 }
 ```
@@ -2275,7 +2302,10 @@ function update_profile() {
       response = JSON.parse(http.responseText);
       if (!response.error) {
         document.getElementById('error').innerHTML = 'Profile updated!';
-        _current_user = response.updated_user;
+        _current_user.username = username;
+        _current_user.display_name = display_name,
+        _current_user.email = email;
+        _current_user.phone = phone;
         update_form();
         render_user_buttons();
       } else {
@@ -2796,21 +2826,21 @@ Here's the full code:
 ```html
 <div class="p-3 center-column" id="invite-code-section">
   <h3>Register</h3>
-  <div>Invite code: <input type="text" tabindex="0" id="invite_code" placeholder="1234"/></div>
+  <div>Invite code: <input type="text" tabindex="1" id="invite_code" placeholder="1234"/></div>
   <p><i>rooftop-media.org is currently invite-only, as we work out the website's features.</i></p>
-  <button onclick="enter()" tabindex="1">Enter</button>
+  <button onclick="enter()" tabindex="2">Enter</button>
   <p id="invite-error"></p>
 </div>
 <div class="p-3 center-column" id="register-section" style="display: none;">
   <h3>Register</h3>
-  <div>Username: <input type="text" tabindex="2" id="username" placeholder="mickeymouse"/></div>
-  <div>Display name: <input type="text" tabindex="3" id="display_name" placeholder="Mickey Mouse"/></div>
-  <div>Email: <input type="text" tabindex="4" id="email" placeholder="mickey@mouse.org"/></div>
-  <div>Phone #: <input type="text" tabindex="5" id="phone" placeholder="555-555-5555"/></div>
-  <div>Password: <input type="password" tabindex="6" id="password"/></div>
-  <div>Confirm password: <input type="password" tabindex="7" id="confirm_password"/></div>
+  <div>Username: <input type="text" tabindex="3" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="4" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="5" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="6" id="phone" placeholder="555-555-5555"/></div>
+  <div>Password: <input type="password" tabindex="7" id="password"/></div>
+  <div>Confirm password: <input type="password" tabindex="8" id="confirm_password"/></div>
   <p id="error"></p>
-  <button onclick="register()" tabindex="8">Register</button>
+  <button onclick="register()" tabindex="9">Register</button>
 </div>
 
 <script>
@@ -2870,12 +2900,18 @@ function register() {
   var phone = document.getElementById('phone').value;
   var password = document.getElementById('password').value;
   var confirm_password = document.getElementById('confirm_password').value;
+ 
   if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
-  }
-  if (username.length < 2) {
-    document.getElementById('error').innerHTML = 'Valid username required.';
+  } else if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Username must have at least 2 characters.';
+    return;
+  } else if (phone.length < 12 && phone.length > 0) {
+    document.getElementById('error').innerHTML = 'Phone number must be 10 digits, or blank.';
+    return;
+  } else if (password.length < 8) {
+    document.getElementById('error').innerHTML = 'Password must have at least 8 characters.';
     return;
   }
 
@@ -2993,45 +3029,26 @@ This is just a small if statement containing two lines:
 
 ```js
 function POST_register(new_user, res) {
-  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
-  user_data = JSON.parse(user_data);
-  let response = {
-    error: false,
-    msg: '',
-    session_id: ''
-  }
-  for (let i = 0; i < user_data.length; i++) {
-    if (user_data[i].username == new_user.username) {
-      response.error = true;
-      response.msg = 'Username already taken.';
-      break;
-    } else if (user_data[i].email == new_user.email) {
-      response.error = true;
-      response.msg = 'Email already taken.';
-      break;
-    } else if (user_data[i].phone == new_user.phone) {
-      response.error = true;
-      response.msg = 'Phone number already taken.';
-      break;
-    }
-  }
+  new_user.salt = crypto.randomBytes(16).toString('hex');
+  new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
+  //  Add the user to the db.
+  let response = DataBase.table('users').insert(new_user);
+  
   if (new_user.invite_code != 'secret123') {
     response.error = true;
     response.msg = 'Incorrect invite code!';
   }
-  //  If it's not a duplicate, encrypt the pass, and save it. 
+  
   if (!response.error) {
-    new_user.salt = crypto.randomBytes(16).toString('hex');
-    new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
-    //  Add the user to the db.
-    let user_id = DataBase.table('users').insert(new_user);
     //  Add a session to the db.
     let expire_date = new Date()
     expire_date.setDate(expire_date.getDate() + 30);
-    response.session_id = DataBase.table('sessions').insert({
-      user_id: user_id,
+    let new_session_response = DataBase.table('sessions').insert({
+      user_id: response.id,
       expires: expire_date
     })
+    response.error = new_session_response.error;
+    response.session_id = new_session_response.id;
   }
   api_response(res, 200, JSON.stringify(response));
 }
