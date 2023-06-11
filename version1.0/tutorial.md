@@ -318,6 +318,10 @@ h1 {
   text-align: center;
 }
 
+a {
+  color: var(--yellow);
+}
+
 input, textarea {
   background: var(--brown);
   color: white;
@@ -818,6 +822,10 @@ html, body {
 /*  Global styles  */
 h1 {
   text-align: center;
+}
+
+a {
+  color: var(--yellow);
 }
 
 input, textarea {
