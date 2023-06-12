@@ -10,9 +10,8 @@ let page_data = {};
 ////  SECTION 2: Render
 //  Renders the text editor, final page, or "page does not exist" message.
 function render_page() {
-  let page = `<h1>${page_data.page_title}</h1>`;
   let markup = page_data.content;
-  page += markup_to_html(markup); //  markup -> html 
+  let page = markup_to_html(markup); //  markup -> html 
   document.getElementById('dynamic-page').innerHTML = page;
 }
 
