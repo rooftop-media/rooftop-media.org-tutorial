@@ -234,7 +234,7 @@ In `/rooftop-media.org/`, create a folder called `/assets/`, and add the followi
  - [`/landing`](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_A/assets/landing)
    - `/clock_parts.svg`
    - `/raised_fist.svg`
-   - `/branching_paths.svg`
+   - `/path_signs.svg`
  - [`/logo.png`](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/part_A/assets/logo.png)
 
 
@@ -557,7 +557,7 @@ Create a new file, `/pages/misc/landing.html`, and add:
       <p>Justice</p>
     </a>
     <a href="#control">
-      <img src="/assets/landing/branching_paths.svg"/>
+      <img src="/assets/landing/path_signs.svg"/>
       <p>Control</p>
     </a>
   </div>
