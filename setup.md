@@ -10,9 +10,9 @@ NodeJS lets you use Javascript outside of the web browser, to interact with our 
 
 NodeJS has some [nice documentation](https://nodejs.org/en/docs/).  
 This code follows a NodeJS [style guide](https://github.com/felixge/node-style-guide) created by Felix Geisendörfer.  
- - Rules include:
+ - Rules I sometimes break include:
    - Always use single quotes for strings.
-   - Limit functions to 15-20 lines of code. 
+   - Limit functions to 15-20 lines of code.
 
 <br/><br/><br/><br/>
 
