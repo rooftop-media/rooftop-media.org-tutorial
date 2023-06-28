@@ -1,6 +1,7 @@
 <div class="p-3 center-column" id="dynamic-page">
   <i>Loading page...</i>
 </div>
+<div class="p-3 center-column" id="page-preview"></div>
 
 <script>
 
@@ -34,8 +35,15 @@ function render_page() {
 }
 
 function render_preview() {
-  document.getElementById('dynamic-page').innerHTML = `<button onclick="render_page()">Edit</button><br/><hr/><br/>`;
-  document.getElementById('dynamic-page').innerHTML += buffer_data.content;
+  document.getElementById('dynamic-page').style.visibility = 'hidden';
+  document.getElementById('dynamic-page').style.position = 'absolute';
+  document.getElementById('page-preview').innerHTML = `<button onclick="edit_page()">Edit</button><br/><hr/><br/>`;
+  document.getElementById('page-preview').innerHTML += buffer_data.content;
+}
+
+function edit_page() {
+  document.getElementById('dynamic-page').style.visibility = 'visible';
+  document.getElementById('dynamic-page').style.position = 'static';
 }
 
 ////  SECTION 3: Event reactions
