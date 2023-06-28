@@ -331,6 +331,33 @@ input:focus, textarea:focus {
   outline: solid 1px var(--yellow);
 }
 
+input[type="checkbox"] {
+  width: 30px;
+  height: 30px;
+  appearance: none;
+  background: var(--action-brown);
+  border-radius: 5px;
+  cursor: pointer;
+}
+input[type="checkbox"]:checked::after {
+  content: '';
+  display: block;
+  background-size: 80%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-image: url(/assets/icons/check.svg);
+  width: 30px;
+  height: 30px;
+}
+
+pre {
+  border: solid 1px var(--brown);
+  width: 100%;
+  white-space: pre-line;
+  text-indent: 0px;
+  background: var(--darker-brown);
+}
+
 button {
   padding: 10px 10px;
   border-radius: 5px;
@@ -855,6 +882,15 @@ input[type="checkbox"]:checked::after {
   width: 30px;
   height: 30px;
 }
+
+pre {
+  border: solid 1px var(--brown);
+  width: 100%;
+  white-space: pre-line;
+  text-indent: 0px;
+  background: var(--darker-brown);
+}
+
 
 button {
   padding: 10px 20px;
