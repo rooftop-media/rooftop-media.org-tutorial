@@ -24,7 +24,7 @@ This tutorial is organized into 3 stable, usable **versions** -- version 1.0, 2.
 | Version   | Description                                                                 | Status      |
 |-----------|-----------------------------------------------------------------------------|-------------|
 | 1.0       | Static pages, user management                                               | Finished    |
-| 2.0       | CMS - markdown and permissions                                              | in progress |
+| 2.0       | CMS - markup and permissions                                                | in progress |
 | 3.0       | Email client                                                                | todo        |
 | 4.0       | [LMS](https://en.wikipedia.org/wiki/Learning_management_system)             | todo        |
 | 5.0       | vector editor                                                               | todo        |
