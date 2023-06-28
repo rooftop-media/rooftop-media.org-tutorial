@@ -107,6 +107,14 @@ input[type="checkbox"]:checked::after {
   height: 30px;
 }
 
+pre {
+  border: solid 1px var(--brown);
+  width: 100%;
+  white-space: pre-line;
+  text-indent: 0px;
+  background: var(--darker-brown);
+}
+
 button {
   padding: 10px 20px;
   border-radius: 5px;
