@@ -19,7 +19,7 @@ You can also [visit the website](https://rooftop-media.org).
 
 rooftop-media.org is built using Javascript and NodeJS. 
 
-This tutorial is organized into 3 stable, usable **versions** -- version 1.0, 2.0, and 3.0.   
+This tutorial is organized into 2 stable, usable **versions** -- version 1.0 and version 2.0 -- with more versions planned!.   
 
 | Version   | Description                                                                 | Status      |
 |-----------|-----------------------------------------------------------------------------|-------------|
