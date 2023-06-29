@@ -63,7 +63,7 @@ Create a new folder called `/pages/cms`.  In it, add a new file, `create-page.ht
 This page will be a form to create new dynamic pages.  
 
 ```html
-<div class="p-3">
+<div class="p-3 center-column">
   <h3>Create a New Page</h3>
   <div>Page title: <input type="text" tabindex="1" id="page_title" placeholder="My Blog"/></div>
   <div>Page route: <input type="text" tabindex="2" id="page_route" placeholder="my-blog"/></div>
@@ -89,17 +89,17 @@ page_route_input.addEventListener("keydown", event => {
 });
 
 function create_page() {
-  var page_title = document.getElementById('page_title').value;
-  var page_route = document.getElementById('page_route').value;
+  var title = document.getElementById('page_title').value;
+  var route = document.getElementById('page_route').value;
   var is_public = document.getElementById('is_public').checked;
   
-  if (page_route.length < 2) {
+  if (route.length < 2) {
     document.getElementById('error').innerHTML = 'Page route must be at least 2 characters..';
     return;
-  } else if (page_title.length < 2) {
+  } else if (title.length < 2) {
     document.getElementById('error').innerHTML = 'Page title must be at least 2 characters..';
     return;
-  } else if (!page_route_regex.test(page_route)) {
+  } else if (!page_route_regex.test(route)) {
     document.getElementById('error').innerHTML = "Page route can only contain lowercase letters, numbers, underscores and dashes.";
     return;
   }
@@ -107,11 +107,12 @@ function create_page() {
   const http = new XMLHttpRequest();
   http.open('POST', '/api/create-page');
   http.send(JSON.stringify({
-    page_title,
-    page_route,
+    title,
+    route,
     is_public,
     created_by: _current_user.id,
-    content: ''
+    content: '',
+    history: []
   }));
   http.onreadystatechange = (e) => {
     let response;      
@@ -119,7 +120,7 @@ function create_page() {
       response = JSON.parse(http.responseText);
       if (!response.error) {
         console.log("Response recieved! Creating page.");
-        window.location.href = '/' + page_route;
+        window.location.href = '/' + route;
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }
@@ -142,7 +143,7 @@ Add the file `/server/database/table_columns/pages.json`:
 {
   "name": "Pages",
   "snakecase": "pages",
-  "max_id": 2,
+  "max_id": 0,
   "columns": [
     {
       "name": "Id",
@@ -151,11 +152,11 @@ Add the file `/server/database/table_columns/pages.json`:
     },
     {
       "name": "Page Title",
-      "snakecase": "page_title"
+      "snakecase": "title"
     },
     {
       "name": "Page Route",
-      "snakecase": "page_route",
+      "snakecase": "route",
       "unique": true
     },
     {
@@ -165,6 +166,10 @@ Add the file `/server/database/table_columns/pages.json`:
     {
       "name": "Content",
       "snakecase": "content"
+    },
+    {
+      "name": "History",
+      "snakecase": "history"
     }
   ]
 }
@@ -256,7 +261,7 @@ var pageURLkeys = Object.keys(pageURLs);
 
 Open up `/pages/index.js`.  We'll make two changes.
 
-First, we'll update the`render_user_buttons` function, to include links to `/create-page` and `/all-pages`.
+First, we'll update the `render_user_buttons` function, to include links to `/create-page` and `/all-pages`.
 ```
 // Update the "user buttons" in the header
 function render_user_buttons() {
@@ -352,62 +357,150 @@ Go back to `/create-page` to try creating the same page route.  You should get a
 
 <h3 id="a-7">  ☑️ Step 7: Creating dynamic pages in <code>server/server.js</code> </h3>
 
-First, we're going to edit the function `respond_with_a_page`.  
-Then, add one more function right below it, `respond_with_a_dynamic_page`.  
-For now, this function will generate a page that just shows the page title.  
+We're going to edit the function `respond_with_a_page`. 
+This function will now check if a dynamic route exists, and send `/dynamic-page.html` if it exists, and `/404.html` otherwise. 
 
 ```javascript
 function respond_with_a_page(res, url) {
-  if (pageURLkeys.includes(url)) {
-    url = pageURLs[url];
-  } else {
-    return respond_with_a_dynamic_page(res, url);
-  }
-  fs.readFile( __dirname + '/..' + url, function(error, content) {
-    var content_page = "";
-    if (error) {
-      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      content_page = content;
-    }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-    var page_halves = main_page.split('<!--  Insert page content here!  -->');
-    var rendered = page_halves[0] + content_page + page_halves[1];
-    res.write(rendered);
-    res.end();
-  });
-}
+  let page_content = "";
 
-function respond_with_a_dynamic_page(res, url) {
-  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
-  let content_page = "";
-  if (page_data.length < 1) {
-    content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-  } else {
-    content_page = `<div class="p-3"><h2>${page_data[0].page_title}</h2></div>`
+  if (pageURLkeys.includes(url)) {  //  If it's a static page route....
+    url = pageURLs[url];
+    try {
+      page_content = fs.readFileSync( __dirname + '/..' + url);
+    } catch(err) {
+      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+    }
+  } else {                          //  If it's a dynamic page route....
+    let page_data = DataBase.table('pages').find({ route: url.slice(1) });  //  Removing the "/" from the route
+    if (page_data.length < 1) {
+      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+    } else {
+      page_content = fs.readFileSync(__dirname + '/../pages/cms/display-page.html');
+    }
   }
+  res.writeHead(200, {'Content-Type': 'text/html'});
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
   var page_halves = main_page.split('<!--  Insert page content here!  -->');
-  content_page = page_halves[0] + content_page + page_halves[1];
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(content_page);
+  var rendered = page_halves[0] + page_content + page_halves[1];
+  res.write(rendered);
   res.end();
 }
 ```
-
-There's some repeated code that could be factored into a new function, here.  
-(Dividing the page at `<!--  Insert page content here!  -->`, inserting the content.)  
-For now, I've decided to leave it as two functions.  
-
-<!-- This would be a good opportunity to factor out repeated code...
-But is it worth adding a new function? Could it even be named clearly? -->
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-8"> ☑️ Step 8:  ☞ Test the code! </h3>
+<h3 id="a-8">  ☑️ Step 8: Creating <code>pages/cms/dynamic-page.html</code> </h3>
+
+Create a new page,  `/pages/cms/dynamic-page.html`, and add this:. 
+
+```javascript
+<div class="p-3 center-column" id="dynamic-page">
+  <i>Loading page...</i>
+</div>
+
+<script>
+////  SECTION 1: Page memory
+let page_route = _current_page.split('/')[1];
+let page_data = {};
+
+////  SECTION 2: Render
+function render_page() {
+  document.getElementById('dynamic-page').innerHTML = `<h1>${page_data.title}</h1>`
+  document.getElementById('dynamic-page').innerHTML += page_data.content;
+}
+
+////  SECTION 4: Boot
+//  Load page from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('GET', `/api/page?route=${page_route}`);
+  http.send();
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Loading page.");
+        page_data = response.data;
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+load_page();
+
+</script>
+```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="a-9">  ☑️ Step 9: Adding <code>GET_page</code> to <code>/server/server.js</code>  </h3>
+
+This route will return a page's details and content, given a page's route.  
+
+First, we'll add the API route to `api_GET_routes`:
+
+```javascript
+function api_GET_routes(url, res) {
+  //  Get data, for example /api/users?userid=22&username=ben
+  let req_data = {};
+  if (url.indexOf('?') != -1) {
+    let params = url.split('?')[1];
+    url = url.split('?')[0];
+    params = params.split('&');
+    for (let i = 0; i < params.length; i++) {
+      let parts = params[i].split('=');
+      if (parts.length != 2) {
+        return api_response(res, 400, `Improper data in your request.`);
+      }
+      req_data[parts[0]] = parts[1];
+    }
+  }
+  
+  let api_map = {
+    '/api/user-by-session': GET_user_by_session,
+    '/api/page': GET_page,
+  }
+
+  //  Call the API route function, if it exists.
+  if (typeof api_map[url] == 'function') {
+    api_map[url](req_data, res);
+  } else {
+    api_response(res, 404, `The GET API route ${url} does not exist.`);
+  }
+}
+```
+
+Then, below `GET_user_by_session`, we'll write the function, `GET_page`:  
+
+```javascript
+function GET_page(req_data, res) {
+  let page_data = DataBase.table('pages').find({ route: req_data.route });
+  let response = {
+    error: false,
+    data: null
+  }
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = `The page ${req_data.route} was not found.`;
+  } else {
+    response.data =  page_data[0];
+  }
+  api_response(res, 200, JSON.stringify(response));
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-10"> ☑️ Step 10:  ☞ Test the code! </h3>
 
 Restart the server.  
 Go to your browser and navigate to one of the `page_route`s you created.  
@@ -419,7 +512,7 @@ URLs that are neither in the `pages` database, nor hardcoded, static pagess, sho
 
 
 
-<h3 id="a-9"> ☑️ Step 9:  Making an API route for getting all pages, in <code>server.js</code> </h3>
+<h3 id="a-11"> ☑️ Step 11:  Making an API route for getting all pages, in <code>server.js</code> </h3>
 
 First, edit `api_GET_routes`:
 
@@ -471,7 +564,7 @@ function GET_all_pages(req_data, res) {
 
 
 
-<h3 id="a-10"> ☑️ Step 10:  Creating <code>pages/cms/all-pages.html</code> </h3>
+<h3 id="a-12"> ☑️ Step 12:  Creating <code>pages/cms/all-pages.html</code> </h3>
 
 This page will allow us to view all pages created in our database.  
 Create a new page, `/pages/cms/all-pages.html`, and add this:
@@ -554,7 +647,7 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
 <br/><br/><br/><br/>
 
 
-<h3 id="a-11"> ☑️ Step 11:   ☞ Test the code!  </h3>
+<h3 id="a-13"> ☑️ Step 13:   ☞ Test the code!  </h3>
 
 Restart the server, and go to `/all-pages`.  
 You should see a table of all the created pages! Wonderful.   
@@ -562,7 +655,7 @@ You should see a table of all the created pages! Wonderful.
 <br/><br/><br/><br/>
 
 
-<h3 id="a-12">☑️ Step 12. ❖ Part A review. </h3>
+<h3 id="a-14">☑️ Step 14. ❖ Part A review. </h3>
 
 The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_A).
 
@@ -610,67 +703,6 @@ function respond_with_a_page(res, url) {
     res.write(rendered);
     res.end();
   });
-}
-```
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="b-2">  ☑️ Step 2: Adding <code>GET_page</code> to <code>/server/server.js</code>  </h3>
-
-This route will return a page's details and content, given a page's route.  
-
-First, we'll add the API route to `api_GET_routes`:
-
-```javascript
-function api_GET_routes(url, res) {
-  //  Get data, for example /api/users?userid=22&username=ben
-  let req_data = {};
-  if (url.indexOf('?') != -1) {
-    let params = url.split('?')[1];
-    url = url.split('?')[0];
-    params = params.split('&');
-    for (let i = 0; i < params.length; i++) {
-      let parts = params[i].split('=');
-      if (parts.length != 2) {
-        return api_response(res, 400, `Improper data in your request.`);
-      }
-      req_data[parts[0]] = parts[1];
-    }
-  }
-  
-  let api_map = {
-    '/api/user-by-session': GET_user_by_session,
-    '/api/all-pages': GET_all_pages,
-    '/api/page': GET_page,
-  }
-
-  //  Call the API route function, if it exists.
-  if (typeof api_map[url] == 'function') {
-    api_map[url](req_data, res);
-  } else {
-    api_response(res, 404, `The GET API route ${url} does not exist.`);
-  }
-}
-```
-
-Then, below `GET_all_pages`, we'll write the function, `GET_page`:  
-
-```javascript
-function GET_page(req_data, res) {
-  let page_data = DataBase.table('pages').find({ page_route: req_data.page_route });
-  let response = {
-    error: false,
-    data: null
-  }
-  if (page_data.length < 1) {
-    response.error = true;
-    response.msg = `The page ${req_data.page_route} was not found.`;
-  } else {
-    response.data =  page_data[0];
-  }
-  api_response(res, 200, JSON.stringify(response));
 }
 ```
 
