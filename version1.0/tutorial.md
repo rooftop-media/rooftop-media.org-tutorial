@@ -2062,6 +2062,9 @@ In `database.js`, add this right after the constructor:
       let column_data = this.columns.columns[i];
       if (column_data.unique === true && !(column_data.required === false && !row_data[column_data.snakecase])) {
         for (let j = 0; j < this.rows.length; j++) {
+          if (j == index_to_skip) {
+            continue;
+          }
           if (this.rows[j][column_data.snakecase] == row_data[column_data.snakecase]) {
             response.error = true;
             response.msg = `${column_data.name} must be unique.`;
@@ -2228,7 +2231,8 @@ function logout() {
 }
 
 function render_user_buttons() {
-  
+  document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
+  document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
 }
 
 function current_user_loaded() {}
@@ -2238,13 +2242,13 @@ Then, we'll call both functions in `boot()`, right after we get the session and 
 
 ```javascript
 function boot() {
-  console.log("Welcome to Rooftop Media Dot Org!!");
+  console.log('Welcome to Rooftop Media Dot Org!!');
 
   //  Log user in if they have a session id. 
   if (_session_id) {
     const http = new XMLHttpRequest();
-    http.open("POST", "/api/user-by-session");
-    http.send(_session_id);
+    http.open('GET', `/api/user-by-session?session_id=${_session_id}`);
+    http.send();
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
@@ -2634,10 +2638,11 @@ function delete_user() {
     if (http.readyState == 4 && http.status == 200) {
       response = JSON.parse(http.responseText);
       if (!response.error) {
-        document.getElementById('pass_error').innerHTML = 'Password updated!';
-        _current_user = response.updated_user;
+        document.getElementById('delete_error').innerHTML = 'Account deleted.  Redirecting you to the login page...';
+        localStorage.removeItem('session_id'); //  sets to null
+        window.location.href = '/login';
       } else {
-        document.getElementById('pass_error').innerHTML = response.msg;
+        document.getElementById('delete_error').innerHTML = response.msg;
       }
     }
   }
@@ -2653,7 +2658,8 @@ function delete_user() {
 Log in or create a new user, and navigate to the `/profile` page.  
 
 Enter the incorrect password, and try to delete your account.  An error should display.  
-Now, 
+Now, try to delete a user's account using the correct password. You should be successfully logged out.  
+Check in `/server/database/table_rows/users.json` to make sure the user data is gone. 
 
 <br/><br/><br/><br/>
 
