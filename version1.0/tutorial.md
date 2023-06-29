@@ -57,9 +57,9 @@ The steps in Part A will culminate in us serving a website with static pages, in
   - a login page
 
 Along the way, we’ll do several things.  
-We'll create a webserver that can serve up assets. This NodeJS-only server set up is based on the [MDN docs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework).
-We'll also create a few pages, and set up a basic routing system, with some server-side rendering.
-And, we'll make sure our web pages are handicap accessible<!-- and mobile friendly-->.  
+ - We'll create a webserver that can serve up assets. This NodeJS-only server set up is based on the [MDN docs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework).
+ - We'll also create those pages, and set up a basic routing system, with some server-side rendering.
+ - And, we'll make sure our web pages are mobile & handicap accessible.  
 
 *Estimated time: 15 minutes*
 
@@ -94,6 +94,8 @@ Inside the new folder, make a file called `index.html`.
 ```
 
 In the `<head>` tag, we describe the page's title, and the character encoding for the page.  
+*Note that the text \&#x2756; is how we tell HTML to render this unicode symbol: &#x2756;. I just think it looks nice.*
+
 In the `<body>`, we've added a divider that will become our header, and some text as the page's content.  
 
 Open the html file in a browser to make sure it shows the content correctly.
@@ -359,7 +361,7 @@ pre {
 }
 
 button {
-  padding: 10px 10px;
+  padding: 10px 20px;
   border-radius: 5px;
   background: var(--action-brown);
   color: var(--yellow);
@@ -459,7 +461,7 @@ We'll add an image, a favicon, a CSS file, and a JS file.
 </html>
 ```
 
-Opening the file won't load our new assets properly, becauuse we didn't use relative file paths.  
+Opening the file manually won't load our new assets properly, because we didn't use relative file paths.  
 Running the server also won't load our new assets properly *yet*.  We'll set that up next. 
 
 
@@ -518,18 +520,18 @@ function respond_with_a_page(res, url) {
 function respond_with_asset(res, url, extname) {
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     if (error) {
-        if(error.code == 'ENOENT') {
-          res.writeHead(404, { 'Content-Type': 'text/html' });
-          res.end('404 -- asset not found', 'utf-8');
-        }
-        else {
-      res.writeHead(500);
-      res.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
-        }
+      if(error.code == 'ENOENT') {
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        res.end('404 -- asset not found', 'utf-8');
+      }
+      else {
+        res.writeHead(500);
+        res.end(`Sorry, check with the site admin for error: ${error.code} ..\n`);
+      }
     } else {
-        var contentType = mimeTypes[extname] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content, 'utf-8');
+      var contentType = mimeTypes[extname] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content, 'utf-8');
     }
   });
 }
@@ -566,7 +568,7 @@ Change the logo source back to the correct value before moving on.
 
 We're going to add four pages to our website.  
 
-The landing page will feature a little comic, and some thumbnails to futuree articles.  
+The landing page will feature some thumbnail images that summarize the goals of the website's content.   
 Create a new file, `/pages/misc/landing.html`, and add:
 
 ```html
@@ -606,7 +608,7 @@ Create a new file, `/pages/misc/landing.html`, and add:
   .thumb-container a img {
     transition: .3s;
   }
- .thumb-container a:hover img {
+  .thumb-container a:hover img {
     transform: scale(1.1);
   }
 </style>
@@ -771,7 +773,6 @@ In `index.html`, we'll add three links in the header div:
 
 We'll also restyle our header a bit, in `index.css`.  
 We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
-We'll also add styling to other inputs here.
 
 ```css
 @font-face {
@@ -891,7 +892,6 @@ pre {
   background: var(--darker-brown);
 }
 
-
 button {
   padding: 10px 20px;
   border-radius: 5px;
@@ -975,7 +975,7 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-b" align="center">  Part B:  /register, API & DB basics </h2>
+<h2 id="part-b" align="center">  Part B:  <code>/register</code>, API & DB basics </h2>
 
 In Part B, we'll register new users, and securely store their data in a database.  
 Along the way, we'll:
@@ -1017,7 +1017,7 @@ Add the file `/server/database/table_columns/users.json`, and add all this:
 {
   "name": "Users",
   "snakecase": "users",
-  "max_id": 3,
+  "max_id": 0,
   "columns": [
     {
       "name": "Id",
@@ -1133,18 +1133,17 @@ class Table {
       }
     }
     row_data.id = this.columns.max_id;
-    response = row_data.id;
+    response.id = row_data.id;
     this.columns.max_id++;
     this.rows.push(row_data);
     fs.writeFileSync(`${__dirname}/table_rows/${this.name}.json`, JSON.stringify(this.rows, null, 2));
     fs.writeFileSync(`${__dirname}/table_columns/${this.name}.json`, JSON.stringify(this.columns, null, 2));
-    return row_data.id;
+    return response;
   }
   
 }
 
 module.exports = {
-
   table: function(table_name) {
     return new Table(table_name);
   },
@@ -1214,7 +1213,6 @@ function api_GET_routes(url, res) {
 
 }
 
-
 function api_POST_routes(url, req, res) {
   let req_data = '';
   req.on('data', chunk => {
@@ -1244,7 +1242,7 @@ function api_POST_routes(url, req, res) {
 function POST_register(new_user, res) {
   new_user.salt = crypto.randomBytes(16).toString('hex');
   new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
-  //  Add the user to the db.
+  //  Add the user to the db, if their username, email and phone # are unique.
   let response = DataBase.table('users').insert(new_user);
   api_response(res, 200, JSON.stringify(response));
 }
@@ -1506,7 +1504,7 @@ We'll start by adding the file `/server/database/table_columns/sessions.json`, t
 {
   "name": "Sessions",
   "snakecase": "sessions",
-  "max_id": 6,
+  "max_id": 0,
   "columns": [
     {
       "name": "Id",
@@ -1547,10 +1545,12 @@ function POST_register(new_user, res) {
     //  Add a session to the db.
     let expire_date = new Date()
     expire_date.setDate(expire_date.getDate() + 30);
-    response.session_id = DataBase.table('sessions').insert({
+    let new_session_response = DataBase.table('sessions').insert({
       user_id: response.id,
       expires: expire_date
     })
+    response.error = new_session_response.error;
+    response.session_id = new_session_response.id;
   }
   api_response(res, 200, JSON.stringify(response));
 }
