@@ -687,23 +687,23 @@ var pageURLkeys = Object.keys(pageURLs);
 Then in the same file, edit `respond_with_a_page`:  
 ```javascript
 function respond_with_a_page(res, url) {
+  let page_content = "";
   if (pageURLkeys.includes(url)) {
     url = pageURLs[url];
+  } else {
+    url = '/pages/misc/404.html';
   }
-  fs.readFile( __dirname + '/..' + url, function(error, content) {
-    var content_page = "";
-    if (error) {
-      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      content_page = content;
-    }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-    var page_halves = main_page.split('<!--  Insert page content here!  -->');
-    var rendered = page_halves[0] + content_page + page_halves[1];
-    res.write(rendered);
-    res.end();
-  });
+  try {
+    page_content = fs.readFileSync( __dirname + '/..' + url);
+  } catch(err) {
+    page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+  var page_halves = main_page.split('<!--  Insert page content here!  -->');
+  var rendered = page_halves[0] + page_content + page_halves[1];
+  res.write(rendered);
+  res.end();
 }
 ```
 
