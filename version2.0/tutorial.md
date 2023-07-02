@@ -535,7 +535,8 @@ function api_GET_routes(url, res) {
   
   let api_map = {
     '/api/user-by-session': GET_user_by_session,
-    '/api/all-pages': GET_all_pages
+    '/api/page': GET_page,
+    '/api/all-pages': GET_all_pages,
   }
 
   //  Call the API route function, if it exists.
@@ -547,7 +548,7 @@ function api_GET_routes(url, res) {
 }
 ```
 
-Then, right under `GET_user_by_session`, add a new function, `GET_all_pages`:
+Then, right under `GET_page`, add a new function, `GET_all_pages`:
 ```javascript
 function GET_all_pages(req_data, res) {
   let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
