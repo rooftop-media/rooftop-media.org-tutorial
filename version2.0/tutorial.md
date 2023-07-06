@@ -170,6 +170,10 @@ Add the file `/server/database/table_columns/pages.json`:
     {
       "name": "History",
       "snakecase": "history"
+    },
+    {
+      "name": "Created by",
+      "snakecase": "created_by"
     }
   ]
 }
@@ -506,7 +510,7 @@ Restart the server.
 Go to your browser and navigate to one of the `page_route`s you created.  
 You should see that page's title, as stored in the database, displayed.  
 
-URLs that are neither in the `pages` database, nor hardcoded, static pagess, should result in the 404 page.  
+URLs that are neither in the `pages` database, nor hardcoded, static pages, should result in the 404 page.  
 
 <br/><br/><br/><br/>
 
@@ -573,29 +577,85 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
 ```html
 <div class="p-3 center-column">
   <h3>All dynamic pages:</h3>
+  <div id="search-bar-row">
+    <input id="search" placeholder="Search pages..." oninput="search_pages()"/>
+    <div id="search-settings-toggle" onclick="toggle_settings()">Settings  &#x25B8;</div>
+  </div>
+  <div id="search-settings" onclick="search_pages()">
+    <div>Sort by: </div>
+    <div><input type="radio" name="sort_types" value="title" checked /> Title</div>
+    <div><input type="radio" name="sort_types" value="date"/> Date created</div>
+    <div><input type="radio" name="sort_types" value="creator"/> Creator</div>
+    <div style="display: flex;align-items: center;"><input type="checkbox" id="invert-sort"/> Invert results</div>
+  </div>
   <table id="page-table">
-    <tr>
-      <th>Title</th>
-      <th>Route</th>
-      <th>Edit link</th>
-      <th>Public?</th>
-      <th>Owned by</th>
-    </tr>
+    <!--  Page data goes here-->
   </table>
 </div>
 
 <script>
   let pageTable = document.getElementById('page-table');
-  get_all_pages();
+  let all_pages = [];
+  let show_settings = false;
 
-  function get_all_pages() {
+  function render_table(pages) {
     pageTable.innerHTML = `<tr>
+      <th>Private?</th>
       <th>Title</th>
       <th>Route</th>
-      <th>Edit link</th>
-      <th>Public?</th>
-      <th>Owned by</th>
+      <th>Edit</th>
     </tr>`;
+    for (var i = 0; i < pages.length; i++) {
+      let page = pages[i];
+      pageTable.insertRow().innerHTML += `<tr>
+        <td>${page.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
+        <td>
+          <div class="page-title"><a href="/${page.route}">${page.title}</a></div>
+          <div class="created-by">Created by ${page.created_by}</div>
+        </td>
+        <td><a href="/${page.route}">/${page.route}</a></td>
+        <td>${_current_user.username == page.created_by ? `<a href="/edit/${page.route}"><img src="/assets/icons/edit.svg"/></a>` : ''}</td>
+      </tr>`;
+    }
+  }
+
+  function search_pages() {
+    let search = document.getElementById('search').value;
+    if (search.length < 1) {
+      return sort_pages(all_pages);
+    }
+    let searched_pages = all_pages.filter(page => page.title.search(search) != -1)
+    sort_pages(searched_pages);
+  }
+
+  function sort_pages(pages) {
+    let sort_types = document.getElementsByName('sort_types');
+    let sorted_pages = [];
+    if (sort_types[2].checked) {         // creator
+      sorted_pages = pages.sort((a, b) => { return a.created_by > b.created_by; });
+    } else if (sort_types[1].checked) {  // date
+      sorted_pages = pages.sort((a, b) => { return a.id > b.id; });
+    } else {                             // title
+      sorted_pages = pages.sort((a, b) => { return a.title > b.title; });
+    }
+    if (document.getElementById('invert-sort').checked) {
+      sorted_pages.reverse();
+    }
+    render_table(sorted_pages);
+  }
+
+  function toggle_settings() {
+    show_settings = !show_settings;
+    if (!show_settings) {
+      document.getElementById('search-settings').style.display = `none`;
+      document.getElementById('search-settings-toggle').innerHTML = 'Settings  &#x25B8;';
+    } else {
+      document.getElementById('search-settings').style.display = 'flex';
+      document.getElementById('search-settings-toggle').innerHTML = 'Settings  &#x25BE;';
+    }
+  }
+
+  function get_all_pages() {
     const http = new XMLHttpRequest();
     http.open('GET', '/api/all-pages');
     http.send();
@@ -604,43 +664,78 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
       if (http.readyState == 4 && http.status == 200) {
         response = JSON.parse(http.responseText); 
         console.log("Pages loaded!");
-        for (var i = 0; i < response.length; i++) {
-          pageTable.insertRow().innerHTML += `<tr>
-            <td>${response[i].page_title}</td>
-            <td><a href="/${response[i].page_route}">/${response[i].page_route}</a></td>
-            <td><a href="/edit/${response[i].page_route}">Edit</a></td>
-            <td>${response[i].is_public ? 'Yes' : 'No'}</td>
-            <td>${response[i].owner}</td>
-          </tr>`;
-        }
+        all_pages = response;
+        sort_pages(all_pages);
       }
     }
+  }
+
+  current_user_loaded = function () {
+    get_all_pages();
   }
   
 </script>
 
 <style>
-  table, th, td {
-    border: solid 1px var(--brown);
-    border-collapse: collapse;
+  
+  #search-bar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
   }
+  #search {
+    width: calc(100% - 100px);
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 15px;
+  }
+  #search-settings-toggle {
+    text-decoration: underline;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+
+  #search-settings {
+    display: none;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    margin: 10px 0px;
+  }
+
   table {
-    box-shadow: 2px 2px 10px rgba(0,0,0,.5);
+    width: 100%;
   }
-  th, td {
-    padding: 5px 10px;
+  tr th {
+    color: rgba(255,255,255,0.5);
+    border: none;
+    text-align: left;
+    font-weight: normal;
   }
-  th {
-    background: var(--brown);
+  tr th:first-child, tr th:nth-child(0n + 3) {
+    max-width: 100px;
   }
-  tr {
-    background: var(--lighter-brown);
+  td {
+    border-right: none;
+    border-left: none;
   }
-  tr:nth-child(even) {
-    background: #5a4433;
-  }
-  a {
+
+  div.page-title {
     color: var(--yellow);
+    font-size: 1.3em;
+  }
+  div.created-by {
+    opacity: 0.5;
+    font-size: 1em;
+  }
+
+  td img {
+    width: 25px;
+    max-width: 25px;
+    max-height: 25px;
+    display: block;
+    margin: auto;
+    cursor: pointer;
   }
 </style>
 ```
@@ -652,6 +747,11 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
 
 Restart the server, and go to `/all-pages`.  
 You should see a table of all the created pages! Wonderful.   
+
+Pages that are not "public" should have a lock displayed by them.  
+Pages created by the current user should have an "edit" icon, linking to an edit page -- which is a 404 for now.  
+
+You should also be able to search for pages by title, and sort the page display by title, creator, or date created. 
 
 <br/><br/><br/><br/>
 
