@@ -111,6 +111,7 @@ function create_page() {
     route,
     is_public,
     created_by: _current_user.id,
+    date_created: new Date().toString(),
     content: '',
     history: []
   }));
@@ -174,6 +175,10 @@ Add the file `/server/database/table_columns/pages.json`:
     {
       "name": "Created by",
       "snakecase": "created_by"
+    },
+    {
+      "name": "Date created",
+      "snakecase": "date_created"
     }
   ]
 }
@@ -591,6 +596,8 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
   <table id="page-table">
     <!--  Page data goes here-->
   </table>
+  <br/><br/><br/><br/>
+  <a href="/create-page"><button>+ Create new page</button></a>
 </div>
 
 <script>
@@ -617,6 +624,9 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
         <td>${_current_user.username == page.created_by ? `<a href="/edit/${page.route}"><img src="/assets/icons/edit.svg"/></a>` : ''}</td>
       </tr>`;
     }
+    if (pages.length < 1) {
+      pageTable.insertRow().innerHTML += `<tr><td></td><td id="no-pages-found">(No pages found)</td><td></td><td></td></tr>`;
+    }
   }
 
   function search_pages() {
@@ -634,7 +644,7 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
     if (sort_types[2].checked) {         // creator
       sorted_pages = pages.sort((a, b) => { return a.created_by > b.created_by; });
     } else if (sort_types[1].checked) {  // date
-      sorted_pages = pages.sort((a, b) => { return a.id > b.id; });
+      sorted_pages = pages.sort((a, b) => { return new Date(a.date_created) > new Date(b.date_created); });
     } else {                             // title
       sorted_pages = pages.sort((a, b) => { return a.title > b.title; });
     }
@@ -736,6 +746,11 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
     display: block;
     margin: auto;
     cursor: pointer;
+  }
+
+  #no-pages-found {
+    text-align: center;
+    opacity: .5;
   }
 </style>
 ```
