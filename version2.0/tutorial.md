@@ -554,8 +554,8 @@ function GET_all_pages(req_data, res) {
   let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
   all_pages = JSON.parse(all_pages);
   for (let i = 0; i < all_pages.length; i++) {
-    let owner_id = parseInt(all_pages[i].created_by);
-    all_pages[i].owner = DataBase.table('users').find({id: owner_id})[0].username;
+    let creator_id = parseInt(all_pages[i].created_by);
+    all_pages[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
   }
   api_response(res, 200, JSON.stringify(all_pages));
 }
