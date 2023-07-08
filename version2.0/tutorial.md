@@ -419,6 +419,7 @@ let page_data = {};
 function render_page() {
   document.getElementById('dynamic-page').innerHTML = `<h1>${page_data.title}</h1>`
   document.getElementById('dynamic-page').innerHTML += page_data.content;
+  document.getElementById('dynamic-page').innerHTML += `<a href="/edit/${page_data.route}"><button id="edit-button"><img src="/assets/icons/edit.svg" />Edit</button></a>`;
 }
 
 ////  SECTION 4: Boot
@@ -444,6 +445,20 @@ function load_page() {
 load_page();
 
 </script>
+
+<style>
+  #edit-button {
+    display: flex;
+    width: 90px;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+  }
+  #edit-button img {
+    height: 16px;
+    margin-right: 10px;
+  }
+</style>
 ```
 
 <br/><br/><br/><br/>
