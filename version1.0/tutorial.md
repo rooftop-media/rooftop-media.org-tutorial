@@ -325,7 +325,7 @@ a {
 }
 
 input, textarea {
-  background: var(--brown);
+  background: var(--darker-brown);
   color: white;
   border: solid 1px black;
 }
@@ -375,7 +375,6 @@ input[type="radio"]:checked::after {
 pre {
   border: solid 1px var(--brown);
   width: 100%;
-  white-space: pre-line;
   text-indent: 0px;
   background: var(--darker-brown);
 }
@@ -877,7 +876,7 @@ a {
 }
 
 input, textarea {
-  background: var(--brown);
+  background: var(--darker-brown);
   color: white;
   border: solid 1px black;
 }
@@ -927,7 +926,6 @@ input[type="radio"]:checked::after {
 pre {
   border: solid 1px var(--brown);
   width: 100%;
-  white-space: pre-line;
   text-indent: 0px;
   background: var(--darker-brown);
 }
