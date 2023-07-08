@@ -798,27 +798,31 @@ First, we'll edit `respond_with_a_page` to check for URLs starting with `/edit/`
 
 ```js
 function respond_with_a_page(res, url) {
-  if (pageURLkeys.includes(url)) {
+  let page_content = "";
+
+  if (pageURLkeys.includes(url)) {  //  If it's a static page route....
     url = pageURLs[url];
-  } else if (url.substring(0, 6) == '/edit/') {
-    url = '/pages/cms/edit-page.html';
-  } else  {
-    return respond_with_a_dynamic_page(res, url);
-  }
-  fs.readFile( __dirname + '/..' + url, function(error, content) {
-    var content_page = "";
-    if (error) {
-      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      content_page = content;
+    try {
+      page_content = fs.readFileSync( __dirname + '/..' + url);
+    } catch(err) {
+      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
     }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-    var page_halves = main_page.split('<!--  Insert page content here!  -->');
-    var rendered = page_halves[0] + content_page + page_halves[1];
-    res.write(rendered);
-    res.end();
-  });
+  } else if (url.substring(0, 6) == '/edit/') {
+    page_content = fs.readFileSync(__dirname + '/../pages/cms/edit-page.html');
+  } else {                          //  If it's a dynamic page route....
+    let page_data = DataBase.table('pages').find({ route: url.slice(1) });  //  Removing the "/" from the route
+    if (page_data.length < 1) {
+      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+    } else {
+      page_content = fs.readFileSync(__dirname + '/../pages/cms/dynamic-page.html');
+    }
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+  var page_halves = main_page.split('<!--  Insert page content here!  -->');
+  var rendered = page_halves[0] + page_content + page_halves[1];
+  res.write(rendered);
+  res.end();
 }
 ```
 
@@ -1099,6 +1103,7 @@ function api_POST_routes(url, req, res) {
       '/api/logout': POST_logout,
       '/api/update-user': POST_update_user,
       '/api/update-password': POST_update_password,
+      '/api/delete-user': POST_delete_user,
       '/api/check-invite-code': POST_check_invite_code,
       '/api/create-page': POST_create_page,
       '/api/update-page': POST_update_page
@@ -1114,7 +1119,7 @@ function api_POST_routes(url, req, res) {
 }
 ```
 
-Then add the new function, `POST_update_page`:  
+Then add the new function right after `POST_create_page`, called `POST_update_page`:  
 
 ```javascript
 function POST_update_page(page_update, res) {  
