@@ -880,6 +880,11 @@ Create the file `/pages/cms/edit-page.html`, with the following code:
   <button style="background: var(--red);" onclick="delete_page()">Delete Page</button>
 </div>
 
+<div class="p-3 center-column" id="preview-page">
+  <button onclick="back_to_editor()">Edit</button><br/><hr/><br/>
+  <div id="preview-content"></div>
+</div>
+
 <script>
 
 ////  SECTION 1: Page memory
@@ -900,8 +905,15 @@ function render_page() {
 }
 
 function render_preview() {
-  document.getElementById('dynamic-page').innerHTML = `<button onclick="render_page()">Edit</button><br/><hr/><br/>`;
-  document.getElementById('dynamic-page').innerHTML += buffer_data.content;
+  document.getElementById('dynamic-page').style.display = `none`;
+  document.getElementById('preview-page').style.display = 'block';
+  document.getElementById('preview-content').innerHTML = buffer_data.content;
+}
+
+function back_to_editor() {
+  document.getElementById('dynamic-page').style.display = `block`;
+  document.getElementById('preview-page').style.display = 'none';
+  render_page();
 }
 
 ////  SECTION 3: Event reactions
@@ -1047,7 +1059,12 @@ load_page();
     position: relative;
     display: none;
   }
-  #dynamic-page input {
+
+  #preview-page {
+    display: none;
+  }
+
+  #dynamic-page input:not([type='checkbox']) {
     font-family: CrimsonText;
     width: 60%;
   }
