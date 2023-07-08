@@ -375,6 +375,7 @@ input[type="radio"]:checked::after {
 pre {
   border: solid 1px var(--brown);
   width: 100%;
+  white-space: pre-wrap;
   text-indent: 0px;
   background: var(--darker-brown);
 }
@@ -926,6 +927,7 @@ input[type="radio"]:checked::after {
 pre {
   border: solid 1px var(--brown);
   width: 100%;
+  white-space: pre-wrap;
   text-indent: 0px;
   background: var(--darker-brown);
 }
