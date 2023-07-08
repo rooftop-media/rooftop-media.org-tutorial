@@ -1,7 +1,6 @@
 <div class="p-3 center-column" id="dynamic-page">
   <i>Loading page...</i>
 </div>
-<div class="p-3 center-column" id="page-preview"></div>
 
 <script>
 
@@ -17,11 +16,11 @@ let is_saved = true;
 function render_page() {
   let page_editor = `
   <div class="flex-row">
-    <div style="width:40%;">Route: / <input id="page-route" type="text" value="${buffer_data.page_route}" oninput="update_pageRoute()" tabindex="1" /></div>
+    <div style="width:40%;">Route: / <input id="page-route" type="text" value="${buffer_data.route}" oninput="update_pageRoute()" tabindex="1" /></div>
     <div style="display: flex; align-items: center;">Public? <input type="checkbox" onclick="toggle_publicity()" ${buffer_data.is_public ? 'checked' : ''} tabindex="2"/></div>
   </div>
   <div class="flex-row">
-    <input id="page-title" type="text" value="${buffer_data.page_title}" oninput="update_pageTitle()" tabindex="3">
+    <input id="page-title" type="text" value="${buffer_data.title}" oninput="update_pageTitle()" tabindex="3">
     <button onclick="cancel()">Cancel</button>
     <button id="save" onclick="save()" tabindex="6">Save</button>
   </div>`;
@@ -35,15 +34,8 @@ function render_page() {
 }
 
 function render_preview() {
-  document.getElementById('dynamic-page').style.visibility = 'hidden';
-  document.getElementById('dynamic-page').style.position = 'absolute';
-  document.getElementById('page-preview').innerHTML = `<button onclick="edit_page()">Edit</button><br/><hr/><br/>`;
-  document.getElementById('page-preview').innerHTML += buffer_data.content;
-}
-
-function edit_page() {
-  document.getElementById('dynamic-page').style.visibility = 'visible';
-  document.getElementById('dynamic-page').style.position = 'static';
+  document.getElementById('dynamic-page').innerHTML = `<button onclick="render_page()">Edit</button><br/><hr/><br/>`;
+  document.getElementById('dynamic-page').innerHTML += buffer_data.content;
 }
 
 ////  SECTION 3: Event reactions
@@ -56,8 +48,8 @@ function beforeUnloadListener(event) {
 
 //  Fired in render_page() and in any buffer editing function
 function check_if_saved() {
-  is_saved = (buffer_data.content == page_data.content) && (buffer_data.page_title == page_data.page_title) 
-    && (buffer_data.is_public == page_data.is_public) && (buffer_data.page_route == page_data.page_route);
+  is_saved = (buffer_data.content == page_data.content) && (buffer_data.title == page_data.title) 
+    && (buffer_data.is_public == page_data.is_public) && (buffer_data.route == page_data.route);
   if (!is_saved) {
     addEventListener("beforeunload", beforeUnloadListener, { capture: true });
     document.getElementById('save').classList.remove('inactive');
@@ -75,12 +67,12 @@ function update_buffer(newval) {
 
 //  Fires when the page title is changed. 
 function update_pageTitle() {
-  buffer_data.page_title = document.getElementById('page-title').value;
+  buffer_data.title = document.getElementById('page-title').value;
   check_if_saved();
 }
 
 function update_pageRoute() {
-  buffer_data.page_route = document.getElementById('page-route').value;
+  buffer_data.route = document.getElementById('page-route').value;
   check_if_saved();
 }
 
@@ -96,9 +88,9 @@ function save() {
   http.open('POST', '/api/update-page');
   http.send(JSON.stringify({ 
     id: page_data.id,
-    page_title: buffer_data.page_title,
+    title: buffer_data.title,
     content: buffer_data.content,
-    page_route: buffer_data.page_route,
+    route: buffer_data.route,
     is_public: buffer_data.is_public
   }));
   http.onreadystatechange = (e) => {
@@ -108,12 +100,12 @@ function save() {
       if (!response.error) {
         console.log("Response recieved! Page updated.");
         page_data.content = buffer_data.content;
-        page_data.page_title = buffer_data.page_title;
-        page_data.page_route = buffer_data.page_route;
+        page_data.title = buffer_data.title;
+        page_data.route = buffer_data.route;
         page_data.is_public = buffer_data.is_public;
         render_page();
-        if (_current_page.split('/edit/')[1] != buffer_data.page_route) {
-          window.location.href = '/edit/' + buffer_data.page_route;
+        if (_current_page.split('/edit/')[1] != buffer_data.route) {
+          window.location.href = '/edit/' + buffer_data.route;
         }
       } else {
         console.warn("Err")
@@ -154,13 +146,11 @@ function delete_page() {
   }
 }
 
-
-
 ////  SECTION 4: Boot
 //  Load all page elements from API, then render buffer
 function load_page() {
   const http = new XMLHttpRequest();
-  http.open('GET', `/api/page?page_route=${page_route}`);
+  http.open('GET', `/api/page?route=${page_route}`);
   http.send();
   http.onreadystatechange = (e) => {
     let response;      
@@ -170,8 +160,8 @@ function load_page() {
         console.log("Response recieved! Loading page.");
         page_data = response.data;
         buffer_data.content = page_data.content || "";
-        buffer_data.page_title = page_data.page_title || "";
-        buffer_data.page_route = page_data.page_route;
+        buffer_data.title = page_data.title || "";
+        buffer_data.route = page_data.route;
         buffer_data.is_public = page_data.is_public;
         render_page();
       } else {
@@ -188,7 +178,7 @@ load_page();
   #dynamic-page {
     position: relative;
   }
-  #dynamic-page input[type="text"] {
+  #dynamic-page input {
     font-family: CrimsonText;
     width: 60%;
   }
@@ -196,6 +186,7 @@ load_page();
     background: var(--brown);
     color: white;
     border: solid 1px black;
+    
   }
   #dynamic-page input:focus, #dynamic-page textarea:focus {
     outline: solid 1px var(--yellow);

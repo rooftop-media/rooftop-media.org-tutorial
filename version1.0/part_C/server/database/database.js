@@ -61,7 +61,7 @@ class Table {
     fs.writeFileSync(`${__dirname}/table_columns/${this.name}.json`, JSON.stringify(this.columns, null, 2));
     return response;
   }
-  
+
   delete(id_to_delete) {
     for (let i = 0; i < this.rows.length; i++) {
       if (this.rows[i].id == id_to_delete) {
@@ -72,11 +72,10 @@ class Table {
     }
     return `No row found with id ${id_to_delete}`;
   }
-
+  
 }
 
 module.exports = {
-
   table: function(table_name) {
     return new Table(table_name);
   },

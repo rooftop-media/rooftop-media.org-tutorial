@@ -1,29 +1,11 @@
 [
   {
     "username": "testuser",
-    "display_name": "Test User",
-    "email": "test@test.com",
-    "phone": "1234567890",
-    "password": "31d16a9a53faf70c9e8548ebda039dcccee2fe8bf3d8d335786fbd662365678a344c3781549b340e9e62bd840e3a3a1e2ecfd74ef8dbdd98fa73f4d5e69d1a75",
-    "salt": "d1b417cbb021b2eca9797311c38dfeef",
-    "id": 0
-  },
-  {
-    "username": "mickeymouse",
-    "display_name": "Mickey Mouse",
-    "email": "mickey@mouse.org",
-    "phone": "123-123-1231",
-    "password": "194a0f88e66fc76b94a38b91da1bd60b2391fdd540a02a36444a402742b46b02dcc8751a8b008fa2947ef1b6a8d7f4093e7c57360caa3513b6b02b23faa96d13",
-    "salt": "e9ac5ddc48af527e3ab4f59f7b43af4d",
-    "id": 1
-  },
-  {
-    "username": "newuser",
-    "display_name": "New U",
+    "display_name": "Test",
     "email": "",
     "phone": "",
-    "password": "acfcbdcc80cd095cce08593d0d85fa5035b382d4b26f7a925d79d3bf5694c89a315698f2f9c787883150cc291e046e9c3f440ea1bab1bfb43125e03b3276d0b4",
-    "salt": "1c655043b56ff7f3db1649b31ebb77cc",
-    "id": 7
+    "password": "ebc45239da09eb2d5432af793ac422faebd4a61d6447ccf80e398ad62a9996b8271aac3b47c7897b58bb78d1a67c36f7cdc8548b8c28f68c1984c7a5cd077c37",
+    "salt": "05e9674cd824ccbca8e4e6ec9952ade9",
+    "id": 2
   }
 ]

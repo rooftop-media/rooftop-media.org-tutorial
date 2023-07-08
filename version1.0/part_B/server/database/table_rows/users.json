@@ -1,47 +1,11 @@
 [
   {
     "username": "testuser",
-    "display_name": "TestUser",
-    "email": "test@test.com",
-    "phone": "1234567890",
-    "password": "31d16a9a53faf70c9e8548ebda039dcccee2fe8bf3d8d335786fbd662365678a344c3781549b340e9e62bd840e3a3a1e2ecfd74ef8dbdd98fa73f4d5e69d1a75",
-    "salt": "d1b417cbb021b2eca9797311c38dfeef",
+    "display_name": "Test User",
+    "email": "test@user.com",
+    "phone": "123-123-1231",
+    "password": "08dbfa7fc4741e0c4e391ec513509ba39b1ec7d38bae3f744b2056772a9178d9a3760555aca82e50e39f3ca8da993d6c2d7506a32d0151212800d5f218e6a896",
+    "salt": "85d99895059aa4e837f20a516cb326e7",
     "id": 0
-  },
-  {
-    "username": "testuser2",
-    "display_name": "",
-    "email": "",
-    "phone": "123-123-1233",
-    "password": "508a315ac6820cfda92f42843126688af4f570057074027994508d0fc6e12c293af9cd86db75e9d213c30e43f760b080d0ea62c629f3dc1c2a5344364f9adcdc",
-    "salt": "7a3082493d5346cbf111dda16c19347f",
-    "id": 3
-  },
-  {
-    "username": "testuser3",
-    "display_name": "Test user 3",
-    "email": "",
-    "phone": "123-123-123",
-    "password": "9944565cd1f7d17b9316ee0074019ea75f480e9de64b1c3a2921974a0e2fae77f51faaf89f64965da59b0ca37cfd1578b9f490084e6c0fab9ef718f5deb385e1",
-    "salt": "bb8a39aa18190082bf9e7bebb2c1f430",
-    "id": 4
-  },
-  {
-    "username": "testuser4",
-    "display_name": "Test User 4",
-    "email": "t@user.org",
-    "phone": "123-987-9879",
-    "password": "b7057570a32a29dd9cbea352054c1c6f8eaecf85c0a1511dcfafd220c15c8e5c13b813e8fa027c0f4640d0c594306bb7da3a39e44410d565f9b01dc93e90c10d",
-    "salt": "9b88b37fb57df58f12c1fd009d4c03f5",
-    "id": 5
-  },
-  {
-    "username": "testuser5",
-    "display_name": "asdfla",
-    "email": "",
-    "phone": "",
-    "password": "5f4a8f9f9cf919fd6ba4d780dfd8e6bb09e858a679cc373362dc0d1cc8aeaad31a943c19cf352bab94be898ca3d45358a15fe06f05f7022a937278d3d9b286f5",
-    "salt": "6cfbb694bfed29b9d72b9cef7895378c",
-    "id": 6
   }
 ]

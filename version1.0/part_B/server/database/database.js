@@ -65,7 +65,6 @@ class Table {
 }
 
 module.exports = {
-
   table: function(table_name) {
     return new Table(table_name);
   },

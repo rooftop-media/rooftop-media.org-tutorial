@@ -67,10 +67,10 @@ html, body {
   border-radius:   4px;
 }
 #user-buttons a:hover, #user-buttons button:hover {
-    filter:          brightness(1.05);
+  filter:          brightness(1.05);
 }
 #user-buttons a:active, #user-buttons button:active {
-    filter:          brightness(1.01);
+  filter:          brightness(1.01);
 }
 
 /*  Global styles  */
@@ -108,6 +108,34 @@ input[type="checkbox"]:checked::after {
   background-image: url(/assets/icons/check.svg);
   width: 30px;
   height: 30px;
+}
+input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  background: var(--action-brown);
+  border-radius: 50%;
+  cursor: pointer;
+}
+input[type="radio"]:checked {
+  border-color: var(--yellow);
+}
+input[type="radio"]:checked::after {
+  content: '';
+  display: block;
+  background: var(--yellow);
+  width: 10px;
+  height: 10px;
+  margin: 4px;
+  border-radius: 50%;
+}
+
+pre {
+  border: solid 1px var(--brown);
+  width: 100%;
+  white-space: pre-line;
+  text-indent: 0px;
+  background: var(--darker-brown);
 }
 
 button {

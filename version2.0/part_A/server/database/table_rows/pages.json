@@ -1,25 +1,32 @@
 [
   {
-    "page_title": "My Blog",
-    "page_route": "my-blog",
+    "title": "C page",
+    "route": "c-page",
+    "is_public": true,
+    "created_by": 3,
+    "date_created": "Thu Jul 06 2023 15:44:55 GMT-0400 (Eastern Daylight Time)",
+    "content": "",
+    "history": [],
+    "id": 0
+  },
+  {
+    "title": "A  Page",
+    "route": "a-page",
     "is_public": false,
-    "created_by": 0,
+    "created_by": 3,
+    "date_created": "Thu Jul 06 2023 15:45:32 GMT-0400 (Eastern Daylight Time)",
+    "content": "",
+    "history": [],
+    "id": 1
+  },
+  {
+    "title": "B page",
+    "route": "b-page",
+    "is_public": true,
+    "created_by": 2,
+    "date_created": "Thu Jul 06 2023 15:45:59 GMT-0400 (Eastern Daylight Time)",
+    "content": "",
+    "history": [],
     "id": 2
-  },
-  {
-    "page_title": "test-page",
-    "page_route": "test-page",
-    "is_public": true,
-    "created_by": 0,
-    "content": "",
-    "id": 6
-  },
-  {
-    "page_title": "test page 2",
-    "page_route": "test-2",
-    "is_public": true,
-    "created_by": 0,
-    "content": "",
-    "id": 7
   }
 ]

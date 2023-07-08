@@ -25,7 +25,6 @@ function render_user_buttons() {
 
 function current_user_loaded() {}
 
-
 ////  SECTION 3: Boot.
 function boot() {
   console.log('Welcome to Rooftop Media Dot Org!!');

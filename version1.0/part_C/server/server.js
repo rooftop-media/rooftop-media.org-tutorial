@@ -62,40 +62,40 @@ function server_request(req, res) {
 }
 
 function respond_with_a_page(res, url) {
+  let page_content = "";
   if (pageURLkeys.includes(url)) {
     url = pageURLs[url];
+  } else {
+    url = '/pages/misc/404.html';
   }
-  fs.readFile( __dirname + '/..' + url, function(error, content) {
-    var content_page = "";
-    if (error) {
-      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      content_page = content;
-    }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-    var page_halves = main_page.split('<!--  Insert page content here!  -->');
-    var rendered = page_halves[0] + content_page + page_halves[1];
-    res.write(rendered);
-    res.end();
-  });
+  try {
+    page_content = fs.readFileSync( __dirname + '/..' + url);
+  } catch(err) {
+    page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+  var page_halves = main_page.split('<!--  Insert page content here!  -->');
+  var rendered = page_halves[0] + page_content + page_halves[1];
+  res.write(rendered);
+  res.end();
 }
 
 function respond_with_asset(res, url, extname) {
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     if (error) {
-        if(error.code == 'ENOENT') {
-          res.writeHead(404, { 'Content-Type': 'text/html' });
-          res.end('404 -- asset not found', 'utf-8');
-        }
-        else {
-      res.writeHead(500);
-      res.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
-        }
+      if(error.code == 'ENOENT') {
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        res.end('404 -- asset not found', 'utf-8');
+      }
+      else {
+        res.writeHead(500);
+        res.end(`Sorry, check with the site admin for error: ${error.code} ..\n`);
+      }
     } else {
-        var contentType = mimeTypes[extname] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content, 'utf-8');
+      var contentType = mimeTypes[extname] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content, 'utf-8');
     }
   });
 }

@@ -1,7 +1,7 @@
 {
   "name": "Pages",
   "snakecase": "pages",
-  "max_id": 5,
+  "max_id": 4,
   "columns": [
     {
       "name": "Id",
@@ -10,11 +10,11 @@
     },
     {
       "name": "Page Title",
-      "snakecase": "page_title"
+      "snakecase": "title"
     },
     {
       "name": "Page Route",
-      "snakecase": "page_route",
+      "snakecase": "route",
       "unique": true
     },
     {
@@ -24,6 +24,18 @@
     {
       "name": "Content",
       "snakecase": "content"
+    },
+    {
+      "name": "History",
+      "snakecase": "history"
+    },
+    {
+      "name": "Created by",
+      "snakecase": "created_by"
+    },
+    {
+      "name": "Date created",
+      "snakecase": "date_created"
     }
   ]
 }

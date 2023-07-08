@@ -14,6 +14,7 @@
   <div>Confirm new password: <input type="password" tabindex="8" id="confirm_new_password"/></div>
   <p id="pass_error"></p>
   <button onclick="update_password()" tabindex="9">Update password</button>
+ 
   <br/><br/><br/><br/>
   <h4>Delete account</h4>
   <div style="font-style:italic">Warning: This cannot be undone!</div>
@@ -34,6 +35,7 @@ function update_form() {
 current_user_loaded = function() {
   update_form();
 }
+
 
 const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
 
@@ -147,7 +149,7 @@ function update_password() {
     }
   }
 }
-
+ 
 function delete_user() {
   var confirm_password = document.getElementById('delete_account_password').value;
   const http = new XMLHttpRequest();

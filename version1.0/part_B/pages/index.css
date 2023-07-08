@@ -106,6 +106,34 @@ input[type="checkbox"]:checked::after {
   width: 30px;
   height: 30px;
 }
+input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  background: var(--action-brown);
+  border-radius: 50%;
+  cursor: pointer;
+}
+input[type="radio"]:checked {
+  border-color: var(--yellow);
+}
+input[type="radio"]:checked::after {
+  content: '';
+  display: block;
+  background: var(--yellow);
+  width: 10px;
+  height: 10px;
+  margin: 4px;
+  border-radius: 50%;
+}
+
+pre {
+  border: solid 1px var(--brown);
+  width: 100%;
+  white-space: pre-line;
+  text-indent: 0px;
+  background: var(--darker-brown);
+}
 
 button {
   padding: 10px 20px;

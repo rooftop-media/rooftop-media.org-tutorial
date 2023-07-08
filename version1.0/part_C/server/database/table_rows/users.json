@@ -1,38 +1,20 @@
 [
   {
     "username": "testuser",
-    "display_name": "TestUser",
-    "email": "test@test.com",
-    "phone": "1234567890",
-    "password": "31d16a9a53faf70c9e8548ebda039dcccee2fe8bf3d8d335786fbd662365678a344c3781549b340e9e62bd840e3a3a1e2ecfd74ef8dbdd98fa73f4d5e69d1a75",
-    "salt": "d1b417cbb021b2eca9797311c38dfeef",
+    "display_name": "Test User",
+    "email": "test@user.com",
+    "phone": "123-123-1231",
+    "password": "08dbfa7fc4741e0c4e391ec513509ba39b1ec7d38bae3f744b2056772a9178d9a3760555aca82e50e39f3ca8da993d6c2d7506a32d0151212800d5f218e6a896",
+    "salt": "85d99895059aa4e837f20a516cb326e7",
     "id": 0
   },
   {
     "username": "mickeymouse",
-    "display_name": "Mickey Mouse",
-    "email": "mickey@mouse.org",
-    "phone": "123-123-1231",
-    "password": "194a0f88e66fc76b94a38b91da1bd60b2391fdd540a02a36444a402742b46b02dcc8751a8b008fa2947ef1b6a8d7f4093e7c57360caa3513b6b02b23faa96d13",
-    "salt": "e9ac5ddc48af527e3ab4f59f7b43af4d",
+    "display_name": "",
+    "email": "",
+    "phone": "",
+    "password": "fee7267b91fa2b524e03923bc5a08dfd6eb86e3d479cce888c3d5ad5af5059751c8a0860dc4a0c15c096fae9d09fc484aeb7ac4de469dc7a99ecd5c339b2feff",
+    "salt": "2ea1cef6b05553a135297097e6d02416",
     "id": 1
-  },
-  {
-    "username": "newuser",
-    "display_name": "New User",
-    "email": "",
-    "phone": "",
-    "password": "b98b591830e78136e498f33a415c389367064181c35d2fefb75203abfe55ffe34bc1306b34827e7ff1fa4588f7e96cee6b489a5b6f9fcc3b4db2d9d98ed3f849",
-    "salt": "549a974db355ae788859afd6faed2269",
-    "id": 12
-  },
-  {
-    "username": "newuser2",
-    "display_name": "New User 2",
-    "email": "",
-    "phone": "",
-    "password": "93f3fbc5579034699e875f02e620a3e74579a86129ffb5382d53668b676c0fab8d1d8553c431b739a499280be41ad600d63be4e38c2ee8bca6d3e96ec0f317b0",
-    "salt": "54504cbb1eb04e19f452676de1625a75",
-    "id": 13
   }
 ]
