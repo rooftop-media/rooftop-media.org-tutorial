@@ -1290,59 +1290,210 @@ To test out the concept before we've analysed the markup syntax, we'll just repl
 Edit  `cms/edit-page.html`: 
 
 ```javascript
+<div class="p-3 center-column" id="loading-page">
+  Loading page...
+</div>
 
-```
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="c-2">  ☑️ Step 2: Create <code>cms/display-page.html</code>  </h3>
-
-Create a new file called `/cms/display-page.html`. 
-
-At this point, this file will insert the page's content as it is, with no changes.  
-In [step 4](#c-4), we'll edit this code to sanitize it of potentially harmful tags. 
-
-For now, here's the page's code:  
-
-```html
 <div class="p-3 center-column" id="dynamic-page">
-  <i>Loading page...</i>
+  <div class="flex-row">
+    <div style="width:40%;">Route: / <input id="page-route" type="text" value="" oninput="update_pageRoute()" tabindex="1" /></div>
+    <div style="display: flex; align-items: center;">Public? <input id="is-public" type="checkbox" onclick="toggle_publicity()" tabindex="2"/></div>
+  </div>
+  <div class="flex-row">
+    <input id="page-title" type="text" value="" oninput="update_pageTitle()" tabindex="3">
+    <button onclick="cancel()">Cancel</button>
+    <button id="save" onclick="save()" tabindex="6">Save</button>
+  </div>
+  <div id="error"></div>
+
+  <textarea id="page-buffer" spellcheck="false" oninput="update_buffer(event.currentTarget.value)" onscroll="sync_scroll(this);" tabindex="5"></textarea>
+  <pre id="highlighting" aria-hidden="true"><code id="highlighting-content"></code></pre>
+    
+  <br/><br/>
+  <button onclick="render_preview()">Preview</button>
+  <button style="margin-left:20px;" onclick="window.location.href = `/${page_route}`">Go to Page</button>
+  <br/><br/><br/><hr/><br/><br/>
+  <button style="background: var(--red);" onclick="delete_page()">Delete Page</button>
+</div>
+
+<div class="p-3 center-column" id="preview-page">
+  <button onclick="back_to_editor()">Edit</button><br/><hr/><br/>
+  <div id="preview-content"></div>
 </div>
 
 <script>
+
 ////  SECTION 1: Page memory
-let page_route = _current_page.split('/')[1];
+let page_route = _current_page.split('/edit/')[1];
+let buffer_data = {};
 let page_data = {};
+let is_saved = true;
 
 ////  SECTION 2: Render
+
 //  Renders the text editor, final page, or "page does not exist" message.
 function render_page() {
-  let markup = page_data.content;
-  let page = markup_to_html(markup); //  markup -> html 
-  document.getElementById('dynamic-page').innerHTML = page;
+  document.getElementById('page-route').value = buffer_data.route;
+  document.getElementById('is-public').checked = buffer_data.is_public;
+  document.getElementById('page-title').value = buffer_data.title;
+  document.getElementById('page-buffer').value = buffer_data.content;
+
+  document.getElementById('highlighting-content').innerHTML = buffer_data.content.replace(/b/g, `<span style='color: cyan'>b</span>`);
+  check_if_saved();
 }
 
-////  SECTION 3: Functions 
-function markup_to_html(markup) {
-  return markup;
+function render_preview() {
+  document.getElementById('dynamic-page').style.display = `none`;
+  document.getElementById('preview-page').style.display = 'block';
+  document.getElementById('preview-content').innerHTML = buffer_data.content;
+}
+
+function back_to_editor() {
+  document.getElementById('dynamic-page').style.display = `block`;
+  document.getElementById('preview-page').style.display = 'none';
+  render_page();
+}
+
+////  SECTION 3: Event reactions
+
+//  Fired if unsaved changes exist
+function beforeUnloadListener(event) {
+  event.preventDefault();
+  return (event.returnValue = "");
+};
+
+//  Fired in render_page() and in any buffer editing function
+function check_if_saved() {
+  is_saved = (buffer_data.content == page_data.content) && (buffer_data.title == page_data.title) 
+    && (buffer_data.is_public == page_data.is_public) && (buffer_data.route == page_data.route);
+  if (!is_saved) {
+    addEventListener("beforeunload", beforeUnloadListener, { capture: true });
+    document.getElementById('save').classList.remove('inactive');
+  } else {
+    removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
+    document.getElementById('save').classList.add('inactive');
+  }
+}
+
+//  Fires when new page content is typed.
+function update_buffer(newval) {
+  buffer_data.content = newval;
+  document.getElementById('highlighting-content').innerHTML = buffer_data.content.replace(/b/g, `<span style='color: cyan'>b</span>`);
+
+  if(buffer_data.content[buffer_data.content.length - 1] == "\n") {     // Fixing "last newline" error -- see css-tricks article
+    document.getElementById('highlighting-content').innerHTML += " ";  
+  }
+  check_if_saved();
+}
+
+//  Syncronizes the textarea scroll with the highlighted <pre> scroll
+function sync_scroll(element) {
+  let result_element = document.querySelector("#highlighting");
+  result_element.scrollTop = element.scrollTop;
+  result_element.scrollLeft = element.scrollLeft;
+}
+
+//  Fires when the page title is changed. 
+function update_pageTitle() {
+  buffer_data.title = document.getElementById('page-title').value;
+  check_if_saved();
+}
+
+function update_pageRoute() {
+  buffer_data.route = document.getElementById('page-route').value;
+  check_if_saved();
+}
+
+function toggle_publicity() {
+  buffer_data.is_public = !buffer_data.is_public;
+  render_page();
+}
+
+//  Fires when "Save page changes" is clicked.
+function save() {
+  console.log("saving...")
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/update-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    title: buffer_data.title,
+    content: buffer_data.content,
+    route: buffer_data.route,
+    is_public: buffer_data.is_public
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Page updated.");
+        page_data.content = buffer_data.content;
+        page_data.title = buffer_data.title;
+        page_data.route = buffer_data.route;
+        page_data.is_public = buffer_data.is_public;
+        render_page();
+        if (_current_page.split('/edit/')[1] != buffer_data.route) {
+          window.location.href = '/edit/' + buffer_data.route;
+        }
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+//  Fires when the cancel button is clicked.
+function cancel() {
+  if (confirm('Are you sure? Changes will not be saved!')) {
+    window.location.href = '/edit/' + page_route;
+  }
+}
+
+//  Fired when the delete page button is clicked
+function delete_page() {
+  if (!confirm(`Are you sure you want to permanently delete /${page_route}?`)) {
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/delete-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id
+  }));
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = "Page deleted.  Redirecting you...";
+        window.location.href = '/';
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
 }
 
 ////  SECTION 4: Boot
 //  Load all page elements from API, then render buffer
 function load_page() {
   const http = new XMLHttpRequest();
-  http.open('GET', `/api/page?page_route=${page_route}`);
+  http.open('GET', `/api/page?route=${page_route}`);
   http.send();
   http.onreadystatechange = (e) => {
     let response;      
     if (http.readyState == 4 && http.status == 200) {
       response = JSON.parse(http.responseText);
+      document.getElementById('loading-page').style.display = 'none';
+      document.getElementById('dynamic-page').style.display = 'block';
       if (!response.error) {
-        console.log("Response recieved! Creating page.");
-        console.log(response.data);
+        console.log("Response recieved! Loading page.");
         page_data = response.data;
+        console.log(page_data)
+        buffer_data.content = page_data.content || "";
+        buffer_data.title = page_data.title || "";
+        buffer_data.route = page_data.route;
+        buffer_data.is_public = page_data.is_public;
         render_page();
       } else {
         document.getElementById('dynamic-page').innerHTML = response.msg;
@@ -1353,127 +1504,207 @@ function load_page() {
 load_page();
 
 </script>
+
+<style> 
+  #dynamic-page {
+    position: relative;
+    padding: 40px 0px;
+    display: none;
+  }
+
+  #preview-page {
+    display: none;
+  }
+
+  #dynamic-page input:not([type='checkbox']) {
+    font-family: CrimsonText;
+    width: 60%;
+  }
+
+  input#page-route {
+    font-size: 1em;
+  }
+
+  input#page-title {
+    margin: 0.67em 0px;
+    padding: 0px;
+    font-size: 2em;
+  }
+  
+  /*  Page buffer + highlighter */
+  #page-buffer, #highlighting {
+    height: 60vh;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    box-sizing: border-box;
+    overflow-y: scroll;
+  }
+  #page-buffer {
+    position: absolute;
+    z-index: 1;
+    color: transparent;
+    background: transparent;
+    caret-color: white;
+    resize: none;
+  }
+  #highlighting {
+    z-index: 0;
+  }
+
+  .flex-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #dynamic-page button {
+    width: 15%;
+  }
+
+  #dynamic-page button#save {
+    background: #3A7B64;
+  }
+  .inactive {
+    opacity: 0.5;
+  }
+
+</style>
 ```
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="c-3"> ☑️ Step 3:   ☞ Test the code!  </h3>
+<h3 id="c-2"> ☑️ Step 2:   ☞ Test the code!  </h3>
 
-In this section, we'll be writing a function to produce HTML text, following the Rooftop Markup rules.
+Edit a page, and type some text that includes a few lowercase `b`s.  They should appear cyan!
+Make sure the text editor is working correctly.  
 
-Rooftop Markup works like this...
- - The following html tags are allowed: 
-   - h1 - h6, p, div, span
-   - b, i
-   - code, pre
-   - ol, ul, li
-   - table, tr, th, td
-   - a
-   - img
-   - br, hr
- - The following attributes are allowed:
-   - style, img, alt, href
- - Those tags and attributes are kept. 
- - All other tags and attributes are removed.
+Type a line that exceeds the text editor's length, and make sure it wraps correctly.  
+Press enter enough times, and make sure the text can scroll correctly. 
 
-The main purpose of this is to prevent users from adding malicious scripts to dynamic pages.  
-Consider it dangerous to have SCRIPT tags, or ONCLICK or ONLOAD attributes.  
+<br/><br/><br/><br/>
 
-Edit a dynamic page route and add the following text, to test it:
 
+<h3 id="c-3">  ☑️ Step 3: Add <code>cms/markup-rules.html</code> to <code>server.js</code>  </h3>
+
+Edit `server/server.js`:
+```js
+//  Mapping URLs to pages
+var pageURLs = {
+  '/': '/pages/misc/landing.html',
+  '/landing': '/pages/misc/landing.html',
+  '/register': '/pages/misc/register.html',
+  '/login': '/pages/misc/login.html',
+  '/profile': '/pages/misc/profile.html',
+  '/create-page': '/pages/cms/create-page.html',
+  '/all-pages': '/pages/cms/all-pages.html',
+  '/markup-rules': '/pages/cms/markup-rules.html'
+}
+var pageURLkeys = Object.keys(pageURLs);
 ```
-<h1>Hello! This is an h1 tag!</h1>
-<h3>And this is an h3 tag!</h3>
-<p>This is a p tag, with some <b>bold</b>, <i>italic</i>, and <i><b>both</b></i>.</p>
 
-<p><button>This text should <i>not</i> be in a button. </button></p>
+<br/><br/><br/><br/>
 
-<div style="color:red; background: blue;cursor:pointer;" onclick="alert('hacked')">This p should be red on blue, but should not have an onclick event.</div>
 
-<script> alert("This text should appear, but the script tag should not."); </script>
 
-<p>Here's a <a href="http://link.com">link</a>. And an image:</p>
 
-<img src="https://upload.wikimedia.org/wikipedia/en/e/ed/Nyan_cat_250px_frame.PNG" />
+<h3 id="c-4">  ☑️ Step 4: Create <code>cms/markup-rules.html</code>  </h3>
 
-<p>Here's a nested list:</p>
-<ol>
-  <li>Item one</li>
+Create a new file called `/cms/markup-rules.html`. 
+
+I need to articulate the rules of the Rooftop markup language.  
+So, we may as well add them to a static page of the website.
+
+```html
+<div class="p-3 center-column" id="markup-rules">
+  <h2>Rooftop Markup Rules</h2>
+  <p>Hello!</p>
+  <p>
+    This page describes the rules for the Rooftop <a href="https://en.wikipedia.org/wiki/Markup_language" target="_blank">markup language</a>.  
+    The markup language can be summarized as a sanitized subset of HTML, plus some shorthand tools inspired <a href="https://daringfireball.net/projects/markdown/" target="_blank">Markdown</a>.
+  </p>
+  <br/><br/>
+  <h3>Table of contents:</h3>
   <ul>
-    <li>A subitem</li>
-    <li>Another subitem</li>
+    <li><a href="#valid-html">Valid HTML</a></li>
+    <li><a href="#valid-shorthand">Valid Shorthand</a></li>
   </ul>
-  <li>Item two</li>
-  <li>Item threee</li>
-</ol>
-
-<p>Here's a table...</p>
-<table>
-  <tr> <th>Company</th><th>Contact</th><th>Country</th> </tr>
-  <tr> <td>Alfreds Futterkiste</td><td>Maria Anders</td><td>Germany</td> </tr>
-  <tr> <td>Centro comercial Moctezuma</td><td>Francisco Chang</td><td>Mexico</td> </tr>
-</table>
-
-<p>Here's a properly escaped less than sign: &lt;3 </p>
+  <br/><br/><br/><br/><hr/><br/><br/><br/><br/>
+  <h3 id="#valid-html">Valid HTML</h3>
+  <p>Rooftop Markup recognizes HTML tags using the following system:</p>
+  <ul>
+    <li>Recognize significant HTML characters</li>
+    <li>Use context to recognize open tags, closing tags, attributes, and values</li>
+    <li>
+      Remove any tags that aren't one of these: 
+      <ul>
+        <li>h1 - h6, p, div, span</li>
+        <li>b, i</li>
+        <li>code, pre</li>
+        <li>ol, ul, li</li>
+        <li>table, tr, th, td</li>
+        <li>a</li>
+        <li>img</li>
+        <li>br, hr</li>
+      </ul>
+    </li>
+    <li>Remove any attributes other than</li>
+    <ul><li>style, img, alt, href</li></ul>
+  </ul>
+  <p>This is done to sanitize the markup, ensuring no pages include extra javascript. </p>
+  <p>It also ensures that no deprecated tags are used.  Note that other invalid HTML syntax, like badly nested tags or unclosed tags, are not detected nor handled.</p>
+  <br/><br/><br/><br/><hr/><br/><br/><br/><br/>
+  
+</div>
 ```
 
-Open the page, and you should see it display.  Note that it isn't sanitized yet.  
+This page can be tested here, by opening up the page `/markup-rules`. 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="c-4">  ☑️ Step 4: Compile the markup to sanitized html, in <code>cms/display-page.html</code>  </h3>
+<h3 id="c-5"> ☑️ Step 5:   Create <code>/cms/convert-markup.js</code>  </h3>
 
-In this step, we'll sanitize our markup. Here are the steps to understand this function...
-_I'm postponing this entire section for now, due to complexity._
-<!--
-First, we'll _tokenize_ the text into the following tokens:
-| Symbol | Token name | 
-|--------|------------|
-| < | LESS-THAN |
-| / | FORWARD-SLASH |
-| = | EQUALS | 
-| " | DOUBLE-QUOTE |
-| ' | SINGLE-QUOTE |
-| > | GREATER-THAN |
-|   | WHITESPACE |
-| (all other text) | TEXT |
+In this section, we'll be writing a Javascript file which will be reused in both `/edit-page.html` and `/display-page.html`.  
+The script will have the following functions: 
+ - `markup_to_tokens`, which accepts a text file of markup, and returns an array of labelled "tokens"
+   - Token examples: `{ type: "LESS-THAN", text: "<" }`, `{ type: "TEXT", text: "a" }`. `{ type: "SINGLE-QUOTE", text: "'" }`
+ - `tokens_to_parse`, which accepts an array of tokens, and uses context to return a list of "parsed tokens".
+   - Parsed token examples: `{ type: "LESS-THAN", text: "<" }`, `{ type: "OPEN-TAG", text: "a" }`, `{ type: "OPEN-QUOTE", text: "'" }`
+   - These tokens are used for syntax highlighting!
+ - `parse_to_tags`, which accepts an array of parsed tokens, and returns an array of simplified tag tokens
+   - Simplified token ex:  `{ type: "OPEN-TAG", text: "a" }`, `{ type: "ATTR-NAME", text: "href" }`, `{ type: "ATTR-VALUE", text: "link.com" }`
+ - `tags_to_html`, which accepts simplified tokens, deletes invalid ones, and returns a string of html.
+   - This is used for rendering pages, and page previews!
 
-We'll then run a parsing function, creating a new token using the following rule:  
-| Token name      | Production rule | 
-|-----------------|------------------|
-| OPEN-TAG        | Any `LESS-THAN TEXT` pattern is an OPEN-TAG.                                                |
+Create a new file, `/cms/convert-markup.js`, and add the following: 
 
-Next we'll parse the text, getting rid of the WHITESPACE tokens. 
-| Token name      | Production rules | 
-|-----------------|------------------|
-| TEXT            | Any `TEXT WHITESPACE` pattern is a TEXT token. |
-|                 | Any `WHITESPACE TEXT` pattern is a TEXT token. | 
-|                 | Any `TEXT TEXT` pattern is a TEXT token.       |
+```js
 
-Next, we'll find one set of ATTR-NAME tokens: attributes named directly after the open tag name. -->
-<!--
-Next, we'll parse forward-slashes. Some forward slashes can be combined into text. 
-| Token name      | Production rules | 
-|-----------------|------------------|
-| TEXT            | Any `TEXT FORWARD-SLASH` pattern is a TEXT token. |
-|                 | Any `FORWARD-SLASH TEXT` pattern is a TEXT token. | 
-|                 | Any `FORWARD-SLASH` _not_ after a `LESS-THAN` _or_ before a `GREATER-THAN` is a TEXT token. | -->
+```
 
-<!--| Token name      | Production rules | 
-|-----------------|------------------|
-| ATTR-NAME       | Any `OPEN-TAG TEXT` pattern is an ATTR-NAME.                                                |
-|                 | After an `ATTR-VALUE`, any `TEXT` pattern is an ATTR-NAME.                      | 
-| ATTR-VALUE      | After an `ATTR-NAME`, any `EQUALS DOUBLE-QUOTE TEXT DOUBLE-QUOTE` pattern is an ATTR-VALUE. |
-|                 | After an `ATTR-NAME`, any `EQUALS SINGLE-QUOTE TEXT SINGLE-QUOTE` pattern is an ATTR-VALUE. |
-| \*END-OPEN-TAG  | After an `OPEN-TAG`, a `GREATER-THAN` token is a END-CLOSE-TAG.                           |
-|                 | After an `ATTR-VALUE`, a `GREATER-THAN` token is a END-CLOSE-TAG.                         |
-| CLOSE-TAG       | Any `LESS-THAN FORWARD-SLASH TEXT` pattern is a CLOSE-TAG.                                |
-|                 | After an `OPEN-TAG`, a `FORWARD-SLASH` token is a CLOSE-TAG.  (ex: <br/>)                 |
-|                 | After an `ATTR-VALUE`, a `FORWARD-SLASH` token is a CLOSE TAG. (ex: <img src=".png" />    |-->
+<br/><br/><br/><br/>
+
+
+<h3 id="c-6"> ☑️ Step 6:   ☞ Test the code!  </h3>
+
+Edit `/cms/convert-markup.js`.  At the end of the file, we're going to run a few tests. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-6">  ☑️ Step 6: Add syntax highlighting in <code>cms/edit-page.html</code>  </h3>
+
+In this step, we'll use `/cms/convert-markup.js` to add syntax highlighting.  
+Open up `/cms/edit-page.html` and edit it: 
+
+```html
+
+```
 
 <br/><br/><br/><br/>
 
