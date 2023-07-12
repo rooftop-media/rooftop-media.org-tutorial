@@ -1640,18 +1640,12 @@ So, we may as well add them to a static page of the website.
     <li>
       Remove any tags that aren't one of these: 
       <ul>
-        <li>h1 - h6, p, div, span</li>
-        <li>b, i</li>
-        <li>code, pre</li>
-        <li>ol, ul, li</li>
-        <li>table, tr, th, td</li>
-        <li>a</li>
-        <li>img</li>
-        <li>br, hr</li>
+        <li>h1 - h6, p, div, span, b, i, code, pre</li>
+        <li>ol, ul, li, table, tr, th, td, a, img, br, hr</li>
       </ul>
     </li>
     <li>Remove any attributes other than</li>
-    <ul><li>style, img, alt, href</li></ul>
+    <ul><li>style, img, src, href, target</li></ul>
   </ul>
   <p>This is done to sanitize the markup, ensuring no pages include extra javascript. </p>
   <p>It also ensures that no deprecated tags are used.  Note that other invalid HTML syntax, like badly nested tags or unclosed tags, are not detected nor handled.</p>
@@ -1677,13 +1671,277 @@ The script will have the following functions:
    - These tokens are used for syntax highlighting!
  - `parse_to_tags`, which accepts an array of parsed tokens, and returns an array of simplified tag tokens
    - Simplified token ex:  `{ type: "OPEN-TAG", text: "a" }`, `{ type: "ATTR-NAME", text: "href" }`, `{ type: "ATTR-VALUE", text: "link.com" }`
- - `tags_to_html`, which accepts simplified tokens, deletes invalid ones, and returns a string of html.
+ - `tags_to_valid_tags`, which accepts simplified tag tokens, and returns only the valid tags and attributes.
+ - `tags_to_html`, which accepts simplified tag tokens, and returns a string of html.
    - This is used for rendering pages, and page previews!
+ - `validate_html`, which takes a string of HTML, converts it to tokens, validates, returns the final string
 
 Create a new file, `/cms/convert-markup.js`, and add the following: 
 
 ```js
+//  Convert-markup.js -- Functions to sanitize and convert markup to html
 
+//  Tokens include <, /, =, ", ', >, whitespace, and text. 
+function markup_to_tokens(markup) {
+  let tokens = [];
+  let tokenNames = {
+    '<': 'LESS-THAN',
+    '/': 'FORWARD-SLASH',
+    '=': 'EQUALS',
+    '"': 'DOUBLE-QUOTE',
+    "'": 'SINGLE-QUOTE',
+    '>': 'GREATER-THAN'
+  }
+  let tokenKeys = Object.keys(tokenNames);
+  let currentText = ''
+
+  function addCurrentText() {
+    if (currentText.length > 0) {
+      tokens.push({ type: 'TEXT', value: currentText });
+      currentText = '';
+    }
+  }
+  
+  for (let i = 0; i < markup.length; i++) {
+    if (tokenKeys.includes(markup[i])) {
+      addCurrentText();
+      tokens.push({ type: tokenNames[markup[i]], value: markup[i] });
+    } else {
+      currentText += markup[i];
+    }
+  }
+  addCurrentText();
+
+  return tokens;
+}
+
+//  Uses context to create an array of "parsed tokens."
+function tokens_to_parse(tokens) {
+  let parsed_tokens = [];
+  let context = 'text';
+  let current_text = '';
+
+  function addCurrentText() {  
+    if (current_text.length > 0) {
+      parsed_tokens.push({ type: 'TEXT', value: current_text });
+      current_text = '';
+    }
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+
+    if (context == 'text') {                  ////  If we're looking at text, outside a tag, check only for "<"
+      if (tokens[i].type == 'LESS-THAN') {
+        context = 'start-of-tag';
+        addCurrentText();
+        parsed_tokens.push(tokens[i]);
+      } else {
+        current_text = tokens[i].value;
+      }
+
+    } else if (context == 'start-of-tag') {   ////  If we just saw a "<", check for text or a "/".  Anything else is invalid.
+      if (tokens[i].type == 'TEXT') {           
+        let tag_name = tokens[i].value;
+        let index_of_space = tokens[i].value.indexOf(' ');  //  If the tag name looks like "a href" only get text b4 the space. 
+        if (index_of_space > 0) {
+          tag_name = tokens[i].value.substring(0, index_of_space);
+        }
+        parsed_tokens.push({ type: 'OPEN-TAG', value: tag_name });
+        context = 'in-a-tag';
+        if (index_of_space > 0) {                         //  If the tag name looks like "a href", try the "href" again in new context.
+          tokens[i].value = tokens[i].value.substring(tokens[i].value.indexOf(' '), tokens[i].value.length);
+          i--;
+        }
+      } else if (tokens[i].type == 'FORWARD-SLASH') {
+        context = 'start-of-close-tag';
+        parsed_tokens.push(tokens[i]);
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+
+    } else if (context == 'in-a-tag') {     ////  If in a tag, look for text (attr-name), a /, or a >. Anything else is invalid
+      if (tokens[i].type == 'TEXT') {
+        context = 'attribute-equals';
+        let attr_name = tokens[i].value;
+        let index_of_space = tokens[i].value.indexOf(' ');  //  If the attr name looks like "checked class" only get text b4 the space. 
+        if (index_of_space > 0) {                           //  Note:  If the space is at index 0, like " class", ignore it.
+          attr_name = tokens[i].value.substring(0, index_of_space);
+        }
+        parsed_tokens.push({ type: 'ATTR-NAME', value: attr_name });
+        if (index_of_space > 0) {                         //  If the tag name looks like "checked class", try the "class" again.
+          tokens[i].value = tokens[i].value.substring(tokens[i].value.indexOf(' '), tokens[i].value.length);
+          i--;
+          context = 'in-a-tag';
+        }
+      } else if (tokens[i].type == 'FORWARD-SLASH') {       //  As in, <br/>
+        context = 'end-of-single-tag';
+        parsed_tokens.push(tokens[i]);
+      } else if (tokens[i].type == 'GREATER-THAN') {
+        context = 'text';
+        parsed_tokens.push(tokens[i]);
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+
+    } else if (context == 'attribute-equals') {    ////  If we just saw an ATTR-NAME, expect an equal sign. (or a space, but that's handled in 'in-a-tag')
+      if (tokens[i].type == 'EQUALS') {
+        parsed_tokens.push(tokens[i]);
+        context = 'start-of-attribute'
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+
+    } else if (context == 'start-of-attribute') {  ////  If we just saw something like "class=", expect either ' or ".  Anything else is invalid.
+      if (tokens[i].type == 'SINGLE-QUOTE') {
+        parsed_tokens.push(tokens[i]);
+        context = 'single-quote-attr-value';
+      } else if (tokens[i].type == 'DOUBLE-QUOTE') {
+        parsed_tokens.push(tokens[i]);
+        context = 'double-quote-attr-value';
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+
+    } else if (context == 'single-quote-attr-value') {   ////  If we just saw a single quote, expect text or another single quote. 
+      if (tokens[i].type == 'TEXT') {
+        parsed_tokens.push({ type: 'ATTR-VALUE', value: tokens[i].value });
+      } else if (tokens[i].type == 'SINGLE-QUOTE') {
+        parsed_tokens.push(tokens[i]);
+        context = 'in-a-tag';
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+
+    } else if (context == 'double-quote-attr-value') {   ////  If we just saw a double quote, expect text or another double quote. 
+      if (tokens[i].type == 'TEXT') {
+        parsed_tokens.push({ type: 'ATTR-VALUE', value: tokens[i].value });
+      } else if (tokens[i].type == 'DOUBLE-QUOTE') {
+        parsed_tokens.push(tokens[i]);
+        context = 'in-a-tag';
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+ 
+    } else if (context == 'end-of-single-tag') {    ////  If we just saw a / inside a tag, after the tag name, expect >.  Anything else is invalid
+      if (tokens[i].type == 'GREATER-THAN') {               //  Examples:  <br/>   or <img src="cat.png" />
+        parsed_tokens.push(tokens[i]);
+        context = 'text';
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+
+    } else if (context == 'start-of-close-tag') {  ////  If we just saw </ , expect text (the close tag name)
+      if (tokens[i].type == 'TEXT') { 
+        parsed_tokens.push({ type: 'CLOSE-TAG', value: tokens[i].value });
+        context = 'in-a-close-tag';
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+      
+    } else if (context == 'in-a-close-tag') {      ////  If we just saw a close tag name, expect >
+      if (tokens[i].type == 'GREATER-THAN') {  
+        parsed_tokens.push(tokens[i]);
+        context = 'text';
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+      
+    } else if (context == 'invalid') {
+      current_text += tokens[i].value;
+    }
+  }
+
+  addCurrentText();
+  return parsed_tokens;
+}
+
+//  Accepts an array of parsed tokens, returns a "simplified" list of tag tokens
+function parse_to_tags(parsed_tokens) {
+  let simple_tags = ['TEXT', 'OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE', 'CLOSE-TAG', 'INVALID'];
+  let tag_tokens = [];
+  for (let i = 0; i < parsed_tokens.length; i++) {
+    if (simple_tags.includes(parsed_tokens[i].type)) {
+      tag_tokens.push(parsed_tokens[i]);
+    }
+  }
+  return tag_tokens;
+}
+
+//  This converts the simplified tags into validated simplified tags!
+function tags_to_valid_tags(tag_tokens) {
+  let allowed_tags = [
+    'h1','h2','h3','h4','h5','h6','p','div','span','b','i','pre','code',
+    'ol','ul','li','table','tr','th','td','a','img','br','hr'
+  ];
+  let allowed_attributes = ['style','src','alt','href','target'];
+  let delete_tag = false;   //  Flag to start skipping attributes, once invalid open tag is found
+  let valid_tags = [];
+  for (let i = 0; i < tag_tokens.length; i++) {
+    if (tag_tokens[i].type == 'OPEN-TAG' && !allowed_tags.includes(tag_tokens[i].value)) {
+      delete_tag = true;    //  Skip any tags, and any subsequentattr's belonging to tags, not included in the allowed tags. 
+    } else if (['TEXT', 'CLOSE-TAG', 'OPEN-TAG'].includes(tag_tokens[i].type)) {
+      delete_tag = false;   // Stop skipping tags (set to false) if we're at a TEXT or CLOSE-TAG, or a new OPEN-TAG that's allowed
+    }
+    if (delete_tag) {
+      continue;
+    }
+    if (tag_tokens[i].type == 'CLOSE-TAG' && !allowed_tags.includes(tag_tokens[i].value)) {
+      continue;
+    }
+    if (tag_tokens[i].type == 'ATTR-NAME' && !allowed_attributes.includes(tag_tokens[i].value.trim())) {
+      if (tag_tokens[i+1].type == 'ATTR-VALUE') {
+        i++;
+      }
+      continue;
+    }
+    valid_tags.push(tag_tokens[i]);
+  }
+  return valid_tags;
+}
+
+//  Takes an array of simplified tag tokens, returns a string of HTML
+function tags_to_html(tag_tokens) {
+  let final_html = '';
+  for (let i = 0; i < tag_tokens.length; i++) {
+    let _type = tag_tokens[i].type;
+    let _value = tag_tokens[i].value;
+    if (_type == 'OPEN-TAG') {
+      final_html += `<` + _value;
+    } else if (_type == 'ATTR-NAME') {
+      final_html += _value + `='`;
+    } else if (_type == 'ATTR-VALUE') {
+      final_html += _value + `'`;
+    } else if (_type == 'CLOSE-TAG') {
+      final_html += '</' + _value + '>';
+    } else if (_type == 'TEXT' && i != 0 && ['OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE'].includes(tag_tokens[i-1].type)) {
+      final_html += '>' + _value;
+    } else if (_type == 'TEXT') {
+      final_html += _value;
+    }
+    if (i != 0)
+    console.log(i + ', ' + _type + ': ' + ['OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE'].includes(tag_tokens[i-1].type));
+  }
+  return final_html;
+}
+
+//  Takes a string of HTML, converts it to tokens, validates, returns the final string
+function validate_html(_html) {
+  let _tokens = markup_to_tokens(_html)
+  let _parsed = tokens_to_parse(_tokens);
+  let _tags = parse_to_tags(_parsed);
+  let _valid_tags = tags_to_valid_tags(_tags);
+  let final_html = tags_to_html(_valid_tags);
+  return final_html;
+}
 ```
 
 <br/><br/><br/><br/>
@@ -1691,51 +1949,423 @@ Create a new file, `/cms/convert-markup.js`, and add the following:
 
 <h3 id="c-6"> ☑️ Step 6:   ☞ Test the code!  </h3>
 
-Edit `/cms/convert-markup.js`.  At the end of the file, we're going to run a few tests. 
+Here are three strings I used for testing: 
+
+```js
+`<html>Hello! This is some html! <a href="link.com" target="_blank">Link!</a></html>Text at the end! This is valid!`
+
+`<tag><"This whole string is now valid, because you can't have "<" followed by '"'.  No highlighting here </tag>`
+
+`<div style="color:pink;" alt="hi">This is valid, and will be kept!</div>
+<button onclick="hack()" style="color: purple;">This whole tag is not valid, the text will be kept though!</button>`
+```
+
+The first two
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="c-6">  ☑️ Step 6: Add syntax highlighting in <code>cms/edit-page.html</code>  </h3>
+<h3 id="c-7">  ☑️ Step 7: Add syntax highlighting in <code>cms/edit-page.html</code>  </h3>
 
 In this step, we'll use `/cms/convert-markup.js` to add syntax highlighting.  
 Open up `/cms/edit-page.html` and edit it: 
 
 ```html
+<div class="p-3 center-column" id="loading-page">
+  Loading page...
+</div>
 
+<div class="p-3 center-column" id="dynamic-page">
+  <div class="flex-row">
+    <div style="width:40%;">Route: / <input id="page-route" type="text" value="" oninput="update_pageRoute()" tabindex="1" /></div>
+    <div style="display: flex; align-items: center;">Public? <input id="is-public" type="checkbox" onclick="toggle_publicity()" tabindex="2"/></div>
+  </div>
+  <div class="flex-row">
+    <input id="page-title" type="text" value="" oninput="update_pageTitle()" tabindex="3">
+    <button onclick="cancel()">Cancel</button>
+    <button id="save" onclick="save()" tabindex="6">Save</button>
+  </div>
+  <div id="error"></div>
+
+  <textarea id="page-buffer" spellcheck="false" oninput="update_buffer(event.currentTarget.value)" onscroll="sync_scroll(this);" tabindex="5"></textarea>
+  <pre id="highlighting" aria-hidden="true"><code id="highlighting-content"></code></pre>
+    
+  <br/><br/>
+  <button onclick="render_preview()">Preview</button>
+  <button style="margin-left:20px;" onclick="window.location.href = `/${page_route}`">Go to Page</button>
+  <br/><br/><br/><hr/><br/><br/>
+  <button style="background: var(--red);" onclick="delete_page()">Delete Page</button>
+</div>
+
+<div class="p-3 center-column" id="preview-page">
+  <button onclick="back_to_editor()">Edit</button><br/><hr/><br/>
+  <div id="preview-content"></div>
+</div>
+
+<script src="/pages/cms/convert-markup.js"></script>
+<script>
+
+////  SECTION 1: Page memory
+let page_route = _current_page.split('/edit/')[1];
+let buffer_data = {};
+let page_data = {};
+let is_saved = true;
+
+////  SECTION 2: Render
+
+//  Renders the text editor, final page, or "page does not exist" message.
+function render_page() {
+  document.getElementById('page-route').value = buffer_data.route;
+  document.getElementById('is-public').checked = buffer_data.is_public;
+  document.getElementById('page-title').value = buffer_data.title;
+  document.getElementById('page-buffer').value = buffer_data.content;
+
+  document.getElementById('highlighting-content').innerHTML = create_highlighting(buffer_data.content);
+  check_if_saved();
+}
+
+function render_preview() {
+  document.getElementById('dynamic-page').style.display = `none`;
+  document.getElementById('preview-page').style.display = 'block';
+  document.getElementById('preview-content').innerHTML = buffer_data.content;
+}
+
+function back_to_editor() {
+  document.getElementById('dynamic-page').style.display = `block`;
+  document.getElementById('preview-page').style.display = 'none';
+  render_page();
+}
+
+function create_highlighting(markup_text) {
+  let tokens = markup_to_tokens(markup_text);
+  let parsed = tokens_to_parse(tokens);
+  let colors = {
+    'LESS-THAN': 'var(--yellow)',
+    'GREATER-THAN': 'var(--yellow)',
+    'OPEN-TAG': '#90E2B6',
+    'CLOSE-TAG': '#90E2B6',
+    'FORWARD-SLASH': 'white',
+    'ATTR-NAME': '#FFD024',
+    'EQUALS': 'white',
+    'ATTR-VALUE': '#86C3FD',
+    'DOUBLE-QUOTE': '#86C3FD',
+    'SINGLE-QUOTE': '#86C3FD',
+    'TEXT': 'white',
+    'INVALID': 'white'
+  }
+  let highlighted = '';
+  for (let i = 0; i < parsed.length; i++) {
+    let escaped_text = parsed[i].value.replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#39;");
+    highlighted += parsed[i].type == 'INVALID' ? '<span style="text-decoration:underline;text-decoration-color:red;">' : '';
+    highlighted += `<span style="color:${colors[parsed[i].type]};">${escaped_text}</span>`;
+    highlighted += parsed[i].type == 'INVALID' ? '</span>' : '';
+
+  }
+  return highlighted;
+}
+
+////  SECTION 3: Event reactions
+
+//  Fired if unsaved changes exist
+function beforeUnloadListener(event) {
+  event.preventDefault();
+  return (event.returnValue = "");
+};
+
+//  Fired in render_page() and in any buffer editing function
+function check_if_saved() {
+  is_saved = (buffer_data.content == page_data.content) && (buffer_data.title == page_data.title) 
+    && (buffer_data.is_public == page_data.is_public) && (buffer_data.route == page_data.route);
+  if (!is_saved) {
+    addEventListener("beforeunload", beforeUnloadListener, { capture: true });
+    document.getElementById('save').classList.remove('inactive');
+  } else {
+    removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
+    document.getElementById('save').classList.add('inactive');
+  }
+}
+
+//  Fires when new page content is typed.
+function update_buffer(newval) {
+  buffer_data.content = newval;
+  document.getElementById('highlighting-content').innerHTML = create_highlighting(buffer_data.content);
+
+  if(buffer_data.content[buffer_data.content.length - 1] == "\n") {     // Fixing "last newline" error -- see css-tricks article
+    document.getElementById('highlighting-content').innerHTML += " ";  
+  }
+  check_if_saved();
+}
+
+//  Syncronizes the textarea scroll with the highlighted <pre> scroll
+function sync_scroll(element) {
+  let result_element = document.querySelector("#highlighting");
+  result_element.scrollTop = element.scrollTop;
+  result_element.scrollLeft = element.scrollLeft;
+}
+
+//  Fires when the page title is changed. 
+function update_pageTitle() {
+  buffer_data.title = document.getElementById('page-title').value;
+  check_if_saved();
+}
+
+function update_pageRoute() {
+  buffer_data.route = document.getElementById('page-route').value;
+  check_if_saved();
+}
+
+function toggle_publicity() {
+  buffer_data.is_public = !buffer_data.is_public;
+  render_page();
+}
+
+//  Fires when "Save page changes" is clicked.
+function save() {
+  console.log("saving...")
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/update-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    title: buffer_data.title,
+    content: buffer_data.content,
+    route: buffer_data.route,
+    is_public: buffer_data.is_public
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Page updated.");
+        page_data.content = buffer_data.content;
+        page_data.title = buffer_data.title;
+        page_data.route = buffer_data.route;
+        page_data.is_public = buffer_data.is_public;
+        render_page();
+        if (_current_page.split('/edit/')[1] != buffer_data.route) {
+          window.location.href = '/edit/' + buffer_data.route;
+        }
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+//  Fires when the cancel button is clicked.
+function cancel() {
+  if (confirm('Are you sure? Changes will not be saved!')) {
+    window.location.href = '/edit/' + page_route;
+  }
+}
+
+//  Fired when the delete page button is clicked
+function delete_page() {
+  if (!confirm(`Are you sure you want to permanently delete /${page_route}?`)) {
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/delete-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id
+  }));
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = "Page deleted.  Redirecting you...";
+        window.location.href = '/';
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+////  SECTION 4: Boot
+//  Load all page elements from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('GET', `/api/page?route=${page_route}`);
+  http.send();
+  console.log('Requesting page')
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      document.getElementById('loading-page').style.display = 'none';
+      document.getElementById('dynamic-page').style.display = 'block';
+      if (!response.error) {
+        console.log("Response recieved! Loading page.");
+        page_data = response.data;
+        buffer_data.content = page_data.content || "";
+        buffer_data.title = page_data.title || "";
+        buffer_data.route = page_data.route;
+        buffer_data.is_public = page_data.is_public;
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+window.addEventListener('load', (event) => {
+  load_page();
+});
+
+</script>
+
+<style> 
+  #dynamic-page {
+    position: relative;
+    padding: 40px 0px;
+    display: none;
+  }
+
+  #preview-page {
+    display: none;
+  }
+
+  #dynamic-page input:not([type='checkbox']) {
+    font-family: CrimsonText;
+    width: 60%;
+  }
+
+  input#page-route {
+    font-size: 1em;
+  }
+
+  input#page-title {
+    margin: 0.67em 0px;
+    padding: 0px;
+    font-size: 2em;
+  }
+  
+  /*  Page buffer + highlighter */
+  #page-buffer, #highlighting {
+    height: 60vh;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    box-sizing: border-box;
+    overflow-y: scroll;
+  }
+  #page-buffer {
+    position: absolute;
+    z-index: 1;
+    color: transparent;
+    background: transparent;
+    caret-color: white;
+    resize: none;
+  }
+  #highlighting {
+    z-index: 0;
+  }
+
+  .flex-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #dynamic-page button {
+    width: 15%;
+  }
+
+  #dynamic-page button#save {
+    background: #3A7B64;
+  }
+  .inactive {
+    opacity: 0.5;
+  }
+
+</style>
 ```
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="c-5"> ☑️ Step 5:   ☞ Test the code!  </h3>
+<h3 id="c-8"> ☑️ Step 8:   ☞ Test the code!  </h3>
 
-Load the page with our test markup.  It should appear sanitized! (_But actually not yet!_)
+Edit a page.  You should see syntax highlighting when you type html!  
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="c-6">  ☑️ Step 6: Display page preview in <code>cms/edit-page.html</code>  </h3>
+<h3 id="c-9">  ☑️ Step 9: Display page preview in <code>cms/edit-page.html</code>  </h3>
 
 We'll make the page editor preview display the sanitized version of pages as well.   
-_This is also postponed for now._
+
+In `/cms/edit-page.html`, edit the function `render_preview`:
+
+```js
+function render_preview() {
+  document.getElementById('dynamic-page').style.display = `none`;
+  document.getElementById('preview-page').style.display = 'block';
+  document.getElementById('preview-content').innerHTML = validate_html(buffer_data.content);
+}
+```
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="c-7"> ☑️ Step 7:   ☞ Test the code!  </h3>
+<h3 id="c-10"> ☑️ Step 10:   ☞ Test the code!  </h3>
 
-Open the page editor and click "preview".  It should appear sanitized! (_But actually not yet!_)
+Edit a page to have something like this:
+```html
+<div style="color:pink;" alt="hi">This is valid, and will be kept!</div>
+<button onclick="hack()" style="color: purple;">This whole tag is not valid, the text will be kept though!</button>
+```
+
+Click "preview".  The page should appear, with pink text on the first line, but no button or styling on the second. 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="c-8">☑️ Step 8. ❖ Part C review. </h3>
+<h3 id="c-11">  ☑️ Step 11: Display validated pages in <code>cms/display-page.html</code>  </h3>
+
+We now need to apply our validation to `/cms/display-page.html`.  
+We'll add one line, importing our new script, right before our inline script tag:
+```html
+<script src="/pages/cms/convert-markup.js"></script>
+```
+
+Then, we'll edit one line in this function:
+```js
+////  SECTION 2: Render
+function render_page() {
+  document.getElementById('dynamic-page').innerHTML = `<h1>${page_data.title}</h1>`
+  document.getElementById('dynamic-page').innerHTML += validate_html(page_data.content);
+  document.getElementById('dynamic-page').innerHTML += `<a href="/edit/${page_data.route}"><button id="edit-button"><img src="/assets/icons/edit.svg" />Edit</button></a>`;
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+
+<h3 id="c-12"> ☑️ Step 12:   ☞ Test the code!  </h3>
+
+Save a page with something like the test markup from [step 10](#c-10), then go to the page.   
+The valid markup should appear! 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-13">☑️ Step 13. ❖ Part C review. </h3>
 
 The complete code for Part C is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_C).
 
