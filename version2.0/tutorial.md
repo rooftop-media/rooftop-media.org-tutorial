@@ -1719,12 +1719,12 @@ function markup_to_tokens(markup) {
 function tokens_to_parse(tokens) {
   let parsed_tokens = [];
   let context = 'text';
-  let current_text = '';
+  let current_value = '';
 
-  function addCurrentText() {  
-    if (current_text.length > 0) {
-      parsed_tokens.push({ type: 'TEXT', value: current_text });
-      current_text = '';
+  function addCurrentValue(_type) {  
+    if (current_value.length > 0) {
+      parsed_tokens.push({ type: _type, value: current_value });
+      current_value = '';
     }
   }
 
@@ -1733,10 +1733,10 @@ function tokens_to_parse(tokens) {
     if (context == 'text') {                  ////  If we're looking at text, outside a tag, check only for "<"
       if (tokens[i].type == 'LESS-THAN') {
         context = 'start-of-tag';
-        addCurrentText();
+        addCurrentValue('TEXT');
         parsed_tokens.push(tokens[i]);
       } else {
-        current_text = tokens[i].value;
+        current_value += tokens[i].value;
       }
 
     } else if (context == 'start-of-tag') {   ////  If we just saw a "<", check for text or a "/".  Anything else is invalid.
@@ -1785,10 +1785,13 @@ function tokens_to_parse(tokens) {
         context = 'invalid';
       }
 
-    } else if (context == 'attribute-equals') {    ////  If we just saw an ATTR-NAME, expect an equal sign. (or a space, but that's handled in 'in-a-tag')
+    } else if (context == 'attribute-equals') {    ////  If we just saw an ATTR-NAME, expect = or /. (or a space, but that's handled in 'in-a-tag')
       if (tokens[i].type == 'EQUALS') {
         parsed_tokens.push(tokens[i]);
-        context = 'start-of-attribute'
+        context = 'start-of-attribute';
+      } else if (tokens[i].type == 'FORWARD-SLASH') {
+        parsed_tokens.push(tokens[i]);
+        context = 'end-of-single-tag';
       } else {
         parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
         context = 'invalid';
@@ -1806,10 +1809,11 @@ function tokens_to_parse(tokens) {
         context = 'invalid';
       }
 
-    } else if (context == 'single-quote-attr-value') {   ////  If we just saw a single quote, expect text or another single quote. 
-      if (tokens[i].type == 'TEXT') {
-        parsed_tokens.push({ type: 'ATTR-VALUE', value: tokens[i].value });
+    } else if (context == 'single-quote-attr-value') {   ////  If we just saw a single quote, expect text, /, ", = or a closing '. 
+      if (['TEXT', 'FORWARD-SLASH', 'DOUBLE-QUOTE', 'EQUALS'].includes(tokens[i].type)) {
+        current_value += tokens[i].value;
       } else if (tokens[i].type == 'SINGLE-QUOTE') {
+        addCurrentValue('ATTR-VALUE');
         parsed_tokens.push(tokens[i]);
         context = 'in-a-tag';
       } else {
@@ -1817,10 +1821,11 @@ function tokens_to_parse(tokens) {
         context = 'invalid';
       }
 
-    } else if (context == 'double-quote-attr-value') {   ////  If we just saw a double quote, expect text or another double quote. 
-      if (tokens[i].type == 'TEXT') {
-        parsed_tokens.push({ type: 'ATTR-VALUE', value: tokens[i].value });
+    } else if (context == 'double-quote-attr-value') {   ////  If we just saw a double quote, expect text, /, ', = or a closing ". 
+      if (['TEXT', 'FORWARD-SLASH', 'SINGLE-QUOTE', 'EQUALS'].includes(tokens[i].type)) {
+        current_value += tokens[i].value;
       } else if (tokens[i].type == 'DOUBLE-QUOTE') {
+        addCurrentValue('ATTR-VALUE');
         parsed_tokens.push(tokens[i]);
         context = 'in-a-tag';
       } else {
@@ -1856,11 +1861,11 @@ function tokens_to_parse(tokens) {
       }
       
     } else if (context == 'invalid') {
-      current_text += tokens[i].value;
+      current_value += tokens[i].value;
     }
   }
 
-  addCurrentText();
+  addCurrentValue('TEXT');
   return parsed_tokens;
 }
 
@@ -1949,13 +1954,18 @@ function validate_html(_html) {
 
 <h3 id="c-6"> ☑️ Step 6:   ☞ Test the code!  </h3>
 
-Here are three strings I used for testing: 
+Here are the strings I used for testing: 
 
 ```js
+//  For testing in syntax highlighting:
 `<html>Hello! This is some html! <a href="link.com" target="_blank">Link!</a></html>Text at the end! This is valid!`
-
 `<tag><"This whole string is now valid, because you can't have "<" followed by '"'.  No highlighting here </tag>`
+`<div>This text has some quote's and "apostrophes", and http://slashes.com, and an equals=sign.</div>`
+`<a href="http://link-with-two-slashes.com">Link with two slashes</a>`
+`<span attrOne="A double quote with 'single quotes', /slashes, and =equals" attrTwo='A single quote with "double quotes", /slashes, and =equals'>Text!</span>`;
+`<input type="checkbox" checked /> <input checked type="checkbox" />Just checking!`
 
+//  For testing markup conversion:
 `<div style="color:pink;" alt="hi">This is valid, and will be kept!</div>
 <button onclick="hack()" style="color: purple;">This whole tag is not valid, the text will be kept though!</button>`
 ```
