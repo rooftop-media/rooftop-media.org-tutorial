@@ -417,8 +417,7 @@ let page_data = {};
 
 ////  SECTION 2: Render
 function render_page() {
-  document.getElementById('dynamic-page').innerHTML = `<h1>${page_data.title}</h1>`
-  document.getElementById('dynamic-page').innerHTML += page_data.content;
+  document.getElementById('dynamic-page').innerHTML = page_data.content;
   document.getElementById('dynamic-page').innerHTML += `<a href="/edit/${page_data.route}"><button id="edit-button"><img src="/assets/icons/edit.svg" />Edit</button></a>`;
 }
 
@@ -1640,7 +1639,7 @@ So, we may as well add them to a static page of the website.
     <li>
       Remove any tags that aren't one of these: 
       <ul>
-        <li>h1 - h6, p, div, span, b, i, code, pre</li>
+        <li>h1 - h6, p, div, span, b, i, code, pre, style</li>
         <li>ol, ul, li, table, tr, th, td, a, img, br, hr</li>
         <li>Comments, in the form &lt;!-- comment text --&gt;</li>
       </ul>
