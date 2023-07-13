@@ -1645,7 +1645,7 @@ So, we may as well add them to a static page of the website.
       </ul>
     </li>
     <li>Remove any attributes other than</li>
-    <ul><li>style, img, src, href, target</li></ul>
+    <ul><li>style, img, src, href, target, class, id</li></ul>
   </ul>
   <p>This is done to sanitize the markup, ensuring no pages include extra javascript. </p>
   <p>It also ensures that no deprecated tags are used.  Note that other invalid HTML syntax, like badly nested tags or unclosed tags, are not detected nor handled.</p>
@@ -1913,7 +1913,7 @@ function tags_to_valid_tags(tag_tokens) {
     'h1','h2','h3','h4','h5','h6','p','div','span','b','i','pre','code',
     'ol','ul','li','table','tr','th','td','a','img','br','hr'
   ];
-  let allowed_attributes = ['style','src','alt','href','target'];
+  let allowed_attributes = ['style','src','alt','href','target','class','id'];
   let delete_tag = false;   //  Flag to start skipping attributes, once invalid open tag is found
   let valid_tags = [];
   for (let i = 0; i < tag_tokens.length; i++) {
