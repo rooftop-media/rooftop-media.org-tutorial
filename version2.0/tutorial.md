@@ -2100,10 +2100,14 @@ function create_highlighting(markup_text) {
          .replace(/>/g, "&gt;")
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#39;");
+
     highlighted += parsed[i].type == 'INVALID' ? '<span style="text-decoration:underline;text-decoration-color:red;">' : '';
     highlighted += `<span style="color:${colors[parsed[i].type]};">${escaped_text}</span>`;
     highlighted += parsed[i].type == 'INVALID' ? '</span>' : '';
 
+  }
+  if(buffer_data.content[buffer_data.content.length - 1] == "\n") {     // Fixing "last newline" error -- see css-tricks article
+    highlighted += " ";  
   }
   return highlighted;
 }
@@ -2295,6 +2299,7 @@ window.addEventListener('load', (event) => {
     padding: 5px;
     box-sizing: border-box;
     overflow-y: scroll;
+    
   }
   #page-buffer {
     position: absolute;
