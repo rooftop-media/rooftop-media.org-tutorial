@@ -1631,7 +1631,7 @@ So, we may as well add them to a static page of the website.
     <li><a href="#valid-html">Valid HTML</a></li>
     <li><a href="#valid-shorthand">Valid Shorthand</a></li>
   </ul>
-  <br/><br/><br/><br/><hr/><br/><br/><br/><br/>
+  <br/><br/><br/><br/><hr/></><br/><br/><br/>
   <h3 id="#valid-html">Valid HTML</h3>
   <p>Rooftop Markup recognizes HTML tags using the following system:</p>
   <ul>
@@ -1642,6 +1642,7 @@ So, we may as well add them to a static page of the website.
       <ul>
         <li>h1 - h6, p, div, span, b, i, code, pre</li>
         <li>ol, ul, li, table, tr, th, td, a, img, br, hr</li>
+        <li>Comments, in the form &lt;!-- comment text --&gt;</li>
       </ul>
     </li>
     <li>Remove any attributes other than</li>
@@ -1690,7 +1691,9 @@ function markup_to_tokens(markup) {
     '=': 'EQUALS',
     '"': 'DOUBLE-QUOTE',
     "'": 'SINGLE-QUOTE',
-    '>': 'GREATER-THAN'
+    '>': 'GREATER-THAN',
+    '-': 'DASH',
+    '!': 'EXCLAMATION'
   }
   let tokenKeys = Object.keys(tokenNames);
   let currentText = ''
@@ -1739,7 +1742,7 @@ function tokens_to_parse(tokens) {
         current_value += tokens[i].value;
       }
 
-    } else if (context == 'start-of-tag') {   ////  If we just saw a "<", check for text or a "/".  Anything else is invalid.
+    } else if (context == 'start-of-tag') {   ////  If we just saw a "<", check for text, /, or !.  Anything else is invalid.
       if (tokens[i].type == 'TEXT') {           
         let tag_name = tokens[i].value;
         let index_of_space = tokens[i].value.indexOf(' ');  //  If the tag name looks like "a href" only get text b4 the space. 
@@ -1754,6 +1757,9 @@ function tokens_to_parse(tokens) {
         }
       } else if (tokens[i].type == 'FORWARD-SLASH') {
         context = 'start-of-close-tag';
+        parsed_tokens.push(tokens[i]);
+      } else if (tokens[i].type == 'EXCLAMATION') {
+        context = 'start-of-comment';
         parsed_tokens.push(tokens[i]);
       } else {
         parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
@@ -1810,7 +1816,7 @@ function tokens_to_parse(tokens) {
       }
 
     } else if (context == 'single-quote-attr-value') {   ////  If we just saw a single quote, expect text, /, ", = or a closing '. 
-      if (['TEXT', 'FORWARD-SLASH', 'DOUBLE-QUOTE', 'EQUALS'].includes(tokens[i].type)) {
+      if (['TEXT', 'FORWARD-SLASH', 'DOUBLE-QUOTE', 'EQUALS', 'DASH', 'EXCLAMATION'].includes(tokens[i].type)) {
         current_value += tokens[i].value;
       } else if (tokens[i].type == 'SINGLE-QUOTE') {
         addCurrentValue('ATTR-VALUE');
@@ -1822,7 +1828,7 @@ function tokens_to_parse(tokens) {
       }
 
     } else if (context == 'double-quote-attr-value') {   ////  If we just saw a double quote, expect text, /, ', = or a closing ". 
-      if (['TEXT', 'FORWARD-SLASH', 'SINGLE-QUOTE', 'EQUALS'].includes(tokens[i].type)) {
+      if (['TEXT', 'FORWARD-SLASH', 'SINGLE-QUOTE', 'EQUALS', 'DASH', 'EXCLAMATION'].includes(tokens[i].type)) {
         current_value += tokens[i].value;
       } else if (tokens[i].type == 'DOUBLE-QUOTE') {
         addCurrentValue('ATTR-VALUE');
@@ -1860,6 +1866,27 @@ function tokens_to_parse(tokens) {
         context = 'invalid';
       }
       
+    } else if (context == 'start-of-comment') {    ////  If we just saw <!, expect two dashes.
+      if (tokens[i].type == 'DASH' && i < tokens.length - 1 && tokens[i+1].type == 'DASH') {  
+        parsed_tokens.push(tokens[i]);
+        parsed_tokens.push(tokens[i]);
+        i++;
+        context = 'in-a-comment';
+      } else {
+        parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
+        context = 'invalid';
+      }
+    } else if (context == 'in-a-comment') {    ////  If we just saw <!, expect two dashes.
+      if (tokens[i].type == 'DASH' && i < tokens.length - 2 && tokens[i+1].type == 'DASH' && tokens[i+2].type == 'GREATER-THAN') {  
+        addCurrentValue('COMMENT');
+        parsed_tokens.push(tokens[i]);
+        parsed_tokens.push(tokens[i]);
+        i += 2;
+        parsed_tokens.push(tokens[i]);
+        context = 'text';
+      } else {
+        current_value += tokens[i].value;
+      }
     } else if (context == 'invalid') {
       current_value += tokens[i].value;
     }
@@ -1964,6 +1991,7 @@ Here are the strings I used for testing:
 `<a href="http://link-with-two-slashes.com">Link with two slashes</a>`
 `<span attrOne="A double quote with 'single quotes', /slashes, and =equals" attrTwo='A single quote with "double quotes", /slashes, and =equals'>Text!</span>`;
 `<input type="checkbox" checked /> <input checked type="checkbox" />Just checking!`
+`<!-- This is a comment! <tags>, //slashes, =equals, and '"quotes are all ignored. Single-dashes are also allowed. -->`
 
 //  For testing markup conversion:
 `<div style="color:pink;" alt="hi">This is valid, and will be kept!</div>
@@ -1973,7 +2001,6 @@ Here are the strings I used for testing:
 The first two
 
 <br/><br/><br/><br/>
-
 
 
 <h3 id="c-7">  ☑️ Step 7: Add syntax highlighting in <code>cms/edit-page.html</code>  </h3>
@@ -2062,6 +2089,9 @@ function create_highlighting(markup_text) {
     'DOUBLE-QUOTE': '#86C3FD',
     'SINGLE-QUOTE': '#86C3FD',
     'TEXT': 'white',
+    'COMMENT': 'gray',
+    'DASH': 'gray',
+    'EXCLAMATION': 'gray',
     'INVALID': 'white'
   }
   let highlighted = '';
