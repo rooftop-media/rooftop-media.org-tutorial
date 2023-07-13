@@ -2341,11 +2341,10 @@ We'll add one line, importing our new script, right before our inline script tag
 <script src="/pages/cms/convert-markup.js"></script>
 ```
 
-Then, we'll edit one line in this function:
+Then, we'll delete a line and edit a line in this function:
 ```js
 ////  SECTION 2: Render
 function render_page() {
-  document.getElementById('dynamic-page').innerHTML = `<h1>${page_data.title}</h1>`
   document.getElementById('dynamic-page').innerHTML += validate_html(page_data.content);
   document.getElementById('dynamic-page').innerHTML += `<a href="/edit/${page_data.route}"><button id="edit-button"><img src="/assets/icons/edit.svg" />Edit</button></a>`;
 }
