@@ -1281,14 +1281,27 @@ This part will accomplish:
 In HTML, text input tags `<input>` and `<textarea>` can only display one, uninterrupted style of text.  
 However, to add syntax highlighting while editing pages, we'll need colored text in an textarea!  
 
-This is accomplished by layering a textarea over a `<pre>` tag, and then hiding the textarea, except the caret.  
+This *could* be accomplished by layering a textarea over a `<pre>` tag, and then hiding the textarea, except the caret.  
 The concept implementation is described nicely [here](https://css-tricks.com/creating-an-editable-textarea-that-supports-syntax-highlighted-code/).  
 
-To test out the concept before we've analysed the markup syntax, we'll just replace every `b` that's typed with `<span style="color:cyan">b</span>`.  
+However, that method has two issues:
+ - Getting the `pre` tag to stay in sync with the `textarea` is tricky, when we're adding `span`s into the pre tag.
+ - HTML textareas can only have one caret for inputting text.
+
+So, we can implement a totally custom "textarea" tag with features including...
+ - a caret representing cursor position
+ - click detection, text highlighting
+
+In the future, we'll add extra features, like the extra caret, to this system as well. 
+
+To test out the custom textarea concept before we've analysed the markup syntax, we'll just replace every `b` that's typed with `<span style="color:cyan">b</span>`.  
 
 Edit  `cms/edit-page.html`: 
 
 ```javascript
+
+TODO: Update this!
+
 <div class="p-3 center-column" id="loading-page">
   Loading page...
 </div>
