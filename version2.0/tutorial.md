@@ -1281,27 +1281,14 @@ This part will accomplish:
 In HTML, text input tags `<input>` and `<textarea>` can only display one, uninterrupted style of text.  
 However, to add syntax highlighting while editing pages, we'll need colored text in an textarea!  
 
-This *could* be accomplished by layering a textarea over a `<pre>` tag, and then hiding the textarea, except the caret.  
-The concept implementation is described nicely [here](https://css-tricks.com/creating-an-editable-textarea-that-supports-syntax-highlighted-code/).  
-
-However, that method has two issues:
- - Getting the `pre` tag to stay in sync with the `textarea` is tricky, when we're adding `span`s into the pre tag.
- - HTML textareas can only have one caret for inputting text.
-
-So, we can implement a totally custom "textarea" tag with features including...
- - a caret representing cursor position
- - click detection, text highlighting
-
-In the future, we'll add extra features, like the extra caret, to this system as well. 
+This can be accomplished by layering a textarea over a `<pre>` tag, and then hiding the textarea, except the caret.  
+The implementation is described nicely [here](https://css-tricks.com/creating-an-editable-textarea-that-supports-syntax-highlighted-code/).  
 
 To test out the custom textarea concept before we've analysed the markup syntax, we'll just replace every `b` that's typed with `<span style="color:cyan">b</span>`.  
 
 Edit  `cms/edit-page.html`: 
 
 ```javascript
-
-TODO: Update this!
-
 <div class="p-3 center-column" id="loading-page">
   Loading page...
 </div>
@@ -1584,6 +1571,11 @@ load_page();
 </style>
 ```
 
+This method has two issues:
+ - Getting the `pre` tag to stay in sync with the `textarea` is tricky, when we're adding `span`s into the pre tag.
+ - HTML textareas can only have one caret for inputting text.
+We *could* implement a totally custom "textarea" tag to solve these issues, but that would take too long.
+
 <br/><br/><br/><br/>
 
 
@@ -1641,7 +1633,7 @@ So, we may as well add them to a static page of the website.
   <h3>Table of contents:</h3>
   <ul>
     <li><a href="#valid-html">Valid HTML</a></li>
-    <li><a href="#valid-shorthand">Valid Shorthand</a></li>
+    <li><a href="#valid-shorthand">Valid Shorthand</a> <i>Todo...</i></li>
   </ul>
   <br/><br/><br/><br/><hr/></><br/><br/><br/>
   <h3 id="#valid-html">Valid HTML</h3>
@@ -1662,6 +1654,8 @@ So, we may as well add them to a static page of the website.
   </ul>
   <p>This is done to sanitize the markup, ensuring no pages include extra javascript. </p>
   <p>It also ensures that no deprecated tags are used.  Note that other invalid HTML syntax, like badly nested tags or unclosed tags, are not detected nor handled.</p>
+
+
   <br/><br/><br/><br/><hr/><br/><br/><br/><br/>
   
 </div>
@@ -2441,27 +2435,32 @@ We'll also make sure that only the user who creates a page can edit it.
 
 
 
-<h3 id="d-1">  ☑️ Step 1: Editing <code>respond_with_a_dynamic_page</code> in <code>server.js</code>  </h3>
+<h3 id="d-1">  ☑️ Step 1: Editing <code>GET_page</code> in <code>server.js</code>  </h3>
 
-If a requested page is private, we won't send it to the browser at all.  
-We'll check for that in the `respond_with_a_dynamic_page` function in `server/server.js`, by adding an "or" to the first "if". 
+If a requested page is private, we won't send it to the browser at all, unless the user created the page
+
+We _could_ do this by sending the user's id to the server, and comparing it to the page's "created_by" user.  
+But then, users could gain access to pages by editing the request code -- they'd just need to know the "created_by" user's id. 
+The user's id might be public, for example, in data sent for a user's page.  
+
+We'll check for that in the `GET_page` function in `server/server.js`, by adding an "or" to the first "if". 
 
 ```js
-function respond_with_a_dynamic_page(res, url) {
-  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
-  let content_page = "";
-  if (page_data.length < 1 || !page_data[0].is_public) {
-    content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-  } else {
-    content_page = fs.readFileSync(__dirname + '/../pages/cms/display-page.html', {encoding:'utf8'});
+function GET_page(req_data, res) {
+  let page_data = DataBase.table('pages').find({ route: req_data.route });
+  let response = {
+    error: false,
+    data: null
   }
-  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-  var page_halves = main_page.split('<!--  Insert page content here!  -->');
-  content_page = page_halves[0] + content_page + page_halves[1];
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(content_page);
-  res.end();
+  if (page_data.length < 1 || !page_data[0].is_public) {
+    response.error = true;
+    response.msg = `The page ${req_data.route} was not found.`;
+  } else {
+    response.data =  page_data[0];
+  }
+  api_response(res, 200, JSON.stringify(response));
 }
+
 ```
 
 <br/><br/><br/><br/>
