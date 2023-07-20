@@ -2447,17 +2447,18 @@ We'll check for that in the `GET_page` function in `server/server.js`, by adding
 
 ```js
 function GET_page(req_data, res) {
+  let response = { error: false };
   let page_data = DataBase.table('pages').find({ route: req_data.route });
-  let response = {
-    error: false,
-    data: null
-  }
-  if (page_data.length < 1 || !page_data[0].is_public) {
+  let session_data = DataBase.table('sessions').find({ id: req_data.session_id });
+  if (page_data.length < 1) {
     response.error = true;
     response.msg = `The page ${req_data.route} was not found.`;
-  } else {
+  } else if (page_data[0].is_public || (session_data.length > 0 && page_data[0].created_by == session_data[0].user_id)) {
     response.data =  page_data[0];
-  }
+  } else {
+    response.error = true;
+    response.msg = `You don't have permission to view this page.`;
+  } 
   api_response(res, 200, JSON.stringify(response));
 }
 
@@ -2467,19 +2468,53 @@ function GET_page(req_data, res) {
 
 
 
-<h3 id="d-2"> ☑️ Step 2:   ☞ Test the code!  </h3>
+<h3 id="d-2">  ☑️ Step 2: Editing <code>load_page</code> in <code>dynamic-page.html</code>  </h3>
 
-Make sure one of your pages is public, and then view it.  It should display.  
 
-Edit the page to make it private, save it, and then view it.  It should appear as a 404 now.  
+```js
+////  SECTION 4: Boot
+//  Load page from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('GET', `/api/page?route=${page_route}&session_id=${_session_id}`);
+  http.send();
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Loading page.");
+        page_data = response.data;
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+current_user_loaded = function() {
+  load_page();
+}
+```
 
-Back on the edit page, you should still be able to see your private page by previewing it. 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="d-3">  ☑️ Step 3: Editing <code>POST_update_page</code> in <code>server.js</code>  </h3>
+<h3 id="d-3"> ☑️ Step 3:   ☞ Test the code!  </h3>
+
+After refreshing the server, editing pages will be broken. We'll fix that next.  
+
+Public pages should be viewable by anyone, logged in or logged out.  
+
+Private pages should not be viewable by anyone, except for the creator of that page.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-4">  ☑️ Step 4: Editing <code>POST_update_page</code> in <code>server.js</code>  </h3>
 
 We now need to make sure that only the user that creates a page can edit that page.  
 
