@@ -19,8 +19,6 @@ function logout() {
   }
 }
 
-function current_user_loaded() {}
-
 // Update the "user buttons" in the header
 function render_user_buttons() {
   let userButtonsEl = document.getElementById('user-buttons');
@@ -45,6 +43,7 @@ function render_user_buttons() {
 
 }
 
+function current_user_loaded() {}
 
 ////  SECTION 3: Boot.
 function boot() {
@@ -58,15 +57,16 @@ function boot() {
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
-        current_user_loaded();
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
       }
+      current_user_loaded();
       render_user_buttons();
     }
   } else {
     render_user_buttons();
+    current_user_loaded();
   }
   
   //  Redirect to home if...

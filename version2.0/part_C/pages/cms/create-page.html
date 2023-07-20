@@ -2,7 +2,7 @@
   <h3>Create a New Page</h3>
   <div>Page title: <input type="text" tabindex="1" id="page_title" placeholder="My Blog"/></div>
   <div>Page route: <input type="text" tabindex="2" id="page_route" placeholder="my-blog"/></div>
-  <div style="display: flex; align-items: center;">Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
+  <div>Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
   <p id="error"></p>
   <button onclick="create_page()" tabindex="4">Create Page</button>
 </div>
@@ -24,17 +24,17 @@ page_route_input.addEventListener("keydown", event => {
 });
 
 function create_page() {
-  var page_title = document.getElementById('page_title').value;
-  var page_route = document.getElementById('page_route').value;
+  var title = document.getElementById('page_title').value;
+  var route = document.getElementById('page_route').value;
   var is_public = document.getElementById('is_public').checked;
   
-  if (page_route.length < 2) {
+  if (route.length < 2) {
     document.getElementById('error').innerHTML = 'Page route must be at least 2 characters..';
     return;
-  } else if (page_title.length < 2) {
+  } else if (title.length < 2) {
     document.getElementById('error').innerHTML = 'Page title must be at least 2 characters..';
     return;
-  } else if (!page_route_regex.test(page_route)) {
+  } else if (!page_route_regex.test(route)) {
     document.getElementById('error').innerHTML = "Page route can only contain lowercase letters, numbers, underscores and dashes.";
     return;
   }
@@ -42,11 +42,13 @@ function create_page() {
   const http = new XMLHttpRequest();
   http.open('POST', '/api/create-page');
   http.send(JSON.stringify({
-    page_title,
-    page_route,
+    title,
+    route,
     is_public,
     created_by: _current_user.id,
-    content: ''
+    date_created: new Date().toString(),
+    content: '',
+    history: []
   }));
   http.onreadystatechange = (e) => {
     let response;      
@@ -54,7 +56,7 @@ function create_page() {
       response = JSON.parse(http.responseText);
       if (!response.error) {
         console.log("Response recieved! Creating page.");
-        window.location.href = '/' + page_route;
+        window.location.href = '/' + route;
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }

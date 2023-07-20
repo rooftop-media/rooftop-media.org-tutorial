@@ -39,6 +39,7 @@ var pageURLs = {
   '/profile': '/pages/misc/profile.html',
   '/create-page': '/pages/cms/create-page.html',
   '/all-pages': '/pages/cms/all-pages.html',
+  '/markup-rules': '/pages/cms/markup-rules.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -65,60 +66,49 @@ function server_request(req, res) {
 }
 
 function respond_with_a_page(res, url) {
-  if (pageURLkeys.includes(url)) {
-    url = pageURLs[url];
-  } else if (url.substring(0, 6) == '/edit/') {
-    url = '/pages/cms/edit-page.html';
-  } else  {
-    return respond_with_a_dynamic_page(res, url);
-  }
-  fs.readFile( __dirname + '/..' + url, function(error, content) {
-    var content_page = "";
-    if (error) {
-      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      content_page = content;
-    }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-    var page_halves = main_page.split('<!--  Insert page content here!  -->');
-    var rendered = page_halves[0] + content_page + page_halves[1];
-    res.write(rendered);
-    res.end();
-  });
-}
+  let page_content = "";
 
-function respond_with_a_dynamic_page(res, url) {
-  let page_data = DataBase.table('pages').find({ page_route: url.slice(1) });  //  Removing the "/" from the route
-  let content_page = "";
-  if (page_data.length < 1 || !page_data[0].is_public) {
-    content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-  } else {
-    content_page = fs.readFileSync(__dirname + '/../pages/cms/display-page.html', {encoding:'utf8'});
+  if (pageURLkeys.includes(url)) {  //  If it's a static page route....
+    url = pageURLs[url];
+    try {
+      page_content = fs.readFileSync( __dirname + '/..' + url);
+    } catch(err) {
+      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+    }
+  } else if (url.substring(0, 6) == '/edit/') {
+    page_content = fs.readFileSync(__dirname + '/../pages/cms/edit-page.html');
+  } else {                          //  If it's a dynamic page route....
+    let page_data = DataBase.table('pages').find({ route: url.slice(1) });  //  Removing the "/" from the route
+    if (page_data.length < 1) {
+      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+    } else {
+      page_content = fs.readFileSync(__dirname + '/../pages/cms/dynamic-page.html');
+    }
   }
+  res.writeHead(200, {'Content-Type': 'text/html'});
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
   var page_halves = main_page.split('<!--  Insert page content here!  -->');
-  content_page = page_halves[0] + content_page + page_halves[1];
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(content_page);
+  var rendered = page_halves[0] + page_content + page_halves[1];
+  res.write(rendered);
   res.end();
 }
+
 
 function respond_with_asset(res, url, extname) {
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     if (error) {
-        if(error.code == 'ENOENT') {
-          res.writeHead(404, { 'Content-Type': 'text/html' });
-          res.end('404 -- asset not found', 'utf-8');
-        }
-        else {
-      res.writeHead(500);
-      res.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
-        }
+      if(error.code == 'ENOENT') {
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        res.end('404 -- asset not found', 'utf-8');
+      }
+      else {
+        res.writeHead(500);
+        res.end(`Sorry, check with the site admin for error: ${error.code} ..\n`);
+      }
     } else {
-        var contentType = mimeTypes[extname] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content, 'utf-8');
+      var contentType = mimeTypes[extname] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content, 'utf-8');
     }
   });
 }
@@ -149,8 +139,8 @@ function api_GET_routes(url, res) {
   
   let api_map = {
     '/api/user-by-session': GET_user_by_session,
-    '/api/all-pages': GET_all_pages,
     '/api/page': GET_page,
+    '/api/all-pages': GET_all_pages,
   }
 
   //  Call the API route function, if it exists.
@@ -174,29 +164,30 @@ function GET_user_by_session(req_data, res) {
   }
 }
 
+function GET_page(req_data, res) {
+  let response = { error: false };
+  let page_data = DataBase.table('pages').find({ route: req_data.route });
+  let session_data = DataBase.table('sessions').find({ id: req_data.session_id });
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = `The page ${req_data.route} was not found.`;
+  } else if (page_data[0].is_public || (session_data.length > 0 && page_data[0].created_by == session_data[0].user_id)) {
+    response.data =  page_data[0];
+  } else {
+    response.error = true;
+    response.msg = `You don't have permission to view this page.`;
+  } 
+  api_response(res, 200, JSON.stringify(response));
+}
+
 function GET_all_pages(req_data, res) {
   let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
   all_pages = JSON.parse(all_pages);
   for (let i = 0; i < all_pages.length; i++) {
-    let owner_id = parseInt(all_pages[i].created_by);
-    all_pages[i].owner = DataBase.table('users').find({id: owner_id})[0].username;
+    let creator_id = parseInt(all_pages[i].created_by);
+    all_pages[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
   }
   api_response(res, 200, JSON.stringify(all_pages));
-}
-
-function GET_page(req_data, res) {
-  let page_data = DataBase.table('pages').find({ page_route: req_data.page_route });
-  let response = {
-    error: false,
-    data: null
-  }
-  if (page_data.length < 1) {
-    response.error = true;
-    response.msg = `The page ${route_data.page_route} was not found.`;
-  } else {
-    response.data =  page_data[0];
-  }
-  api_response(res, 200, JSON.stringify(response));
 }
 
 function api_POST_routes(url, req, res) {
@@ -347,7 +338,8 @@ function POST_delete_user(user_info, res) {
     response.error = true;
     response.msg = 'Incorrect password.';
   } else {
-    response.msg = DataBase.table('users').delete(user_info.id);
+    let success_msg = DataBase.table('users').delete(user_info.id);
+    response.msg = `Deleted user ${user_info.id} successfully.`;
   }
 
   api_response(res, 200, JSON.stringify(response));
@@ -387,7 +379,6 @@ function POST_delete_page(request_info, res) {
     error: false,
     msg: '',
   }
-  
   if (page_data.length < 1) {
     response.error = true;
     response.msg = 'No page found.';

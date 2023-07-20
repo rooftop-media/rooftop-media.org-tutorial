@@ -1,52 +1,33 @@
 [
   {
-    "page_title": "My Blog",
-    "page_route": "my-blog",
-    "is_public": true,
-    "created_by": 0,
-    "id": 2,
-    "content": "Hello world!\n\n<div style=\"width:100px;height:200px;background:pink;color:green;\">Graphic design is my passion</div>adsf",
-    "session_id": "11"
-  },
-  {
-    "page_title": "Clubhouse",
-    "page_route": "clubhouse",
-    "is_public": true,
-    "created_by": 1,
-    "id": 3,
-    "content": "Come inside, it's fun inside!! ",
-    "session_id": "15"
-  },
-  {
-    "page_title": "New Page",
-    "page_route": "new-page",
-    "is_public": true,
-    "created_by": 1,
-    "id": 4,
+    "title": "A  Page",
+    "route": "a-page",
+    "is_public": false,
+    "created_by": 3,
+    "date_created": "Thu Jul 06 2023 15:45:32 GMT-0400 (Eastern Daylight Time)",
     "content": "",
+    "history": [],
+    "id": 1
+  },
+  {
+    "title": "B page!",
+    "route": "b-page",
+    "is_public": false,
+    "created_by": 2,
+    "date_created": "Thu Jul 06 2023 15:45:59 GMT-0400 (Eastern Daylight Time)",
+    "content": "<html>Hello! This is some html! <a href=\"link.com\" target=\"_blank\">Link!</a></html>Text at the end! This is valid!\n\n<div style=\"color:pink;\" alt=\"hi\">This is valid, and will be kept!</div>\n<button onclick=\"hack()\" style=\"color: purple;\">This whole tag is not valid, the text will be kept though!</button>",
+    "history": [],
+    "id": 2,
     "session_id": "10"
   },
   {
-    "page_title": "New page 2",
-    "page_route": "new-page-2",
+    "title": "c-page",
+    "route": "c-page",
     "is_public": true,
-    "created_by": 1,
-    "id": 5
-  },
-  {
-    "page_title": "my page 3",
-    "page_route": "my-page-3",
-    "is_public": true,
-    "created_by": 1,
+    "created_by": 3,
+    "date_created": "Thu Jul 20 2023 15:33:24 GMT-0400 (Eastern Daylight Time)",
     "content": "",
+    "history": [],
     "id": 6
-  },
-  {
-    "page_title": "dd",
-    "page_route": "dd",
-    "is_public": true,
-    "created_by": 0,
-    "content": "",
-    "id": 8
   }
 ]

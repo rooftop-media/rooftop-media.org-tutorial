@@ -2,6 +2,7 @@
   <i>Loading page...</i>
 </div>
 
+<script src="/pages/cms/convert-markup.js"></script>
 <script>
 ////  SECTION 1: Page memory
 let page_route = _current_page.split('/')[1];
@@ -9,8 +10,7 @@ let page_data = {};
 
 ////  SECTION 2: Render
 function render_page() {
-  document.getElementById('dynamic-page').innerHTML = `<h1>${page_data.title}</h1>`
-  document.getElementById('dynamic-page').innerHTML += page_data.content;
+  document.getElementById('dynamic-page').innerHTML = validate_html(page_data.content);
   document.getElementById('dynamic-page').innerHTML += `<a href="/edit/${page_data.route}"><button id="edit-button"><img src="/assets/icons/edit.svg" />Edit</button></a>`;
 }
 
@@ -18,7 +18,7 @@ function render_page() {
 //  Load page from API, then render buffer
 function load_page() {
   const http = new XMLHttpRequest();
-  http.open('GET', `/api/page?route=${page_route}`);
+  http.open('GET', `/api/page?route=${page_route}&session_id=${_session_id}`);
   http.send();
   http.onreadystatechange = (e) => {
     let response;      
@@ -34,7 +34,9 @@ function load_page() {
     }
   }
 }
-load_page();
+current_user_loaded = function() {
+  load_page();
+}
 
 </script>
 
@@ -42,7 +44,7 @@ load_page();
   #edit-button {
     display: flex;
     width: 90px;
-    position: fixed;
+    position: absolute;
     bottom: 20px;
     right: 20px;
   }

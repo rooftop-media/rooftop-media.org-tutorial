@@ -74,7 +74,7 @@ function register() {
   var phone = document.getElementById('phone').value;
   var password = document.getElementById('password').value;
   var confirm_password = document.getElementById('confirm_password').value;
-  
+ 
   if (password != confirm_password) {
     document.getElementById('error').innerHTML = 'Passwords must match.';
     return;
@@ -109,7 +109,6 @@ function register() {
         _session_id = response.session_id;
         window.location.href = '/';
       } else {
-        console.log("Erorr: " +  response.msg)
         document.getElementById('error').innerHTML = response.msg;
       }
     }

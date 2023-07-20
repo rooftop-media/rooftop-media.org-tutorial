@@ -102,7 +102,7 @@ a {
 }
 
 input, textarea {
-  background: var(--brown);
+  background: var(--darker-brown);
   color: white;
   border: solid 1px black;
 }
@@ -111,8 +111,8 @@ input:focus, textarea:focus {
 }
 
 input[type="checkbox"] {
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
   appearance: none;
   background: var(--action-brown);
   border-radius: 5px;
@@ -125,8 +125,36 @@ input[type="checkbox"]:checked::after {
   background-repeat: no-repeat;
   background-position: center;
   background-image: url(/assets/icons/check.svg);
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
+}
+input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  background: var(--action-brown);
+  border-radius: 50%;
+  cursor: pointer;
+}
+input[type="radio"]:checked {
+  border-color: var(--yellow);
+}
+input[type="radio"]:checked::after {
+  content: '';
+  display: block;
+  background: var(--yellow);
+  width: 10px;
+  height: 10px;
+  margin: 4px;
+  border-radius: 50%;
+}
+
+pre {
+  border: solid 1px var(--brown);
+  width: 100%;
+  white-space: pre-wrap;
+  text-indent: 0px;
+  background: var(--darker-brown);
 }
 
 button {

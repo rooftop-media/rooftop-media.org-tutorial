@@ -1,5 +1,30 @@
+<div class="p-3 center-column" id="loading-page">
+  Loading page...
+</div>
+
 <div class="p-3 center-column" id="dynamic-page">
-  <i>Loading page...</i>
+  <div class="flex-row">
+    <div style="width:40%;">Route: / <input id="page-route" type="text" value="" oninput="update_pageRoute()" tabindex="1" /></div>
+    <div style="display: flex; align-items: center;">Public? <input id="is-public" type="checkbox" onclick="toggle_publicity()" tabindex="2"/></div>
+  </div>
+  <div class="flex-row">
+    <input id="page-title" type="text" value="" oninput="update_pageTitle()" tabindex="3">
+    <button onclick="cancel()">Cancel</button>
+    <button id="save" onclick="save()" tabindex="6">Save</button>
+  </div>
+  <div id="error"></div>
+
+  <textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)" tabindex="5"></textarea/>
+  <br/><br/>
+  <button onclick="render_preview()">Preview</button>
+  <button style="margin-left:20px;" onclick="window.location.href = `/${page_route}`">Go to Page</button>
+  <br/><br/><br/><hr/><br/><br/>
+  <button style="background: var(--red);" onclick="delete_page()">Delete Page</button>
+</div>
+
+<div class="p-3 center-column" id="preview-page">
+  <button onclick="back_to_editor()">Edit</button><br/><hr/><br/>
+  <div id="preview-content"></div>
 </div>
 
 <script>
@@ -14,28 +39,23 @@ let is_saved = true;
 
 //  Renders the text editor, final page, or "page does not exist" message.
 function render_page() {
-  let page_editor = `
-  <div class="flex-row">
-    <div style="width:40%;">Route: / <input id="page-route" type="text" value="${buffer_data.route}" oninput="update_pageRoute()" tabindex="1" /></div>
-    <div style="display: flex; align-items: center;">Public? <input type="checkbox" onclick="toggle_publicity()" ${buffer_data.is_public ? 'checked' : ''} tabindex="2"/></div>
-  </div>
-  <div class="flex-row">
-    <input id="page-title" type="text" value="${buffer_data.title}" oninput="update_pageTitle()" tabindex="3">
-    <button onclick="cancel()">Cancel</button>
-    <button id="save" onclick="save()" tabindex="6">Save</button>
-  </div>`;
-  page_editor += `<div id="error"></div>`;
-  page_editor += `<textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)" tabindex="5">${buffer_data.content}</textarea/><br/><br/>`;
-  page_editor += `<button onclick="render_preview()">Preview</button>
-  <button style="margin-left:20px;" onclick="window.location.href = '/${page_route}'">Go to Page</button>`;
-  page_editor += `<br/><br/><br/><hr/><br/><br/><button style="background: var(--red);" onclick="delete_page()">Delete Page</button>`;
-  document.getElementById('dynamic-page').innerHTML = page_editor;
+  document.getElementById('page-route').value = buffer_data.route;
+  document.getElementById('is-public').checked = buffer_data.is_public;
+  document.getElementById('page-title').value = buffer_data.title;
+  document.getElementById('page-buffer').innerHTML = buffer_data.content;
   check_if_saved();
 }
 
 function render_preview() {
-  document.getElementById('dynamic-page').innerHTML = `<button onclick="render_page()">Edit</button><br/><hr/><br/>`;
-  document.getElementById('dynamic-page').innerHTML += buffer_data.content;
+  document.getElementById('dynamic-page').style.display = `none`;
+  document.getElementById('preview-page').style.display = 'block';
+  document.getElementById('preview-content').innerHTML = buffer_data.content;
+}
+
+function back_to_editor() {
+  document.getElementById('dynamic-page').style.display = `block`;
+  document.getElementById('preview-page').style.display = 'none';
+  render_page();
 }
 
 ////  SECTION 3: Event reactions
@@ -156,6 +176,8 @@ function load_page() {
     let response;      
     if (http.readyState == 4 && http.status == 200) {
       response = JSON.parse(http.responseText);
+      document.getElementById('loading-page').style.display = 'none';
+      document.getElementById('dynamic-page').style.display = 'block';
       if (!response.error) {
         console.log("Response recieved! Loading page.");
         page_data = response.data;
@@ -177,19 +199,16 @@ load_page();
 <style> 
   #dynamic-page {
     position: relative;
+    display: none;
   }
-  #dynamic-page input {
+
+  #preview-page {
+    display: none;
+  }
+
+  #dynamic-page input:not([type='checkbox']) {
     font-family: CrimsonText;
     width: 60%;
-  }
-  #dynamic-page input, #dynamic-page textarea {
-    background: var(--brown);
-    color: white;
-    border: solid 1px black;
-    
-  }
-  #dynamic-page input:focus, #dynamic-page textarea:focus {
-    outline: solid 1px var(--yellow);
   }
 
   input#page-route {
@@ -210,17 +229,11 @@ load_page();
   .flex-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;;
+    align-items: center;
   }
 
   #dynamic-page button {
-    padding: 10px 0px;
-    border-radius: 5px;
     width: 15%;
-    background: var(--light-brown);
-    color: var(--yellow);
-    border: 1px solid var(--brown);
-    cursor: pointer;
   }
 
   #dynamic-page button#save {

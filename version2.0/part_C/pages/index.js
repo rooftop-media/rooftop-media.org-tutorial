@@ -19,8 +19,6 @@ function logout() {
   }
 }
 
-function current_user_loaded() {}
-
 // Update the "user buttons" in the header
 function render_user_buttons() {
   let userButtonsEl = document.getElementById('user-buttons');
@@ -45,6 +43,7 @@ function render_user_buttons() {
 
 }
 
+function current_user_loaded() {}
 
 ////  SECTION 3: Boot.
 function boot() {
