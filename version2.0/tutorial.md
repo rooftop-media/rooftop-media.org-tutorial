@@ -2496,13 +2496,58 @@ current_user_loaded = function() {
   load_page();
 }
 ```
+<br/><br/><br/><br/>
 
+
+
+<h3 id="d-3">  ☑️ Step 2: Editing <code>boot</code> in <code>index.js</code>  </h3>
+
+Dynamic pages need to load even when the user isn't logged in.  
+But they can't load until we've checked whether the user is logged in.  
+To fix the case where users are logged out, we need to add a line to the `boot` function in `index.js`:
+
+```js
+function boot() {
+  console.log('Welcome to Rooftop Media Dot Org!');
+
+  //  Log user in if they have a session id. 
+  if (_session_id) {
+    const http = new XMLHttpRequest();
+    http.open('GET', `/api/user-by-session?session_id=${_session_id}`);
+    http.send();
+    http.onreadystatechange = (e) => {
+      if (http.readyState == 4 && http.status == 200) {
+        _current_user = JSON.parse(http.responseText);
+      } else if (http.readyState == 4 && http.status == 404) {
+        console.log('No session found.');
+        localStorage.removeItem('session_id');
+      }
+      current_user_loaded();
+      render_user_buttons();
+    }
+  } else {
+    render_user_buttons();
+    current_user_loaded();
+  }
+  
+  //  Redirect to home if...
+  var onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
+  var loggedIn = _session_id != null;
+  var redirectToHome = (onALoggedOutPage && loggedIn);
+  var onALoggedInPage = (_current_page == '/create-page' || _current_page == '/all-pages' || _current_page.split('/')[1] == 'edit');
+  redirectToHome = redirectToHome || (onALoggedInPage && !loggedIn);
+  if (redirectToHome) {
+    window.location.href = '/';
+  }
+
+}
+```
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="d-3"> ☑️ Step 3:   ☞ Test the code!  </h3>
+<h3 id="d-4"> ☑️ Step 4:   ☞ Test the code!  </h3>
 
 After refreshing the server, editing pages will be broken. We'll fix that next.  
 
@@ -2514,7 +2559,7 @@ Private pages should not be viewable by anyone, except for the creator of that p
 
 
 
-<h3 id="d-4">  ☑️ Step 4: Editing <code>POST_update_page</code> in <code>server.js</code>  </h3>
+<h3 id="d-5">  ☑️ Step 5: Editing <code>POST_update_page</code> in <code>server.js</code>  </h3>
 
 We now need to make sure that only the user that creates a page can edit that page.  
 
@@ -2545,7 +2590,7 @@ function POST_update_page(page_update, res) {
 <br/><br/><br/><br/>
 
 
-<h3 id="d-4">  ☑️ Step 4: Editing <code>load_page</code> and <code>save</code> in <code>edit-page.html</code>  </h3>
+<h3 id="d-6">  ☑️ Step 6: Editing <code>load_page</code> and <code>save</code> in <code>edit-page.html</code>  </h3>
 
 We now need to edit `cms/edit-page.html`, to prevent the user from editing the page if their user id doesn't match the page's creator.  
 
@@ -2556,12 +2601,15 @@ Open that file and edit the `load_page` function:
 //  Load all page elements from API, then render buffer
 function load_page() {
   const http = new XMLHttpRequest();
-  http.open('GET', `/api/page?page_route=${page_route}`);
+  http.open('GET', `/api/page?route=${page_route}&session_id=${_session_id}`);
   http.send();
+  console.log('Requesting page')
   http.onreadystatechange = (e) => {
     let response;      
     if (http.readyState == 4 && http.status == 200) {
       response = JSON.parse(http.responseText);
+      document.getElementById('loading-page').style.display = 'none';
+      document.getElementById('dynamic-page').style.display = 'block';
       if (!response.error) {
         console.log("Response recieved! Loading page.");
         page_data = response.data;
@@ -2570,8 +2618,8 @@ function load_page() {
           return;
         }
         buffer_data.content = page_data.content || "";
-        buffer_data.page_title = page_data.page_title || "";
-        buffer_data.page_route = page_data.page_route;
+        buffer_data.title = page_data.title || "";
+        buffer_data.route = page_data.route;
         buffer_data.is_public = page_data.is_public;
         render_page();
       } else {
@@ -2580,7 +2628,7 @@ function load_page() {
     }
   }
 }
-function current_user_loaded() {
+current_user_loaded = function() {
   load_page();
 }
 ```
@@ -2595,9 +2643,9 @@ function save() {
   http.open('POST', '/api/update-page');
   http.send(JSON.stringify({ 
     id: page_data.id,
-    page_title: buffer_data.page_title,
+    title: buffer_data.title,
     content: buffer_data.content,
-    page_route: buffer_data.page_route,
+    route: buffer_data.route,
     is_public: buffer_data.is_public,
     session_id: _session_id
   }));
@@ -2608,15 +2656,15 @@ function save() {
       if (!response.error) {
         console.log("Response recieved! Page updated.");
         page_data.content = buffer_data.content;
-        page_data.page_title = buffer_data.page_title;
-        page_data.page_route = buffer_data.page_route;
+        page_data.title = buffer_data.title;
+        page_data.route = buffer_data.route;
         page_data.is_public = buffer_data.is_public;
         render_page();
-        if (_current_page.split('/edit/')[1] != buffer_data.page_route) {
-          window.location.href = '/edit/' + buffer_data.page_route;
+        if (_current_page.split('/edit/')[1] != buffer_data.route) {
+          window.location.href = '/edit/' + buffer_data.route;
         }
       } else {
-        console.warn(response.msg);
+        console.warn("Err")
         document.getElementById('error').innerHTML = response.msg;
       }
     }
@@ -2628,7 +2676,7 @@ function save() {
 
 
 
-<h3 id="d-5">  ☑️  ☞ Test the code!  </h3>
+<h3 id="d-7">  Step 7: ☑️  ☞ Test the code!  </h3>
 
 Restart the server.
 
@@ -2636,16 +2684,46 @@ While logged in as one user, create a page.  Make sure you can still edit the pa
 Then, log in as a different user, and try to edit that page.  
 You should get an error telling you that you don't have permission!  
 
-Now, right click, inspect the page's elements, find the script tag, and find the `load_page` function.  
-Change the line that says `if (page_data.created_by != _current_user.id) {` to `if (false) {`.  
-Then, copy paste the entire contents of the `load_page` function into the console.  The edit page should load, even though you're not the correct user!!  
+Now, right click, and paste this into the console:
+```js
+document.getElementById('dynamic-page').innerHTML = `<div class="flex-row"><div style="width:40%;">Route: / <input id="page-route" type="text" value="" oninput="update_pageRoute()" tabindex="1" /></div><div style="display: flex; align-items: center;">Public? <input id="is-public" type="checkbox" onclick="toggle_publicity()" tabindex="2"/></div></div><div class="flex-row"><input id="page-title" type="text" value="" oninput="update_pageTitle()" tabindex="3"><button onclick="cancel()">Cancel</button><button id="save" onclick="save()" tabindex="6">Save</button></div><div id="error"></div><textarea id="page-buffer" spellcheck="false" oninput="update_buffer(event.currentTarget.value)" onscroll="sync_scroll(this);" tabindex="5"></textarea><pre id="highlighting" aria-hidden="true"><code id="highlighting-content"></code></pre><br/><br/><button onclick="render_preview()">Preview</button><button style="margin-left:20px;" onclick="window.location.href =">Go to Page</button><br/><br/><br/><hr/><br/><br/><button style="background: var(--red);" onclick="delete_page()">Delete Page</button>`;
+const http = new XMLHttpRequest();
+  http.open('GET', `/api/page?route=${page_route}&session_id=${_session_id}`);
+  http.send();
+  console.log('Requesting page')
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      document.getElementById('loading-page').style.display = 'none';
+      document.getElementById('dynamic-page').style.display = 'block';
+      if (!response.error) {
+        console.log("Response recieved! Loading page.");
+        page_data = response.data;
+        if (0) {
+          document.getElementById('dynamic-page').innerHTML = "You don't have permission to edit this page.";
+          return;
+        }
+        buffer_data.content = page_data.content || "";
+        buffer_data.title = page_data.title || "";
+        buffer_data.route = page_data.route;
+        buffer_data.is_public = page_data.is_public;
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+console.log('HACKED!!1!');
+```
+The edit page should load, even though you're not the correct user!!  
 
 Edit the page and click "save".  Our "update-page" api route should prevent the page from being updated, since it checks the user's session id. 
 
 <br/><br/><br/><br/>
 
 
-<h3 id="d-6">  ☑️ Step 6: Editing <code>POST_delete_page</code> in <code>server.js</code>  </h3>
+<h3 id="d-8">  ☑️ Step 8: Editing <code>POST_delete_page</code> in <code>server.js</code>  </h3>
 
 We're going to edit `POST_delete_page` to require the user's session id, just like `POST_update_page`.  
 
@@ -2657,7 +2735,6 @@ function POST_delete_page(request_info, res) {
     error: false,
     msg: '',
   }
-  
   if (page_data.length < 1) {
     response.error = true;
     response.msg = 'No page found.';
@@ -2674,7 +2751,7 @@ function POST_delete_page(request_info, res) {
 
 
 
-<h3 id="d-7">  ☑️ Step 7: Editing <code>delete_page</code> in <code>edit-page.html</code>  </h3>
+<h3 id="d-9">  ☑️ Step 9: Editing <code>delete_page</code> in <code>edit-page.html</code>  </h3>
 
 Now, we need to edit `delete_page()` in `edit-page.html`, to submit the user's `session_id` with the delete request. 
 
@@ -2709,20 +2786,18 @@ function delete_page() {
 
 
 
-<h3 id="d-8">  ☑️  Step 8: ☞ Test the code!  </h3>
+<h3 id="d-10">  ☑️  Step 10: ☞ Test the code!  </h3>
 
 Restart the server.  Try to delete a page like before -- you should have no problem. 
 
-Now, right click, inspect the page's elements, find the script tag, and find the `load_page` function.  
-Change the line that says `if (page_data.created_by != _current_user.id) {` to `if (false) {`.  
-Then, copy paste the entire contents of the `load_page` function into the console.  The edit page should load, even though you're not the correct user!!  
+Paste the code from [step 7](#d-7) into the console.  The edit page should load, even though you're not the correct user!!  
 
-Edit the page and click "save".  Our "update-page" api route should prevent the page from being updated, since it checks the user's session id. 
+Try to delete the page.  Our "delete-page" api route should prevent the page from being updated, since it checks the user's session id. 
 
 <br/><br/><br/><br/>
 
 
-<h3 id="d-6">☑️ Step 6. ❖ Part D review. </h3>
+<h3 id="d-11">☑️ Step 11. ❖ Part D review. </h3>
 
 The complete code for Part D is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_D).
 
