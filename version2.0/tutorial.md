@@ -1700,6 +1700,8 @@ The script will have the following functions:
  - `tokens_to_parse`, which accepts an array of tokens, and uses context to return a list of "parsed tokens".
    - Parsed token examples: `{ type: "LESS-THAN", text: "<" }`, `{ type: "OPEN-TAG", text: "a" }`, `{ type: "OPEN-QUOTE", text: "'" }`
    - These tokens are used for syntax highlighting!
+ - `parse_code_tags`, which adds an extra token, 'CODE-TAG-TEXT', for any text between &lt;code&gt; tags.
+   - In between code tags, special characters like &lt; are escaped. 
  - `parse_to_tags`, which accepts an array of parsed tokens, and returns an array of simplified tag tokens
    - Simplified token ex:  `{ type: "OPEN-TAG", text: "a" }`, `{ type: "ATTR-NAME", text: "href" }`, `{ type: "ATTR-VALUE", text: "link.com" }`
  - `tags_to_valid_tags`, which accepts simplified tag tokens, and returns only the valid tags and attributes.
@@ -1926,9 +1928,53 @@ function tokens_to_parse(tokens) {
   return parsed_tokens;
 }
 
+//  Accepts an array of parsed tokens, returns an array of parsed tokens, with <pre> and <code> text escaped and labelled
+function parse_code_tags(tokens) {
+  let parsed_tokens = [];
+  let context = 'non-code-tag';
+  let current_value = '';
+
+  function addCurrentValue(_type) {  
+    if (current_value.length > 0) {
+      parsed_tokens.push({ type: _type, value: current_value });
+      current_value = '';
+    }
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    if (context == 'non-code-tag') {      //  If we haven't yet seen a 'pre' or 'code' tag, look for those tags. 
+      if (tokens[i].type == 'OPEN-TAG' && tokens[i].value == 'code') {
+        context = 'in-code-tag';
+      }
+      parsed_tokens.push(tokens[i]);
+    
+    } else if (context == 'in-code-tag') {         //  If in a code tag, look for a >
+      if (tokens[i].type == 'GREATER-THAN') {
+        context = 'in-code-tag-text';
+      }
+      parsed_tokens.push(tokens[i]);
+    
+    } else if (context == 'in-code-tag-text') {    //  If in the inner HTML of a code tag, look for <
+      if (tokens[i].type == 'CLOSE-TAG' && tokens[i].value == 'code') {
+        context = 'non-code-tag';
+        current_value = current_value.slice(0, current_value.length - 2);
+        addCurrentValue('CODE-TAG-TEXT');
+        parsed_tokens.push({type: 'LESS-THAN', value: '<'});
+        parsed_tokens.push({type: 'FORWARD-SLASH', value: '/'});
+        parsed_tokens.push(tokens[i]);
+      } else {
+        current_value += tokens[i].value;
+      }
+
+    } 
+  }
+  return parsed_tokens;
+}
+
+
 //  Accepts an array of parsed tokens, returns a "simplified" list of tag tokens
 function parse_to_tags(parsed_tokens) {
-  let simple_tags = ['TEXT', 'OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE', 'CLOSE-TAG', 'INVALID'];
+  let simple_tags = ['TEXT', 'OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE', 'CLOSE-TAG', 'CODE-TAG-TEXT', 'INVALID'];
   let tag_tokens = [];
   for (let i = 0; i < parsed_tokens.length; i++) {
     if (simple_tags.includes(parsed_tokens[i].type)) {
@@ -1941,7 +1987,7 @@ function parse_to_tags(parsed_tokens) {
 //  This converts the simplified tags into validated simplified tags!
 function tags_to_valid_tags(tag_tokens) {
   let allowed_tags = [
-    'h1','h2','h3','h4','h5','h6','p','div','span','b','i','pre','code',
+    'h1','h2','h3','h4','h5','h6','p','div','span','b','i','pre','code','style',
     'ol','ul','li','table','tr','th','td','a','img','br','hr'
   ];
   let allowed_attributes = ['style','src','alt','href','target','class','id'];
@@ -1950,7 +1996,7 @@ function tags_to_valid_tags(tag_tokens) {
   for (let i = 0; i < tag_tokens.length; i++) {
     if (tag_tokens[i].type == 'OPEN-TAG' && !allowed_tags.includes(tag_tokens[i].value)) {
       delete_tag = true;    //  Skip any tags, and any subsequentattr's belonging to tags, not included in the allowed tags. 
-    } else if (['TEXT', 'CLOSE-TAG', 'OPEN-TAG'].includes(tag_tokens[i].type)) {
+    } else if (['TEXT', 'CLOSE-TAG', 'OPEN-TAG', 'CODE-TAG-TEXT'].includes(tag_tokens[i].type)) {
       delete_tag = false;   // Stop skipping tags (set to false) if we're at a TEXT or CLOSE-TAG, or a new OPEN-TAG that's allowed
     }
     if (delete_tag) {
@@ -1976,6 +2022,9 @@ function tags_to_html(tag_tokens) {
   for (let i = 0; i < tag_tokens.length; i++) {
     let _type = tag_tokens[i].type;
     let _value = tag_tokens[i].value;
+    if (i != 0 && ['OPEN-TAG', 'CLOSE-TAG', 'TEXT', 'CODE-TAG-TEXT'].includes(tag_tokens[i].type) && ['OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE'].includes(tag_tokens[i-1].type)) {
+      final_html += '>';
+    }
     if (_type == 'OPEN-TAG') {
       final_html += `<` + _value;
     } else if (_type == 'ATTR-NAME') {
@@ -1984,13 +2033,11 @@ function tags_to_html(tag_tokens) {
       final_html += _value + `'`;
     } else if (_type == 'CLOSE-TAG') {
       final_html += '</' + _value + '>';
-    } else if (_type == 'TEXT' && i != 0 && ['OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE'].includes(tag_tokens[i-1].type)) {
-      final_html += '>' + _value;
     } else if (_type == 'TEXT') {
       final_html += _value;
+    } else if (_type == 'CODE-TAG-TEXT') {
+      final_html += _value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");;
     }
-    if (i != 0)
-    console.log(i + ', ' + _type + ': ' + ['OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE'].includes(tag_tokens[i-1].type));
   }
   return final_html;
 }
@@ -1999,7 +2046,8 @@ function tags_to_html(tag_tokens) {
 function validate_html(_html) {
   let _tokens = markup_to_tokens(_html)
   let _parsed = tokens_to_parse(_tokens);
-  let _tags = parse_to_tags(_parsed);
+  let _escaped_parse = parse_code_tags(_parsed)
+  let _tags = parse_to_tags(_escaped_parse);
   let _valid_tags = tags_to_valid_tags(_tags);
   let final_html = tags_to_html(_valid_tags);
   return final_html;
@@ -2026,9 +2074,16 @@ Here are the strings I used for testing:
 //  For testing markup conversion:
 `<div style="color:pink;" alt="hi">This is valid, and will be kept!</div>
 <button onclick="hack()" style="color: purple;">This whole tag is not valid, the text will be kept though!</button>`
-```
 
-The first two
+//  Test with both syntax highlighting and markup conversion:
+`<p>Here is an example of HTML:</p>
+<pre><code>
+  <h1>Hello world!</h1>
+  <p>This is an HTML example!</p>
+</code></pre>`
+`<p>A great HTML tag that has been deprecated is the <code><marquee></code> tag.</p>`
+`Here's another example using the pre tag: <pre><b>Hi!</b></pre>.  That should not be bold.`
+```
 
 <br/><br/><br/><br/>
 
@@ -2095,7 +2150,7 @@ function render_page() {
 function render_preview() {
   document.getElementById('dynamic-page').style.display = `none`;
   document.getElementById('preview-page').style.display = 'block';
-  document.getElementById('preview-content').innerHTML = buffer_data.content;
+  document.getElementById('preview-content').innerHTML = validate_html(buffer_data.content);
 }
 
 function back_to_editor() {
@@ -2106,7 +2161,8 @@ function back_to_editor() {
 
 function create_highlighting(markup_text) {
   let tokens = markup_to_tokens(markup_text);
-  let parsed = tokens_to_parse(tokens);
+  let pre_parsed = tokens_to_parse(tokens);
+  let parsed = parse_code_tags(pre_parsed);
   let colors = {
     'LESS-THAN': 'var(--yellow)',
     'GREATER-THAN': 'var(--yellow)',
@@ -2122,6 +2178,7 @@ function create_highlighting(markup_text) {
     'COMMENT': 'gray',
     'DASH': 'gray',
     'EXCLAMATION': 'gray',
+    'CODE-TAG-TEXT': 'gray',
     'INVALID': 'white'
   }
   let highlighted = '';
