@@ -55,6 +55,7 @@ function render_preview() {
   document.getElementById('dynamic-page').style.display = `none`;
   document.getElementById('preview-page').style.display = 'block';
   document.getElementById('preview-content').innerHTML = validate_html(buffer_data.content);
+  console.log(validate_html(buffer_data.content))
 }
 
 function back_to_editor() {
@@ -65,7 +66,8 @@ function back_to_editor() {
 
 function create_highlighting(markup_text) {
   let tokens = markup_to_tokens(markup_text);
-  let parsed = tokens_to_parse(tokens);
+  let pre_parsed = tokens_to_parse(tokens);
+  let parsed = parse_code_tags(pre_parsed);
   let colors = {
     'LESS-THAN': 'var(--yellow)',
     'GREATER-THAN': 'var(--yellow)',
@@ -81,6 +83,7 @@ function create_highlighting(markup_text) {
     'COMMENT': 'gray',
     'DASH': 'gray',
     'EXCLAMATION': 'gray',
+    'CODE-TAG-TEXT': 'gray',
     'INVALID': 'white'
   }
   let highlighted = '';

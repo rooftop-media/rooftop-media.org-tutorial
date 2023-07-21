@@ -214,9 +214,53 @@ function tokens_to_parse(tokens) {
   return parsed_tokens;
 }
 
+//  Accepts an array of parsed tokens, returns an array of parsed tokens, with <pre> and <code> text escaped and labelled
+function parse_code_tags(tokens) {
+  let parsed_tokens = [];
+  let context = 'non-code-tag';
+  let current_value = '';
+
+  function addCurrentValue(_type) {  
+    if (current_value.length > 0) {
+      parsed_tokens.push({ type: _type, value: current_value });
+      current_value = '';
+    }
+  }
+
+  for (let i = 0; i < tokens.length; i++) {
+    if (context == 'non-code-tag') {      //  If we haven't yet seen a 'pre' or 'code' tag, look for those tags. 
+      if (tokens[i].type == 'OPEN-TAG' && tokens[i].value == 'code') {
+        context = 'in-code-tag';
+      }
+      parsed_tokens.push(tokens[i]);
+    
+    } else if (context == 'in-code-tag') {         //  If in a code tag, look for a >
+      if (tokens[i].type == 'GREATER-THAN') {
+        context = 'in-code-tag-text';
+      }
+      parsed_tokens.push(tokens[i]);
+    
+    } else if (context == 'in-code-tag-text') {    //  If in the inner HTML of a code tag, look for <
+      if (tokens[i].type == 'CLOSE-TAG' && tokens[i].value == 'code') {
+        context = 'non-code-tag';
+        current_value = current_value.slice(0, current_value.length - 2);
+        addCurrentValue('CODE-TAG-TEXT');
+        parsed_tokens.push({type: 'LESS-THAN', value: '<'});
+        parsed_tokens.push({type: 'FORWARD-SLASH', value: '/'});
+        parsed_tokens.push(tokens[i]);
+      } else {
+        current_value += tokens[i].value;
+      }
+
+    } 
+  }
+  return parsed_tokens;
+}
+
+
 //  Accepts an array of parsed tokens, returns a "simplified" list of tag tokens
 function parse_to_tags(parsed_tokens) {
-  let simple_tags = ['TEXT', 'OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE', 'CLOSE-TAG', 'INVALID'];
+  let simple_tags = ['TEXT', 'OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE', 'CLOSE-TAG', 'CODE-TAG-TEXT', 'INVALID'];
   let tag_tokens = [];
   for (let i = 0; i < parsed_tokens.length; i++) {
     if (simple_tags.includes(parsed_tokens[i].type)) {
@@ -238,7 +282,7 @@ function tags_to_valid_tags(tag_tokens) {
   for (let i = 0; i < tag_tokens.length; i++) {
     if (tag_tokens[i].type == 'OPEN-TAG' && !allowed_tags.includes(tag_tokens[i].value)) {
       delete_tag = true;    //  Skip any tags, and any subsequentattr's belonging to tags, not included in the allowed tags. 
-    } else if (['TEXT', 'CLOSE-TAG', 'OPEN-TAG'].includes(tag_tokens[i].type)) {
+    } else if (['TEXT', 'CLOSE-TAG', 'OPEN-TAG', 'CODE-TAG-TEXT'].includes(tag_tokens[i].type)) {
       delete_tag = false;   // Stop skipping tags (set to false) if we're at a TEXT or CLOSE-TAG, or a new OPEN-TAG that's allowed
     }
     if (delete_tag) {
@@ -264,7 +308,7 @@ function tags_to_html(tag_tokens) {
   for (let i = 0; i < tag_tokens.length; i++) {
     let _type = tag_tokens[i].type;
     let _value = tag_tokens[i].value;
-    if (i != 0 && ['OPEN-TAG', 'CLOSE-TAG', 'TEXT'].includes(tag_tokens[i].type) && ['OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE'].includes(tag_tokens[i-1].type)) {
+    if (i != 0 && ['OPEN-TAG', 'CLOSE-TAG', 'TEXT', 'CODE-TAG-TEXT'].includes(tag_tokens[i].type) && ['OPEN-TAG', 'ATTR-NAME', 'ATTR-VALUE'].includes(tag_tokens[i-1].type)) {
       final_html += '>';
     }
     if (_type == 'OPEN-TAG') {
@@ -277,6 +321,8 @@ function tags_to_html(tag_tokens) {
       final_html += '</' + _value + '>';
     } else if (_type == 'TEXT') {
       final_html += _value;
+    } else if (_type == 'CODE-TAG-TEXT') {
+      final_html += _value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");;
     }
   }
   return final_html;
@@ -286,7 +332,8 @@ function tags_to_html(tag_tokens) {
 function validate_html(_html) {
   let _tokens = markup_to_tokens(_html)
   let _parsed = tokens_to_parse(_tokens);
-  let _tags = parse_to_tags(_parsed);
+  let _escaped_parse = parse_code_tags(_parsed)
+  let _tags = parse_to_tags(_escaped_parse);
   let _valid_tags = tags_to_valid_tags(_tags);
   let final_html = tags_to_html(_valid_tags);
   return final_html;
