@@ -412,7 +412,7 @@ Create a new page,  `/pages/cms/dynamic-page.html`, and add this:.
 
 <script>
 ////  SECTION 1: Page memory
-let page_route = _current_page.split('/')[1];
+let page_route = _current_page.slice(1, _current_page.length);
 let page_data = {};
 
 ////  SECTION 2: Render
@@ -887,7 +887,7 @@ Create the file `/pages/cms/edit-page.html`, with the following code:
 <script>
 
 ////  SECTION 1: Page memory
-let page_route = _current_page.split('/edit/')[1];
+let page_route = _current_page.slice(6, _current_page.length);
 let buffer_data = {};
 let page_data = {};
 let is_saved = true;
@@ -1323,7 +1323,7 @@ Edit  `cms/edit-page.html`:
 <script>
 
 ////  SECTION 1: Page memory
-let page_route = _current_page.split('/edit/')[1];
+let page_route = _current_page.slice(6, _current_page.length);
 let buffer_data = {};
 let page_data = {};
 let is_saved = true;
@@ -2129,7 +2129,7 @@ Open up `/cms/edit-page.html` and edit it:
 <script>
 
 ////  SECTION 1: Page memory
-let page_route = _current_page.split('/edit/')[1];
+let page_route = _current_page.slice(6, _current_page.length);
 let buffer_data = {};
 let page_data = {};
 let is_saved = true;
