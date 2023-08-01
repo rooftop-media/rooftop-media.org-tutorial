@@ -2887,9 +2887,121 @@ The complete code for Part D is available [here](https://github.com/rooftop-medi
 
 
 
+<h2 id="part-e" align="center">  Part E:  Image & file upload </h2>
+
+In this section, we'll let users upload images and other files to the website.   
+These images and files will be named, so they can be used in pages.  
+We'll also create a page for browsing and managing uploaded files. 
+
+<br/><br/><br/><br/>
 
 
 
+<h3 id="e-1">  ☑️ Step 1: Adding <code>cms/upload-file.html</code>  </h3>
+
+Create a new file, `pages/cms/upload-file.html`.  
+
+Sending files to the server will requires a few differences, compared to other POST requests, including: 
+ - Letting the website user upload file data (rather than just input text data)
+ - Splitting the file into 5000 byte segments (aka chunks), to send
+ - Sending multiple POST requests, with each chunk sent as a JS ArrayBuffer
+ - Re-assembling the file on the server
+I learned how to do this from [this article](https://blog.logrocket.com/how-to-build-file-upload-service-vanilla-javascript/).  
+
+Here's the code: 
+
+<details>
+  <summary>
+    summary
+  </summary>
+  details
+</details>
+
+```html
+
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-2">  ☑️ Step 2: Add <code>/api/upload-file</code> to <code>server.js</code>  </h3>
+
+First, we'll add two new static routes...
+
+```
+//  Mapping URLs to pages
+var pageURLs = {
+  '/': '/pages/misc/landing.html',
+  '/landing': '/pages/misc/landing.html',
+  '/register': '/pages/misc/register.html',
+  '/login': '/pages/misc/login.html',
+  '/profile': '/pages/misc/profile.html',
+  '/create-page': '/pages/cms/create-page.html',
+  '/all-pages': '/pages/cms/all-pages.html',
+  '/markup-rules': '/pages/cms/markup-rules.html',
+  '/upload-file': '/pages/cms/upload-file.html',
+  '/all-files': '/pages/cms/all-files.html'
+}
+var pageURLkeys = Object.keys(pageURLs);
+```
+
+Now, edit `api_POST_routes` to add `/upload-file`:
+
+```
+function api_POST_routes(url, req, res) {
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+    //  Parse the data to JSON.
+    try {
+      req_data = JSON.parse(req_data);
+    } catch (e) {
+      return api_response(res, 400, `Improper data in your request.`);
+    }
+
+    let api_map = {
+      '/api/register': POST_register,
+      '/api/login': POST_login,
+      '/api/logout': POST_logout,
+      '/api/update-user': POST_update_user,
+      '/api/update-password': POST_update_password,
+      '/api/delete-user': POST_delete_user,
+      '/api/check-invite-code': POST_check_invite_code,
+      '/api/create-page': POST_create_page,
+      '/api/update-page': POST_update_page,
+      '/api/delete-page': POST_delete_page,
+      '/api/upload-file': POST_upload_file
+    }
+    
+    //  Call the API route function, if it exists.
+    if (typeof api_map[url] == 'function') {
+      api_map[url](req_data, res);
+    } else {
+      api_response(res, 404, `The POST API route ${url} does not exist.`);
+    }
+  })
+}
+```
+
+Finally, right after the function `POST_delete_page`, add `POST_upload_file`:
+
+```
+
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-11">☑️ Step 11. ❖ Part D review. </h3>
+
+The complete code for Part D is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version2.0/part_D).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
 
 
 
