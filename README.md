@@ -27,7 +27,16 @@ This tutorial is organized into 2 stable, usable **versions** -- version 1.0 and
 | 2.0       | Content Management System                                                   | in progress |
 <!--| 3.0       | Email client                                                            | todo        |
 | 4.0       | [LMS](https://en.wikipedia.org/wiki/Learning_management_system)             | todo        |
-| 5.0       | vector editor                                                               | todo        |-->
+| 5.0       | vector editor                                                               | todo        |
+| 6.0       | personal life manager                                                       | todo        |-->
+<!-- Ideas for personal life manager: 
+ 1. Record food input
+ 2. Record vitals, output, etc
+ 3. Daily journal - record day's actions, experiences, feelings
+ 4. Goal descriptions and scheduling
+ 5. Life rules and policies
+ 6. Mood management (super-ego ego management, ig)
+-->
 
 
 Each individual **version** is broken down into different tutorial **parts**, labelled by letter.  
