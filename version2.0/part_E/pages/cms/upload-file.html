@@ -1,0 +1,106 @@
+<div class="p-3 center-column">
+  <h3>Upload a File</h3>
+  <div>Select file: <input type="file" tabindex="1" id="file" placeholder="frida_kahlo.png"/></div>
+  <div>File description: <input type="text" tabindex="2" id="file_description" placeholder="A picture of Frida Kahlo."/></div>
+  <div>File name: <input type="text" tabindex="3" id="file_name" placeholder="frida_kahlo."/></div>
+  <div>Public? <input type="checkbox" tabindex="4" id="is_public"/></div>
+  <p id="error"></p>
+  <button onclick="upload_file()" tabindex="5">Upload</button>
+  <br/><br/>
+  <p><small id="upload-status"></small></p>
+</div>
+
+<script>
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+//  Page route -- lowercase, alphanumeric, and these special characters: - / _ 
+const file_name_input = document.getElementById('file_name');
+const file_name_regex = /^[a-z0-9_\-\/]*$/;
+file_name_input.addEventListener("keydown", event => {
+  if (!file_name_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    event.preventDefault();
+    document.getElementById('error').innerHTML = "File name can only contain lowercase letters, numbers, underscores and dashes.";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+function upload_file() {
+  let description = document.getElementById('file_description').value;
+  let name = document.getElementById('file_name').value;
+  let is_public = document.getElementById('is_public').checked;
+  let file = document.getElementById('file').files[0];
+  
+  if (!file) {
+    document.getElementById('error').innerHTML = 'File required.';
+    return;
+  } else if (name.length < 2) {
+    document.getElementById('error').innerHTML = 'File name must be at least 2 characters..';
+    return;
+  } else if (description.length < 2) {
+    document.getElementById('error').innerHTML = 'File description must be at least 2 characters..';
+    return;
+  } else if (!file_name_regex.test(name)) {
+    document.getElementById('error').innerHTML = "File name can only contain lowercase letters, numbers, underscores and dashes.";
+    return;
+  }
+
+  document.getElementById('upload-status').innerHTML = 'Uploading...';
+
+  //  CHUNKING FILE
+  /*
+  const CHUNK_SIZE = 5000;
+  const total_chunks = Math.ceil(event.target.result.byteLength / CHUNK_SIZE);
+  console.log(`total chunks: ${total_chunks}`)
+  
+  //  loop thru each chunk_num in total_chunks, either thru recursion or a for loop
+  function send_next_chunk(chunk_num) {
+    if (chunk_num >= total_chunks) { return; }
+    let CHUNK = file_content.slice(chunk_num * CHUNK_SIZE, (chunk_num + 1) * CHUNK_SIZE);
+          console.log(CHUNK)
+    //  use fetch or new xmlhttprequest to send chunk here
+  }
+    send_next_chunk(0);  //  Send the first chunk!
+
+  */
+  const http = new XMLHttpRequest();
+  let fd = new FormData()
+  fd.append('file_bin', file);
+
+  file.text().then(file_text => {
+    console.log(file_text);
+    http.open('POST', '/api/upload-file');
+    http.send(JSON.stringify({
+      file_chunk: file_text,
+      chunk_num: 0,
+      description,
+      name,
+      is_public,
+      created_by: _current_user.id,
+      date_created: new Date().toString(),
+    }));
+    http.onreadystatechange = (e) => {
+      let response;      
+      if (http.readyState == 4 && http.status == 200) {
+        response = JSON.parse(http.responseText);
+        if (!response.error) {
+          console.log("Response recieved! Chunk uploaded.");
+
+          document.getElementById('upload-status').innerHTML = `Uploading... `;
+          // send_next_chunk(chunk_num + 1);
+          // window.location.href = '/';
+        } else {
+          document.getElementById('error').innerHTML = response.msg;
+        }
+      }
+    }   
+  })
+  // console.log();
+  console.log(fd.get('file_bin'));
+      
+
+                
+  
+}
+</script>

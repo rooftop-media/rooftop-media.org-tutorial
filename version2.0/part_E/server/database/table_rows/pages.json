@@ -1,0 +1,33 @@
+[
+  {
+    "title": "A  Page",
+    "route": "a-page",
+    "is_public": false,
+    "created_by": 3,
+    "date_created": "Thu Jul 06 2023 15:45:32 GMT-0400 (Eastern Daylight Time)",
+    "content": "",
+    "history": [],
+    "id": 1
+  },
+  {
+    "title": "B page!",
+    "route": "b-page",
+    "is_public": false,
+    "created_by": 2,
+    "date_created": "Thu Jul 06 2023 15:45:59 GMT-0400 (Eastern Daylight Time)",
+    "content": "<html>Hello! This is some html! <a href=\"link.com\" target=\"_blank\">Link!</a></html>Text at the end! This is valid!\n\n<div style=\"color:pink;\" alt=\"hi\">This is valid, and will be kept!</div>\n<button onclick=\"hack()\" style=\"color: purple;\">This whole tag is not valid, the text will be kept though!</button>",
+    "history": [],
+    "id": 2,
+    "session_id": "10"
+  },
+  {
+    "title": "c-page",
+    "route": "c-page",
+    "is_public": true,
+    "created_by": 3,
+    "date_created": "Thu Jul 20 2023 15:33:24 GMT-0400 (Eastern Daylight Time)",
+    "content": "",
+    "history": [],
+    "id": 6
+  }
+]
