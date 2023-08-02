@@ -1126,8 +1126,16 @@ class Table {
 
   constructor(name) {
     this.name = name;
-    this.columns = JSON.parse(fs.readFileSync(`${__dirname}/table_columns/${name}.json`, 'utf8'));
-    this.rows = JSON.parse(fs.readFileSync(`${__dirname}/table_rows/${name}.json`, 'utf8'));
+    try {
+      this.columns = JSON.parse(fs.readFileSync(`${__dirname}/table_columns/${name}.json`, 'utf8'));
+    } catch (err) {
+      throw new Error(`The file "\x1b[32m/table_columns/${name}.json\x1b[0m" does not exist or is not proper JSON.`)
+    }
+    try {
+      this.rows = JSON.parse(fs.readFileSync(`${__dirname}/table_rows/${name}.json`, 'utf8'));
+    } catch (err) {
+      throw new Error(`The file "\x1b[32m/table_rows/${name}.json\x1b[0m" does not exist or is not proper JSON.`)
+    }
   }
 
   //  "query" is an object
@@ -1194,7 +1202,75 @@ module.exports = {
 
 
 
-<h3 id="b-3">  ☑️ Step 3:  Setting up the API in <code>server.js</code> </h3>
+<h3 id="b-3"> ☑️ Step 3. ☞  Test the code!  </h3>
+
+Create another JS file, `server/database/db-test.js`. We'll use it to test out the database.  
+In `/db-test.js`, write this: 
+
+```js
+const DataBase = require('./database.js');
+
+
+console.log('===== Test 1: Adding a new user')
+
+let new_user = DataBase.table('users').insert({
+  username: "database_test_user",
+  display_name: "Just testing the user database",
+  email: "database_test@user.com",
+  phone: "555-010-1100",
+});
+
+if (new_user.error) {
+  console.log(`Test 1 resulted in an error: ${new_user.msg}`);
+} else {
+  console.log(`Test 1 created a user with this id: ${new_user.id}`);
+}
+
+
+console.log('===== Test 2: Finding the user with username database_test_user')
+
+let found_user = DataBase.table('users').find({
+  username: "database_test_user"
+});
+
+if (found_user.length < 0) {
+  console.log(`Test 2 didn't find any matching users.`);
+} else if (found_user.length > 1 || !found_user) {
+  console.log(`Test 2 returned more than one user, or an undefined result:`);
+  console.log(found_user);
+} else {
+  console.log(`Test 2 found a user with this data: `);
+  console.log(found_user);
+}
+
+
+const readline = require('node:readline');
+const { stdin: input, stdout: output } = require('node:process');
+
+const rl = readline.createInterface({ input, output });
+
+rl.question('Want to run a test that results in an error? (y/n)', (answer) => {
+  if (answer.toLowerCase() == 'y') {
+    //  Invalid test
+    DataBase.table('not-a-table').insert({
+      row1: 'value-1',
+      row2: false
+    })
+  } else {
+    console.log("Ok, goodbye!");
+  }
+  rl.close();
+});
+```
+
+Run that script in the command line with the test `node ./server/database/db-test.js`. 
+If it runs successfully, open up `/server/database/table_rows/users.json` and delete the new entry.  
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-4">  ☑️ Step 4:  Setting up the API in <code>server.js</code> </h3>
 
 First, we'll import our Database module into `server.js`, and a module to let us encrypt user passwords:
 
@@ -1220,11 +1296,7 @@ function server_request(req, res) {
   if (url.split('/')[1] == 'server') {  /*  Don't send anything from the /server/ folder.  */
     respond_with_a_page(res, '/404');
   } else if (extname.length == 0 && url.split('/')[1] == 'api') {     /*  API routes.      */
-    if (req.method == "GET") {
-      api_GET_routes(url, res);
-    } else if (req.method == "POST") {
-      api_POST_routes(url, req, res);
-    }
+    api_routes(url, req, res)
   } else if (extname.length == 0) {            /*  No extension? Respond with index.html.  */
     respond_with_a_page(res, url);
   } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
@@ -1235,51 +1307,80 @@ function server_request(req, res) {
 ```
 
 Then, we'll add some functions to the API section: 
- - `api_response(text, code)` will send back a response.  We'll call this often in the API route functions.
- - `api_GET_routes(url, res)` will route API calls that use the GET method. We'll leave it empty for now. 
- - `api_POST_routes(url, req, res)` will route API calls that use the POST method. We'll also validate the request route and data here.
- - `POST_register(new_user, res)` will be our first API route.  It registers a user in the database, IF the user's email, phone number and username are unique. 
+ - `api_response(res, text, code)` will send back a response.  We'll call this often in the API route functions.
+ - `parse_req_data(req_data)` will parse the data sent with a request.  This is usually just converting a string to a JSON object. 
+ - `parse_url_params(url)` parses  URL params, for example `/api/users?userid=22&username=ben`
+ - `api_routes(url, req, res)` will use the above 3 functions, to call the API methods appropriately.
+ - `POST_routes['/api/register']` is our first API method, which creates a new user!
 
 ```javascript
 ////  SECTION 3: API.
 
+let GET_routes = {};  //  Stores all GET route methods!
+let POST_routes = {}; //  Stores all POST route methods!
+
+//  Responds to HTTP requests. "code" might be 404, 200, etc. 
 function api_response(res, code, text) {
   res.writeHead(code, {'Content-Type': 'text/html'});
   res.write(text);
   return res.end();
 }
 
-function api_GET_routes(url, res) {
-
+//  Parses the data sent with a request
+function parse_req_data(req_data, res) {
+  try {
+    return req_data = JSON.parse(req_data);
+  } catch (e) {
+    return { text: req_data };
+  }
 }
 
-function api_POST_routes(url, req, res) {
+//  Parse URL params for example /api/users?userid=22&username=ben
+function parse_url_params(url, res) {
+  let params = { _url: url };
+  if (url.indexOf('?') != -1) {
+    let param_string = url.split('?')[1];
+    let param_pairs = param_string.split('&');
+    for (let i = 0; i < param_pairs.length; i++) {
+      let parts = param_pairs[i].split('=');
+      if (parts.length != 2) {
+        return api_response(res, 400, `Improper URL parameters.`);
+      }
+      params[parts[0]] = parts[1];
+    }
+    params._url = url.split('?')[0];
+  }
+  return params;
+}
+
+//  This is called in server_request for any req starting with /api/.  It uses the functions above and calls the functions below.
+function api_routes(url, req, res) {
+
   let req_data = '';
   req.on('data', chunk => {
     req_data += chunk;
   })
   req.on('end', function() {
+
     //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
+    req_data = parse_req_data(req_data, res);
 
-    let api_map = {
-      '/api/register': POST_register,
-    }
+    //  Get data, for example /api/users?userid=22&username=ben
+    req_data._params = parse_url_params(url, res);
+    url = req_data._params._url;
 
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
+    if (req.method == "GET" && typeof GET_routes[url] == 'function') {
+      GET_routes[url](req_data, res);
+    } else if (req.method == "POST" && typeof POST_routes[url] == 'function') {
+      POST_routes[url](req_data, res);
     } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
+      api_response(res, 404, `The ${req.method} API route ${url} does not exist.`);
     }
+
   })
 }
 
-function POST_register(new_user, res) {
+POST_routes['/api/register'] = function(new_user, res) {
   new_user.salt = crypto.randomBytes(16).toString('hex');
   new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
   //  Add the user to the db, if their username, email and phone # are unique.
@@ -1288,14 +1389,14 @@ function POST_register(new_user, res) {
 }
 ```
 
-Note that in `POST_register`, we're also adding a *salt* to our password, and then turning the password plus the salt into a *hash*.  
+Note that in `POST_routes['/api/register']`, we're also adding a *salt* to our password, and then turning the password plus the salt into a *hash*.  
 This way, even those with access to the user's data on the server (like me, the administrator) can't see people's plaintext passwords.  
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="b-4">  ☑️ Step 4:  Calling the API in the browser, in <code>register.html</code> </h3>
+<h3 id="b-5">  ☑️ Step 5:  Calling the API in the browser, in <code>register.html</code> </h3>
 
 Open `register.html` and add this:  
 
@@ -1364,7 +1465,7 @@ function register() {
 
 
 
-<h3 id="b-5"> ☑️ Step 5. ☞  Test the code!  </h3>
+<h3 id="b-6"> ☑️ Step 6. ☞  Test the code!  </h3>
 
 Now, we can run the server, and navigate to the `/register` page.  
 We'll want to test for a few different things: 
@@ -1384,7 +1485,7 @@ We'll want to test for a few different things:
 
 
 
-<h3 id="b-6">  ☑️ Step 6:  Validating user input in <code>register.html</code> </h3>
+<h3 id="b-7">  ☑️ Step 7:  Validating user input in <code>register.html</code> </h3>
 
 Next, we want to add event listeners to the inputs on `register.html` to validate user input.  
 For example, a username should be only lowercase letters, numbers, and underscores.  
@@ -1502,7 +1603,7 @@ function register() {
 
 
 
-<h3 id="b-7"> ☑️ Step 7. ☞  Test the code!  </h3>
+<h3 id="b-8"> ☑️ Step 8. ☞  Test the code!  </h3>
 
 Run the server again and navigate to `/register`.  
 Click on the `username` input field and try to type any capital letter - input should be prevented.  
@@ -1511,7 +1612,7 @@ The `email` and `phone` inputs should be nicely validated as well.
 <br/><br/><br/><br/>
 
 
-<h3 id="b-8"> ☑️ Step 8. ❖ Part B review. </h3>
+<h3 id="b-9"> ☑️ Step 9. ❖ Part B review. </h3>
 
 The complete code for Part B is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_B).
 
@@ -1573,10 +1674,10 @@ And we'll also make `/server/database/table_rows/sessions.json`, with an empty a
 
 <h3 id="c-2">  ☑️ Step 2:  Create a session when registering in <code>server.js</code> </h3>
 
-We'll edit the function `function POST_register(new_user, res)` in `server.js`, to this:
+We'll edit the function `POST_routes['/api/register'](new_user, res)` in `server.js`, to this:
 
 ```javascript
-function POST_register(new_user, res) {
+POST_routes['/api/register'] = function(new_user, res) {
   new_user.salt = crypto.randomBytes(16).toString('hex');
   new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
   //  Add the user to the db.
@@ -1662,43 +1763,11 @@ function register() {
 
 <h3 id="c-4">  ☑️ Step 4:  New API route: <code>user-by-session</code> </h3>
 
-We'll edit `server/server.js` in two places.  
-First, we'll set up `api_GET_routes`, and map our first GET function, `GET_user_by_session`:  
+We'll add a new function to `/server/server.js`. 
+We'll add this right above `POST_routes['/api/register']`:
 
 ```javascript
-function api_GET_routes(url, res) {
-  //  Get data, for example /api/users?userid=22&username=ben
-  let req_data = {};
-  if (url.indexOf('?') != -1) {
-    let params = url.split('?')[1];
-    url = url.split('?')[0];
-    params = params.split('&');
-    for (let i = 0; i < params.length; i++) {
-      let parts = params[i].split('=');
-      if (parts.length != 2) {
-        return api_response(res, 400, `Improper data in your request.`);
-      }
-      req_data[parts[0]] = parts[1];
-    }
-  }
-  
-  let api_map = {
-    '/api/user-by-session': GET_user_by_session
-  }
-
-  //  Call the API route function, if it exists.
-  if (typeof api_map[url] == 'function') {
-    api_map[url](req_data, res);
-  } else {
-    api_response(res, 404, `The GET API route ${url} does not exist.`);
-  }
-}
-```
-
-and, below `api_GET_routes`, add the new function `GET_user_by_session`:  
-
-```javascript
-function GET_user_by_session(req_data, res) {
+GET_routes['/api/user-by-session'] = function(new_user, res) {
   let session_data = DataBase.table('sessions').find({ id: parseInt(req_data.session_id) });
   if (session_data.length < 1) {
     return api_response(res, 404, 'No session found');
