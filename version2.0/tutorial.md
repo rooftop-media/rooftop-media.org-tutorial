@@ -194,48 +194,12 @@ Then, add the file `/server/database/table_rows/pages.json`.  Add an empty array
 
 
 
-<h3 id="a-3">  ☑️ Step 3: Add <code>POST_create_page</code> to <code>/server/server.js</code>  </h3>
+<h3 id="a-3">  ☑️ Step 3: Add <code>/api/create-page</code> to <code>/server/server.js</code>  </h3>
 
-First, add `/api/create-page` to `api_POST_routes`:  
-
-```javascript
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/update-user': POST_update_user,
-      '/api/update-password': POST_update_password,
-      '/api/check-invite-code': POST_check_invite_code,
-      '/api/create-page': POST_create_page
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
-}
-```
-
-Then, after the function `POST_check_invite_code`, add this function:  
+In `/server/server.js`, add `POST_routes['/api/create-page']` right after `POST_routes['/api/check-invite-code']`:  
 
 ```javascript
-function POST_create_page(new_page_data, res) {
+POST_routes['/api/create-page'] = function(new_page_data, res) {
   let response = DataBase.table('pages').insert(new_page_data);
   api_response(res, 200, JSON.stringify(response));
 }
@@ -385,7 +349,7 @@ function respond_with_a_page(res, url) {
     if (page_data.length < 1) {
       page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
     } else {
-      page_content = fs.readFileSync(__dirname + '/../pages/cms/display-page.html');
+      page_content = fs.readFileSync(__dirname + '/../pages/cms/dynamic-page.html');
     }
   }
   res.writeHead(200, {'Content-Type': 'text/html'});
@@ -463,47 +427,14 @@ load_page();
 <br/><br/><br/><br/>
 
 
-<h3 id="a-9">  ☑️ Step 9: Adding <code>GET_page</code> to <code>/server/server.js</code>  </h3>
+<h3 id="a-9">  ☑️ Step 9: Adding <code>/api/page</code> to <code>/server/server.js</code>  </h3>
 
 This route will return a page's details and content, given a page's route.  
 
-First, we'll add the API route to `api_GET_routes`:
+Add `GET_routes['/api/page']` right after `GET_routes['/api/user-by-session']`:
 
 ```javascript
-function api_GET_routes(url, res) {
-  //  Get data, for example /api/users?userid=22&username=ben
-  let req_data = {};
-  if (url.indexOf('?') != -1) {
-    let params = url.split('?')[1];
-    url = url.split('?')[0];
-    params = params.split('&');
-    for (let i = 0; i < params.length; i++) {
-      let parts = params[i].split('=');
-      if (parts.length != 2) {
-        return api_response(res, 400, `Improper data in your request.`);
-      }
-      req_data[parts[0]] = parts[1];
-    }
-  }
-  
-  let api_map = {
-    '/api/user-by-session': GET_user_by_session,
-    '/api/page': GET_page,
-  }
-
-  //  Call the API route function, if it exists.
-  if (typeof api_map[url] == 'function') {
-    api_map[url](req_data, res);
-  } else {
-    api_response(res, 404, `The GET API route ${url} does not exist.`);
-  }
-}
-```
-
-Then, below `GET_user_by_session`, we'll write the function, `GET_page`:  
-
-```javascript
-function GET_page(req_data, res) {
+GET_routes['/api/page'] = function(req_data, res) {
   let page_data = DataBase.table('pages').find({ route: req_data.route });
   let response = {
     error: false,
@@ -537,43 +468,10 @@ URLs that are neither in the `pages` database, nor hardcoded, static pages, shou
 
 <h3 id="a-11"> ☑️ Step 11:  Making an API route for getting all pages, in <code>server.js</code> </h3>
 
-First, edit `api_GET_routes`:
+In `/server/server.js`, right under `GET_routes['/api/page']`, add a new function, `GET_routes['/api/all-pages']`:
 
 ```javascript
-function api_GET_routes(url, res) {
-  //  Get data, for example /api/users?userid=22&username=ben
-  let req_data = {};
-  if (url.indexOf('?') != -1) {
-    let params = url.split('?')[1];
-    url = url.split('?')[0];
-    params = params.split('&');
-    for (let i = 0; i < params.length; i++) {
-      let parts = params[i].split('=');
-      if (parts.length != 2) {
-        return api_response(res, 400, `Improper data in your request.`);
-      }
-      req_data[parts[0]] = parts[1];
-    }
-  }
-  
-  let api_map = {
-    '/api/user-by-session': GET_user_by_session,
-    '/api/page': GET_page,
-    '/api/all-pages': GET_all_pages,
-  }
-
-  //  Call the API route function, if it exists.
-  if (typeof api_map[url] == 'function') {
-    api_map[url](req_data, res);
-  } else {
-    api_response(res, 404, `The GET API route ${url} does not exist.`);
-  }
-}
-```
-
-Then, right under `GET_page`, add a new function, `GET_all_pages`:
-```javascript
-function GET_all_pages(req_data, res) {
+GET_routes['/api/all-pages'] = function(req_data, res) {
   let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
   all_pages = JSON.parse(all_pages);
   for (let i = 0; i < all_pages.length; i++) {
@@ -1106,50 +1004,14 @@ load_page();
 <br/><br/><br/><br/>
 
 
-<h3 id="b-4">  ☑️ Step 4: Adding <code>POST_update_page</code> to <code>/server/server.js</code>  </h3>
+<h3 id="b-4">  ☑️ Step 4: Adding <code>/api/update-page</code> to <code>/server/server.js</code>  </h3>
 
-Another API route, here we go.  First, update `api_POST_routes`...
+Another API route, here we go.  
 
-```javascript
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/update-user': POST_update_user,
-      '/api/update-password': POST_update_password,
-      '/api/delete-user': POST_delete_user,
-      '/api/check-invite-code': POST_check_invite_code,
-      '/api/create-page': POST_create_page,
-      '/api/update-page': POST_update_page
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
-}
-```
-
-Then add the new function right after `POST_create_page`, called `POST_update_page`:  
+Right after `POST_routes['/api/create-page']`, add a function called `POST_routes['/api/update-page']`:  
 
 ```javascript
-function POST_update_page(page_update, res) {  
+POST_routes['/api/update-page'] = function(page_update, res) {  
   let response = DataBase.table('pages').update(page_update.id, page_update);
   api_response(res, 200, JSON.stringify(response));
 }
@@ -1182,49 +1044,10 @@ Finally, go to `localhost:8080/edit/not-a-route` to display an error message.
 
 <h3 id="b-6">  ☑️ Step 6: Adding <code>POST_delete_page</code> to <code>/server/server.js</code>  </h3>
 
-Add `POST_delete_page` to the api routes:
+Add `POST_routes['/api/delete-page']` to `/server/server.js`:
 
 ```js
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/update-user': POST_update_user,
-      '/api/update-password': POST_update_password,
-      '/api/delete-user': POST_delete_user,
-      '/api/check-invite-code': POST_check_invite_code,
-      '/api/create-page': POST_create_page,
-      '/api/update-page': POST_update_page,
-      '/api/delete-page': POST_delete_page
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
-}
-```
-
-And then we'll add the  `POST_delete_page` function: 
-
-```js
-function POST_delete_page(request_info, res) {
+POST_routes['/api/delete-page'] = function(request_info, res) {
   let page_data = DataBase.table('pages').find({ id: request_info.id });
   let response = {
     error: false,
@@ -2516,7 +2339,7 @@ We'll also make sure that only the user who creates a page can edit it.
 
 
 
-<h3 id="d-1">  ☑️ Step 1: Editing <code>GET_page</code> in <code>server.js</code>  </h3>
+<h3 id="d-1">  ☑️ Step 1: Editing <code>/api/page</code> in <code>server.js</code>  </h3>
 
 If a requested page is private, we won't send it to the browser at all, unless the user created the page
 
@@ -2524,10 +2347,10 @@ We _could_ do this by sending the user's id to the server, and comparing it to t
 But then, users could gain access to pages by editing the request code -- they'd just need to know the "created_by" user's id. 
 The user's id might be public, for example, in data sent for a user's page.  
 
-We'll check for that in the `GET_page` function in `server/server.js`, by adding an "or" to the first "if". 
+We'll check for that in the `GET_routes['/api/page']` function in `server/server.js`, by adding an "or" to the first "if". 
 
 ```js
-function GET_page(req_data, res) {
+GET_routes['/api/page'] = function(req_data, res) {
   let response = { error: false };
   let page_data = DataBase.table('pages').find({ route: req_data.route });
   let session_data = DataBase.table('sessions').find({ id: req_data.session_id });
@@ -2640,7 +2463,7 @@ Private pages should not be viewable by anyone, except for the creator of that p
 
 
 
-<h3 id="d-5">  ☑️ Step 5: Editing <code>POST_update_page</code> in <code>server.js</code>  </h3>
+<h3 id="d-5">  ☑️ Step 5: Editing <code>/api/update-page</code> in <code>server.js</code>  </h3>
 
 We now need to make sure that only the user that creates a page can edit that page.  
 
@@ -2653,7 +2476,7 @@ Instead, we'll send a user's current session id.  On the server, we'll use that 
 Open `/server/server.js` and edit the function `POST_update_page`. 
 
 ```js
-function POST_update_page(page_update, res) {
+POST_routes['/api/update-page'] = function(page_update, res) {
   let response = { error: false };
   let page_data = DataBase.table('pages').find({ id: page_update.id });
   let session_data = DataBase.table('sessions').find({ id: page_update.session_id });
@@ -2761,7 +2584,8 @@ function save() {
 
 Restart the server.
 
-While logged in as one user, create a page.  Make sure you can still edit the page and save it with no problems.  
+While logged in as one user, create a page.  Make sure you can still edit the page and save it with no problems.  Make sure the page is public, too.  
+
 Then, log in as a different user, and try to edit that page.  
 You should get an error telling you that you don't have permission!  
 
@@ -2797,19 +2621,19 @@ const http = new XMLHttpRequest();
   }
 console.log('HACKED!!1!');
 ```
-The edit page should load, even though you're not the correct user!!  
+The edit page should load, even though you're not the correct user!!  (The page must be public)
 
 Edit the page and click "save".  Our "update-page" api route should prevent the page from being updated, since it checks the user's session id. 
 
 <br/><br/><br/><br/>
 
 
-<h3 id="d-8">  ☑️ Step 8: Editing <code>POST_delete_page</code> in <code>server.js</code>  </h3>
+<h3 id="d-8">  ☑️ Step 8: Editing <code>api/delete-page</code> in <code>server.js</code>  </h3>
 
-We're going to edit `POST_delete_page` to require the user's session id, just like `POST_update_page`.  
+We're going to edit `api/delete-page` to require the user's session id, just like `api-update-page`.  
 
 ```js
-function POST_delete_page(request_info, res) {
+POST_routes['/api/delete-page'] = function(request_info, res) {
   let page_data = DataBase.table('pages').find({ id: request_info.id });
   let session_data = DataBase.table('sessions').find({ id: request_info.session_id });
   let response = {
@@ -2946,47 +2770,7 @@ var pageURLs = {
 var pageURLkeys = Object.keys(pageURLs);
 ```
 
-Now, edit `api_POST_routes` to add `/upload-file`:
-
-```
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/update-user': POST_update_user,
-      '/api/update-password': POST_update_password,
-      '/api/delete-user': POST_delete_user,
-      '/api/check-invite-code': POST_check_invite_code,
-      '/api/create-page': POST_create_page,
-      '/api/update-page': POST_update_page,
-      '/api/delete-page': POST_delete_page,
-      '/api/upload-file': POST_upload_file
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
-}
-```
-
-Finally, right after the function `POST_delete_page`, add `POST_upload_file`:
+Then, right after the function `api/delete-page`, add `api/upload-file`:
 
 ```
 
