@@ -24,9 +24,9 @@ Click a part title to jump down to it, in this file.
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
 | [Part A - Serving Static Pages](#part-a) | 15 min. | 18 |
-| [Part B - /register, API & DB basics](#part-b) | 15 min. | 8 |
-| [Part C - User sessions, logout, and /login](#part-c) | 20 min.  | 14 |
-| [Part D - User settings](#part-d) | 10 min. | 9 |
+| [Part B - /register, API & DB basics](#part-b) | 15 min. | 9 |
+| [Part C - User sessions, logout, and /login](#part-c) | 20 min.  | 15 |
+| [Part D - User settings](#part-d) | 10 min. | 13 |
 | [Part E - Mobile design](#part-e) | 15 min. | 8 |
 | [Part F - Invite code](#part-f) | 5 min. | 5 |
 | [Part G - Hosting](#part-g) | 15 min. | 6 |
@@ -1233,7 +1233,7 @@ let found_user = DataBase.table('users').find({
   username: "database_test_user"
 });
 
-if (found_user.length < 0) {
+if (found_user.length == 0) {
   console.log(`Test 2 didn't find any matching users.`);
 } else if (found_user.length > 1 || !found_user) {
   console.log(`Test 2 returned more than one user, or an undefined result:`);
@@ -1329,9 +1329,14 @@ function api_response(res, code, text) {
 //  Parses the data sent with a request
 function parse_req_data(req_data, res) {
   try {
-    return req_data = JSON.parse(req_data);
+    let parsed_req_data = JSON.parse(req_data);
+    if (typeof parsed_req_data === 'object' && !Array.isArray(parse_req_data) && parse_req_data !== null) {
+      return parsed_req_data;
+    } else {
+      return { body: req_data };
+    }
   } catch (e) {
-    return { text: req_data };
+    return { body: req_data };
   }
 }
 
@@ -1370,7 +1375,7 @@ function api_routes(url, req, res) {
     url = req_data._params._url;
 
     if (req.method == "GET" && typeof GET_routes[url] == 'function') {
-      GET_routes[url](req_data, res);
+      GET_routes[url](req_data._params, res);
     } else if (req.method == "POST" && typeof POST_routes[url] == 'function') {
       POST_routes[url](req_data, res);
     } else {
@@ -1896,45 +1901,52 @@ In `/server/database/database.js`, add this after our `insert` function:
 
 
 
-<h3 id="c-8"> ☑️ Step 8.  Add a logout API route to <code>server.js</code>  </h3>
+<h3 id="c-8"> ☑️ Step 8. ☞  Test the code!  </h3>
 
-We'll edit `server/server.js` in two places.  
-First, in `api_POST_routes`, add a call to `POST_logout`:  
+We can now test our new database function by adding to `/server/database/db-test.js`.
 
-```javascript
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
+Add this right after the end of Test 2, around line 35.
 
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/logout': POST_logout,
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
+```js
+console.log(`===== Test 3: Deleting the newly created user, with the id ${new_user.id}`)
+
+let msg = DataBase.table('users').delete(new_user.id);
+
+console.log(msg);
+
+console.log('===== Test 4: Trying to find the user with username database_test_user again')
+
+let found_user2 = DataBase.table('users').find({
+  username: "database_test_user"
+});
+
+if (found_user2.length == 0) {
+  console.log(`Test 4 didn't find any matching users.`);
+} else if (found_user2.length > 1 || !found_user2) {
+  console.log(`Test 4 returned more than one user, or an undefined result:`);
+  console.log(found_user2);
+} else {
+  console.log(`Test 4 found a user with this data: `);
+  console.log(found_user2);
 }
+
 ```
 
-Then, after `POST_register`, add this:  
+Run the code.  The test results should make sense.  
+You can run this test script repeatedly without deleting anything by hand, because the script does it.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="c-9"> ☑️ Step 9.  Add the route <code>/api/logout</code> to <code>server.js</code>  </h3>
+
+We'll edit `server/server.js` in two places.  
+After `POST_routes['/api/register']`, add this:  
 
 ```javascript
-function POST_logout(session_id, res) {
-  let success_msg = DataBase.table('sessions').delete(session_id);
+POST_routes['/api/logout'] = function(req_data, res) {
+  let success_msg = DataBase.table('sessions').delete(req_data.body);
   api_response(res, 200, success_msg);
 }
 ```
@@ -1943,7 +1955,7 @@ function POST_logout(session_id, res) {
 
 
 
-<h3 id="c-9"> ☑️ Step 9.  Add a logout function to <code>index.js</code>  </h3>
+<h3 id="c-10"> ☑️ Step 10.  Add a logout function to <code>index.js</code>  </h3>
 
 In `index.js`, add this:
 
@@ -1968,7 +1980,7 @@ function logout() {
 
 
 
-<h3 id="c-10"> ☑️ Step 10. ☞  Test the code!  </h3>
+<h3 id="c-11"> ☑️ Step 11. ☞  Test the code!  </h3>
 
 Refresh the server, and make sure you're logged in -- if not, register a new user.  
 Find out what session id you're using.  You can do this by going to the browser's dev console, typing `_session_id`, and hitting enter.  
@@ -1981,45 +1993,12 @@ Open the file `/server/database/table_rows/sessions.json` and make sure the sess
 
 
 
-<h3 id="c-11"> ☑️ Step 11.  Add API route login to <code>server.js</code>  </h3>
+<h3 id="c-12"> ☑️ Step 12.  Add API route login to <code>server.js</code>  </h3>
 
-We'll edit `server/server.js` in two places.  
-First, in `api_POST_routes`, add a call to `POST_login`:  
-
+We'll edit `server/server.js` again.  
+Between `POST_routes['/api/register']` and `POST_routes['/api/logout']`, add this:  
 ```javascript
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
-}
-```
-
-Then, between `POST_register` and `POST_logout`, add this:  
-
-```javascript
-function POST_login(login_info, res) {
+POST_routes['/api/login'] = function(login_info, res) {
   let user_data = DataBase.table('users').find({ username: login_info.username });
   let response = {
     error: false,
@@ -2057,7 +2036,7 @@ function POST_login(login_info, res) {
 
 
 
-<h3 id="c-12"> ☑️ Step 12.  Edit <code>login.html</code>  </h3>
+<h3 id="c-13"> ☑️ Step 13.  Edit <code>login.html</code>  </h3>
 
 Now that we have our API route, we can call it in `login.html`.  
 We'll also add validation for the form fields.  
@@ -2123,7 +2102,7 @@ We'll also add validation for the form fields.
 
 
 
-<h3 id="c-13"> ☑️ Step 13. ☞  Test the code!  </h3>
+<h3 id="c-14"> ☑️ Step 14. ☞  Test the code!  </h3>
 
 Restart the server!  
 Go to `/login`!  
@@ -2134,7 +2113,7 @@ Log in should start a new session.  Refresh to make sure you stay logged in.
 
 
 
-<h3 id="c-14"> ☑️ Step 14. ❖ Part C review. </h3>
+<h3 id="c-15"> ☑️ Step 15. ❖ Part C review. </h3>
 
 The complete code for Part C is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_C).
 
@@ -2254,46 +2233,61 @@ And add this method right *after* our `insert` method:
 
 
 
-<h3 id="d-2"> ☑️ Step 2.  Add POST_update_user and a URL route to <code>server.js</code>  </h3>
+<h3 id="c-2"> ☑️ Step 2. ☞  Test the code!  </h3>
 
+We'll edit `/server/database/db-test.js` once more, to test our update funvtion.
 
-First, in `server.js`, update this:  
+First, rename "Test 3" to "Test 5", and "Test 4" to "Test 6".
 
-```javascript
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
+Then, between the end of Test 2 and the start of Test 6, add this:
 
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/update-user': POST_update_user,
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
+```js
+console.log(`===== Test 3: Updating the user with the id ${new_user.id}`)
+
+let update_msg = DataBase.table('users').update(new_user.id, {
+  display_name: 'Updated display name!',
+  email: 'updated@email.com'
+});
+
+console.log(update_msg);
+
+console.log('===== Test 4: Finding the user with username database_test_user again')
+
+let found_user1 = DataBase.table('users').find({
+  username: "database_test_user"
+});
+
+if (found_user1.length == 0) {
+  console.log(`Test 4 didn't find any matching users.`);
+} else if (found_user1.length > 1 || !found_user1) {
+  console.log(`Test 4 returned more than one user, or an undefined result:`);
+  console.log(found_user1);
+} else {
+  console.log(`Test 4 found a user with this data: `);
+  console.log(found_user1);
 }
+
 ```
 
-Then, add this beneath `POST_logout`:  
+The tests are now getting a bit long, but they should make sense.  
+First the user is created, then found.  
+Then updated, then found.  
+Then deleted, then not found.  
+
+Note that I am not testing several features of the database, such as uniqueness and requiredness.  
+I am simply too lazy. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-3"> ☑️ Step 3.  Add <code>/api/logout</code> and a URL route to <code>server.js</code>  </h3>
+
+
+In `server.js`, add this beneath `POST_routes['/api/logout']`:  
 
 ```javascript
-function POST_update_user(user_update, res) {
+POST_routes['/api/update-user'] = function(user_update, res) {
   let response = DataBase.table('users').update(user_update.id, user_update);
   api_response(res, 200, JSON.stringify(response));
 }
@@ -2317,7 +2311,7 @@ var pageURLkeys = Object.keys(pageURLs);
 
 
 
-<h3 id="d-3"> ☑️ Step 3.  Edit <code>/index.js</code>  </h3>
+<h3 id="d-4"> ☑️ Step 4.  Edit <code>/index.js</code>  </h3>
 
 We're going to add two functions in `index.js`, which we'll use in `/profile.html`.  
 The first is a function to update the user buttons, in the header, called `render_user_buttons`.
@@ -2382,7 +2376,7 @@ function boot() {
 
 
 
-<h3 id="d-4"> ☑️ Step 4.  Add the file <code>/pages/misc/profile.html</code>  </h3>
+<h3 id="d-5"> ☑️ Step 5.  Add the file <code>/pages/misc/profile.html</code>  </h3>
 
 Add a file, `/pages/misc/profile.html`.  
 This page provides a form to update the user's information.  
@@ -2526,7 +2520,7 @@ function delete_user() {
 
 
 
-<h3 id="d-5"> ☑️ Step 5. ☞  Test the code!  </h3>
+<h3 id="d-6"> ☑️ Step 6. ☞  Test the code!  </h3>
 
 Restart the server, and go to `/profile`.  Try updating your user profile info.  It should work!  
 Try providing a username, email, and phone that are already taken.  An error should display!  
@@ -2535,46 +2529,13 @@ Try providing a username, email, and phone that are already taken.  An error sho
 
 
 
-<h3 id="d-6"> ☑️ Step 6. Adding POST_update_password to <code>server.js</code>  </h3>
+<h3 id="d-7"> ☑️ Step 7. Adding <code>/api/update-password</code> to <code>server.js</code>  </h3>
 
-Let's add a new api route to `server.js`
-
-```javascript
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/update-user': POST_update_user,
-      '/api/update-password': POST_update_password
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
-}
-```
-
-And we'll add `POST_update_password` as well, below `POST_update_user`:  
+Let's add a new api route to `server.js`.  
+We'll add `POST_routes['/api/update-password']` below `POST_routes['/api/update-user']`:  
 
 ```javascript
-function POST_update_password(password_update, res) {
+POST_routes['/api/update-password'] = function(password_update, res) {
   let user_data = DataBase.table('users').find({ id: password_update.id });
   let response = {
     error: false,
@@ -2609,7 +2570,7 @@ function POST_update_password(password_update, res) {
 <br/><br/><br/><br/>
 
 
-<h3 id="d-7"> ☑️ Step 7. Adding <code>update_password</code> to <code>profile.html</code>  </h3>
+<h3 id="d-8"> ☑️ Step 8. Adding <code>update_password</code> to <code>profile.html</code>  </h3>
 
 In `profile.html`, add this to our `update_password()` function:  
 
@@ -2648,7 +2609,7 @@ function update_password() {
 
 
 
-<h3 id="d-8"> ☑️ Step 8. ☞  Test the code!  </h3>
+<h3 id="d-9"> ☑️ Step 9. ☞  Test the code!  </h3>
 
 While logged in, try changing the password of a user.  
 Log out and log back in again to make sure the password is changed.
@@ -2657,50 +2618,14 @@ Log out and log back in again to make sure the password is changed.
 
 
 
-<h3 id="d-9"> ☑️ Step 9. Adding <code>POST_delete_user</code> to <code>server.js</code>  </h3>
+<h3 id="d-10"> ☑️ Step 10. Adding <code>/api/delete-user</code> to <code>server.js</code>  </h3>
 
 This method will require the user's password.   
 Also, I'm not using the DELETE http method because it seems unnecessary for a mostly closed API. 
 
-In `server.js`, add `POST_delete_user` to `api_POST_routes`:
-
+Create the function `POST_routes['/api/delete-user'] `:
 ```js
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/update-user': POST_update_user,
-      '/api/update-password': POST_update_password,
-      '/api/delete-user': POST_delete_user
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
-}
-```
-
-Then, create the function `POST_delete_user`:
-
-```js
-function POST_delete_user(user_info, res) {
+POST_routes['/api/delete-user'] = function(user_info, res) {
   let user_data = DataBase.table('users').find({ id: user_info.id });
   let response = {
     error: false,
@@ -2729,13 +2654,16 @@ function POST_delete_user(user_info, res) {
 
 
 
-<h3 id="d-10"> ☑️ Step 10. Adding <code>delete_user</code> to <code>profile.html</code>  </h3>
+<h3 id="d-11"> ☑️ Step 11. Adding <code>delete_user</code> to <code>profile.html</code>  </h3>
 
 In `profile.html`, add this to our `delete_user()` function:  
 
 ```javascript
 function delete_user() {
   var confirm_password = document.getElementById('delete_account_password').value;
+  if (!confirm("Are you sure you want to delete your account? This cannot be undone!") == true) {
+    return;
+  }
   const http = new XMLHttpRequest();
   http.open("POST", "/api/delete-user");
   http.send(JSON.stringify({
@@ -2762,7 +2690,7 @@ function delete_user() {
 
 
 
-<h3 id="d-11"> ☑️ Step 11. ☞  Test the code!  </h3>
+<h3 id="d-12"> ☑️ Step 12. ☞  Test the code!  </h3>
 
 Log in or create a new user, and navigate to the `/profile` page.  
 
@@ -2774,7 +2702,7 @@ Check in `/server/database/table_rows/users.json` to make sure the user data is 
 
 
 
-<h3 id="d-12"> ☑️ Step 12. ❖ Part D review. </h3>
+<h3 id="d-13"> ☑️ Step 13. ❖ Part D review. </h3>
 
 The complete code for Part D is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version1.0/part_D).
 
