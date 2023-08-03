@@ -2749,9 +2749,10 @@ Here's the code:
 
 
 
-<h3 id="e-2">  ☑️ Step 2: Add <code>/api/upload-file</code> to <code>server.js</code>  </h3>
+<h3 id="e-2">  ☑️ Step 2: Edit <code>server.js</code>  </h3>
 
-First, we'll add two new static routes...
+Before we add our next API route, there's three edits we need to make to `/server/server.js`...
+ 1. We'll add two new static pages:
 
 ```
 //  Mapping URLs to pages
@@ -2769,12 +2770,188 @@ var pageURLs = {
 }
 var pageURLkeys = Object.keys(pageURLs);
 ```
-
-Then, right after the function `api/delete-page`, add `api/upload-file`:
-
-```
+ 2. We'll edit part of the function `api_routes`, to ensure the [https://www.w3schools.com/nodejs/ref_buffer.asp](Buffer) we send doesn't get converted to a string:  
 
 ```
+//  This is called in server_request for any req starting with /api/.  It uses the functions above and calls the functions below.
+function api_routes(url, req, res) {
+
+  let req_data = '';
+  let buffer_chunks = [];
+  req.on('data', chunk => {
+    if (Buffer.isBuffer(chunk)) {
+      buffer_chunks.push(chunk);
+    } else {
+      req_data += chunk;
+    }
+  })
+  req.on('end', function() {
+    if (buffer_chunks.length > 0) {
+      req_data = Buffer.concat(buffer_chunks);
+    }
+    //  Parse the data to JSON.
+    req_data = parse_req_data(req_data, res);
+
+    //  Get data, for example /api/users?userid=22&username=ben
+    req_data._params = parse_url_params(url, res);
+    url = req_data._params._url;
+
+    if (req.method == "GET" && typeof GET_routes[url] == 'function') {
+      GET_routes[url](req_data._params, res);
+    } else if (req.method == "POST" && typeof POST_routes[url] == 'function') {
+      POST_routes[url](req_data, res);
+    } else {
+      api_response(res, 404, `The ${req.method} API route ${url} does not exist.`);
+    }
+
+  })
+}
+
+```
+ 3. We also need to edit `parse_req_data` to ensure the Buffer doesn't convert to a string _there_.
+
+```js
+//  Parses the data sent with a request
+function parse_req_data(req_data, res) {
+  if (Buffer.isBuffer(req_data)) {
+    return { body: req_data };
+  }
+  try {
+    let parsed_req_data = JSON.parse(req_data);
+    if (typeof parsed_req_data === 'object' && !Array.isArray(parse_req_data) && parse_req_data !== null) {
+      return parsed_req_data;
+    } else {
+      return { body: req_data };
+    }
+  } catch (e) {
+    return { body: req_data };
+  }
+}
+```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="e-3">  ☑️ Step 3: Add <code>/api/upload-file</code> to <code>server.js</code>  </h3>
+
+We're now ready to write the upload-file api route.  
+Right after the function `api/delete-page`, add `api/upload-file`:
+
+```js
+POST_routes['/api/upload-file'] = function(req_data, res) {
+  req_data._params.name = req_data._params.name.replace('%2E', '.');
+
+  let file_data = DataBase.table('files').find({ name: req_data._params.name });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (file_data.length != 0) {
+    response.error = true;
+    response.msg = `The file name ${req_data._params.name} already exists.`;
+    return api_response(res, 400, JSON.stringify(response));
+  }
+
+  try {
+    fs.writeFileSync(__dirname + '/../assets/uploads/' + req_data._params.name, req_data.body);
+  } catch (err) {
+    return api_response(res, 400, JSON.stringify(err));
+  }
+  let feedback = DataBase.table('files').insert({
+    name: req_data._params.name,
+    description: req_data._params.description,
+    date_created: new Date().toString(),
+    created_by: req_data._params.created_by,
+    is_public: req_data._params.is_public
+  })
+  if (feedback.error) {
+    return feedback;
+  }
+  return api_response(res, 200, JSON.stringify({error: false, msg: 'File uploaded successfully!'}));
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-4">  ☑️ Step 4: Add the folder <code>/assets/uploads/</code>  </h3>
+
+Create a new folder, called `/assets/uploads`.  This folder will store all user uploaded files. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-5">  ☑️ Step 5: Create a new database table, <code>files</code>  </h3>
+
+First, add a file `/server/database/table_columns/files.json`, with this: 
+
+```js
+{
+  "name": "Files",
+  "snakecase": "files",
+  "max_id": 0,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "File name",
+      "snakecase": "name",
+      "required": true
+    },
+    {
+      "name": "Is Public?",
+      "snakecase": "is_public"
+    },
+    {
+      "name": "Description",
+      "snakecase": "content"
+    },
+    {
+      "name": "Created by",
+      "snakecase": "created_by"
+    },
+    {
+      "name": "Date created",
+      "snakecase": "date_created"
+    }
+  ]
+}
+```
+
+Then, add `/server/database/table_rows/files.json` with an empty array: 
+
+```js
+[]
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-6">  ☑️  Step 6: ☞ Test the code!  </h3>
+
+Try uploading a file, like an image.  You should be able to!  
+Make sure the image is in the folder `/assets/uploads/`.  
+You should be redirected to a page called `/all-files`, which is a 404, for now. 
+
+Try uploading a file with the exact same file name.  You should get an error. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-7">  ☑️ Step 7: Create <code>/api/all-files</code>  </h3>
+
+<br/><br/><br/><br/>
+
+
+<h3 id="e-?">  ☑️ Step ?: Edit <code>server.js</code> to serve uploaded assets </h3>
+
 
 <br/><br/><br/><br/>
 
