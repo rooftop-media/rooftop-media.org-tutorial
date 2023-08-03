@@ -3096,46 +3096,10 @@ function enter() {
 
 <h3 id="f-2"> ☑️ Step 2.  Add <code>/api/check-invite-code</code> </h3>
 
-In `/server.js`, add `/api/check-invite-code`...
+In `/server.js`, add `/api/check-invite-code`, right after `/api/delete-user`:
 
 ```js
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/update-user': POST_update_user,
-      '/api/update-password': POST_update_password,
-      '/api/delete-user': POST_delete_user,
-      '/api/check-invite-code': POST_check_invite_code
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
-}
-```
-
-And add this function after `POST_delete_user`:
-
-```js
-function POST_check_invite_code(data, res) {
+POST_routes['/api/check-invite-code'] = function(data, res) {
   if (data.invite_code == 'secret123') {
     api_response(res, 200, JSON.stringify({error: false}));
   } else {
@@ -3155,7 +3119,7 @@ If we didn't do this, the user could just use CSS to show the "register" page.
 This is just a small if statement containing two lines:  
 
 ```js
-function POST_register(new_user, res) {
+POST_routes['/api/register'] = function(new_user, res) {
   new_user.salt = crypto.randomBytes(16).toString('hex');
   new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
   //  Add the user to the db.
