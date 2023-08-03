@@ -21,13 +21,17 @@
     "session_id": "10"
   },
   {
-    "title": "c-page",
+    "title": "C page!",
     "route": "c-page",
     "is_public": true,
     "created_by": 3,
-    "date_created": "Thu Jul 20 2023 15:33:24 GMT-0400 (Eastern Daylight Time)",
-    "content": "",
+    "date_created": "Thu Aug 03 2023 12:21:19 GMT-0400 (Eastern Daylight Time)",
+    "content": "Hi!",
     "history": [],
-    "id": 6
+    "_params": {
+      "_url": "/api/update-page"
+    },
+    "id": 7,
+    "session_id": "14"
   }
 ]

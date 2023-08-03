@@ -5,7 +5,7 @@
 <script src="/pages/cms/convert-markup.js"></script>
 <script>
 ////  SECTION 1: Page memory
-let page_route = _current_page.split('/')[1];
+let page_route = _current_page.slice(1, _current_page.length);
 let page_data = {};
 
 ////  SECTION 2: Render

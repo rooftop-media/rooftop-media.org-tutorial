@@ -28,5 +28,18 @@
     "content": "",
     "history": [],
     "id": 2
+  },
+  {
+    "title": "Test page!",
+    "route": "test",
+    "is_public": true,
+    "created_by": 2,
+    "date_created": "Thu Aug 03 2023 08:04:53 GMT-0400 (Eastern Daylight Time)",
+    "content": "",
+    "history": [],
+    "_params": {
+      "_url": "/api/create-page"
+    },
+    "id": 3
   }
 ]

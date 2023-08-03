@@ -25,8 +25,11 @@
     "is_public": true,
     "created_by": 2,
     "date_created": "Thu Jul 06 2023 15:45:59 GMT-0400 (Eastern Daylight Time)",
-    "content": "Hello world! :) ",
+    "content": "Hello world! :) how are you",
     "history": [],
-    "id": 2
+    "id": 2,
+    "_params": {
+      "_url": "/api/update-page"
+    }
   }
 ]

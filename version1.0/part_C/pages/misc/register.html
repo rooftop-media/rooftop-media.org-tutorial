@@ -98,7 +98,7 @@ function register() {
         console.log("Response recieved! Logging you in.");
         localStorage.setItem('session_id', response.session_id);
         _session_id = response.session_id;
-        // window.location.href = '/';
+        window.location.href = '/';
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }

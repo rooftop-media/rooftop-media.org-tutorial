@@ -7,10 +7,18 @@ class Table {
 
   constructor(name) {
     this.name = name;
-    this.columns = JSON.parse(fs.readFileSync(`${__dirname}/table_columns/${name}.json`, 'utf8'));
-    this.rows = JSON.parse(fs.readFileSync(`${__dirname}/table_rows/${name}.json`, 'utf8'));
+    try {
+      this.columns = JSON.parse(fs.readFileSync(`${__dirname}/table_columns/${name}.json`, 'utf8'));
+    } catch (err) {
+      throw new Error(`The file "\x1b[32m/table_columns/${name}.json\x1b[0m" does not exist or is not proper JSON.`)
+    }
+    try {
+      this.rows = JSON.parse(fs.readFileSync(`${__dirname}/table_rows/${name}.json`, 'utf8'));
+    } catch (err) {
+      throw new Error(`The file "\x1b[32m/table_rows/${name}.json\x1b[0m" does not exist or is not proper JSON.`)
+    }
   }
-
+  
   //  Ensure a row has all required fields, and has all unique unique fields. 
   _check_for_unique_and_required(row_data, index_to_skip) {
     let response = {

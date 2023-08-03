@@ -51,11 +51,7 @@ function server_request(req, res) {
   if (url.split('/')[1] == 'server') {  /*  Don't send anything from the /server/ folder.  */
     respond_with_a_page(res, '/404');
   } else if (extname.length == 0 && url.split('/')[1] == 'api') {     /*  API routes.      */
-    if (req.method == "GET") {
-      api_GET_routes(url, res);
-    } else if (req.method == "POST") {
-      api_POST_routes(url, req, res);
-    }
+    api_routes(url, req, res)
   } else if (extname.length == 0) {            /*  No extension? Respond with index.html.  */
     respond_with_a_page(res, url);
   } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
@@ -90,7 +86,6 @@ function respond_with_a_page(res, url) {
   res.end();
 }
 
-
 function respond_with_asset(res, url, extname) {
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     if (error) {
@@ -112,44 +107,77 @@ function respond_with_asset(res, url, extname) {
 
 ////  SECTION 3: API.
 
+let GET_routes = {};  //  Stores all GET route methods!
+let POST_routes = {}; //  Stores all POST route methods!
+
+//  Responds to HTTP requests. "code" might be 404, 200, etc. 
 function api_response(res, code, text) {
   res.writeHead(code, {'Content-Type': 'text/html'});
   res.write(text);
   return res.end();
 }
 
-function api_GET_routes(url, res) {
-  //  Get data, for example /api/users?userid=22&username=ben
-  let req_data = {};
-  if (url.indexOf('?') != -1) {
-    let params = url.split('?')[1];
-    url = url.split('?')[0];
-    params = params.split('&');
-    for (let i = 0; i < params.length; i++) {
-      let parts = params[i].split('=');
-      if (parts.length != 2) {
-        return api_response(res, 400, `Improper data in your request.`);
-      }
-      req_data[parts[0]] = parts[1];
+//  Parses the data sent with a request
+function parse_req_data(req_data, res) {
+  try {
+    let parsed_req_data = JSON.parse(req_data);
+    if (typeof parsed_req_data === 'object' && !Array.isArray(parse_req_data) && parse_req_data !== null) {
+      return parsed_req_data;
+    } else {
+      return { body: req_data };
     }
-  }
-  
-  let api_map = {
-    '/api/user-by-session': GET_user_by_session,
-    '/api/page': GET_page,
-    '/api/all-pages': GET_all_pages,
-  }
-
-  //  Call the API route function, if it exists.
-  if (typeof api_map[url] == 'function') {
-    api_map[url](req_data, res);
-  } else {
-    api_response(res, 404, `The GET API route ${url} does not exist.`);
+  } catch (e) {
+    return { body: req_data };
   }
 }
 
-function GET_user_by_session(req_data, res) {
-  let session_data = DataBase.table('sessions').find({ id: parseInt(req_data.session_id) });
+//  Parse URL params for example /api/users?userid=22&username=ben
+function parse_url_params(url, res) {
+  let params = { _url: url };
+  if (url.indexOf('?') != -1) {
+    let param_string = url.split('?')[1];
+    let param_pairs = param_string.split('&');
+    for (let i = 0; i < param_pairs.length; i++) {
+      let parts = param_pairs[i].split('=');
+      if (parts.length != 2) {
+        return api_response(res, 400, `Improper URL parameters.`);
+      }
+      params[parts[0]] = parts[1];
+    }
+    params._url = url.split('?')[0];
+  }
+  return params;
+}
+
+//  This is called in server_request for any req starting with /api/.  It uses the functions above and calls the functions below.
+function api_routes(url, req, res) {
+
+  let req_data = '';
+  req.on('data', chunk => {
+    req_data += chunk;
+  })
+  req.on('end', function() {
+
+    //  Parse the data to JSON.
+    req_data = parse_req_data(req_data, res);
+
+    //  Get data, for example /api/users?userid=22&username=ben
+    req_data._params = parse_url_params(url, res);
+    url = req_data._params._url;
+
+    if (req.method == "GET" && typeof GET_routes[url] == 'function') {
+      GET_routes[url](req_data._params, res);
+    } else if (req.method == "POST" && typeof POST_routes[url] == 'function') {
+      POST_routes[url](req_data, res);
+    } else {
+      api_response(res, 404, `The ${req.method} API route ${url} does not exist.`);
+    }
+
+  })
+}
+
+GET_routes['/api/user-by-session'] = function(params, res) {
+  let session_data = DataBase.table('sessions').find({ id: parseInt(params.session_id) });
   if (session_data.length < 1) {
     return api_response(res, 404, 'No session found');
   }
@@ -161,7 +189,7 @@ function GET_user_by_session(req_data, res) {
   }
 }
 
-function GET_page(req_data, res) {
+GET_routes['/api/page'] = function(req_data, res) {
   let page_data = DataBase.table('pages').find({ route: req_data.route });
   let response = {
     error: false,
@@ -176,7 +204,7 @@ function GET_page(req_data, res) {
   api_response(res, 200, JSON.stringify(response));
 }
 
-function GET_all_pages(req_data, res) {
+GET_routes['/api/all-pages'] = function(req_data, res) {
   let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
   all_pages = JSON.parse(all_pages);
   for (let i = 0; i < all_pages.length; i++) {
@@ -186,40 +214,7 @@ function GET_all_pages(req_data, res) {
   api_response(res, 200, JSON.stringify(all_pages));
 }
 
-function api_POST_routes(url, req, res) {
-  let req_data = '';
-  req.on('data', chunk => {
-    req_data += chunk;
-  })
-  req.on('end', function() {
-    //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
-
-    let api_map = {
-      '/api/register': POST_register,
-      '/api/login': POST_login,
-      '/api/logout': POST_logout,
-      '/api/update-user': POST_update_user,
-      '/api/update-password': POST_update_password,
-      '/api/delete-user': POST_delete_user,
-      '/api/check-invite-code': POST_check_invite_code,
-      '/api/create-page': POST_create_page
-    }
-    
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
-    } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
-    }
-  })
-}
-
-function POST_register(new_user, res) {
+POST_routes['/api/register'] = function(new_user, res) {
   new_user.salt = crypto.randomBytes(16).toString('hex');
   new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
   //  Add the user to the db.
@@ -244,7 +239,7 @@ function POST_register(new_user, res) {
   api_response(res, 200, JSON.stringify(response));
 }
 
-function POST_login(login_info, res) {
+POST_routes['/api/login'] = function(login_info, res) {
   let user_data = DataBase.table('users').find({ username: login_info.username });
   let response = {
     error: false,
@@ -275,17 +270,17 @@ function POST_login(login_info, res) {
   api_response(res, 200, JSON.stringify(response));
 }
 
-function POST_logout(session_id, res) {
-  let success_msg = DataBase.table('sessions').delete(session_id);
+POST_routes['/api/logout'] = function(req_data, res) {
+  let success_msg = DataBase.table('sessions').delete(req_data.body);
   api_response(res, 200, success_msg);
 }
 
-function POST_update_user(user_update, res) {
+POST_routes['/api/update-user'] = function(user_update, res) {
   let response = DataBase.table('users').update(user_update.id, user_update);
   api_response(res, 200, JSON.stringify(response));
 }
 
-function POST_update_password(password_update, res) {
+POST_routes['/api/update-password'] = function(password_update, res) {
   let user_data = DataBase.table('users').find({ id: password_update.id });
   let response = {
     error: false,
@@ -316,7 +311,7 @@ function POST_update_password(password_update, res) {
   api_response(res, 200, JSON.stringify(response));
 }
 
-function POST_delete_user(user_info, res) {
+POST_routes['/api/delete-user'] = function(user_info, res) {
   let user_data = DataBase.table('users').find({ id: user_info.id });
   let response = {
     error: false,
@@ -339,7 +334,7 @@ function POST_delete_user(user_info, res) {
   api_response(res, 200, JSON.stringify(response));
 }
 
-function POST_check_invite_code(data, res) {
+POST_routes['/api/check-invite-code'] = function(data, res) {
   if (data.invite_code == 'secret123') {
     api_response(res, 200, JSON.stringify({error: false}));
   } else {
@@ -347,7 +342,7 @@ function POST_check_invite_code(data, res) {
   }
 }
 
-function POST_create_page(new_page_data, res) {
+POST_routes['/api/create-page'] = function(new_page_data, res) {
   let response = DataBase.table('pages').insert(new_page_data);
   api_response(res, 200, JSON.stringify(response));
 }

@@ -20,12 +20,15 @@
   },
   {
     "username": "hacker",
-    "display_name": "",
+    "display_name": "Ha cker",
     "email": "",
     "phone": "",
-    "password": "425ee26087efa121f3af2ddcd62139e1a40bf453949b1e105168a1fdbb7d67d5a3f99ccd2856d9caa8368df6c3432e1f4f9db08a247b85eae7d77fd6f4f4a779",
+    "password": "a4647392d3e4a9e1760b91ef8f69a0f4d1652aba4998a96dc459dc47c9c79df5fea5f779669a46a366d7b59aca5089cfb66a1bcac89ce319948b20e0f10d2ae3",
     "invite_code": "",
-    "salt": "de0318ab164d62d12d29b2d8a21261e3",
-    "id": 4
+    "_params": {
+      "_url": "/api/register"
+    },
+    "salt": "70238ee4fe5b919aae3022e251477547",
+    "id": 6
   }
 ]

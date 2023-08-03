@@ -48,11 +48,7 @@ function server_request(req, res) {
   if (url.split('/')[1] == 'server') {  /*  Don't send anything from the /server/ folder.  */
     respond_with_a_page(res, '/404');
   } else if (extname.length == 0 && url.split('/')[1] == 'api') {     /*  API routes.      */
-    if (req.method == "GET") {
-      api_GET_routes(url, res);
-    } else if (req.method == "POST") {
-      api_POST_routes(url, req, res);
-    }
+    api_routes(url, req, res)
   } else if (extname.length == 0) {            /*  No extension? Respond with index.html.  */
     respond_with_a_page(res, url);
   } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
@@ -102,50 +98,83 @@ function respond_with_asset(res, url, extname) {
 
 ////  SECTION 3: API.
 
+let GET_routes = {};  //  Stores all GET route methods!
+let POST_routes = {}; //  Stores all POST route methods!
+
+//  Responds to HTTP requests. "code" might be 404, 200, etc. 
 function api_response(res, code, text) {
   res.writeHead(code, {'Content-Type': 'text/html'});
   res.write(text);
   return res.end();
 }
 
-function api_GET_routes(url, res) {
-
+//  Parses the data sent with a request
+function parse_req_data(req_data, res) {
+  try {
+    let parsed_req_data = JSON.parse(req_data);
+    if (typeof parsed_req_data === 'object' && !Array.isArray(parse_req_data) && parse_req_data !== null) {
+      return parsed_req_data;
+    } else {
+      return { body: req_data };
+    }
+  } catch (e) {
+    return { body: req_data };
+  }
 }
 
+//  Parse URL params for example /api/users?userid=22&username=ben
+function parse_url_params(url, res) {
+  let params = { _url: url };
+  if (url.indexOf('?') != -1) {
+    let param_string = url.split('?')[1];
+    let param_pairs = param_string.split('&');
+    for (let i = 0; i < param_pairs.length; i++) {
+      let parts = param_pairs[i].split('=');
+      if (parts.length != 2) {
+        return api_response(res, 400, `Improper URL parameters.`);
+      }
+      params[parts[0]] = parts[1];
+    }
+    params._url = url.split('?')[0];
+  }
+  return params;
+}
 
-function api_POST_routes(url, req, res) {
+//  This is called in server_request for any req starting with /api/.  It uses the functions above and calls the functions below.
+function api_routes(url, req, res) {
+
   let req_data = '';
   req.on('data', chunk => {
     req_data += chunk;
   })
   req.on('end', function() {
+
     //  Parse the data to JSON.
-    try {
-      req_data = JSON.parse(req_data);
-    } catch (e) {
-      return api_response(res, 400, `Improper data in your request.`);
-    }
+    req_data = parse_req_data(req_data, res);
 
-    let api_map = {
-      '/api/register': POST_register,
-    }
+    //  Get data, for example /api/users?userid=22&username=ben
+    req_data._params = parse_url_params(url, res);
+    url = req_data._params._url;
 
-    //  Call the API route function, if it exists.
-    if (typeof api_map[url] == 'function') {
-      api_map[url](req_data, res);
+    if (req.method == "GET" && typeof GET_routes[url] == 'function') {
+      GET_routes[url](req_data._params, res);
+    } else if (req.method == "POST" && typeof POST_routes[url] == 'function') {
+      POST_routes[url](req_data, res);
     } else {
-      api_response(res, 404, `The POST API route ${url} does not exist.`);
+      api_response(res, 404, `The ${req.method} API route ${url} does not exist.`);
     }
+
   })
 }
 
-function POST_register(new_user, res) {
+POST_routes['/api/register'] = function(new_user, res) {
   new_user.salt = crypto.randomBytes(16).toString('hex');
   new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
   //  Add the user to the db, if their username, email and phone # are unique.
   let response = DataBase.table('users').insert(new_user);
   api_response(res, 200, JSON.stringify(response));
 }
+
 
 ////  SECTION 4: Boot.
 

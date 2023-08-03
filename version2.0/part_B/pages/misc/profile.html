@@ -152,6 +152,9 @@ function update_password() {
  
 function delete_user() {
   var confirm_password = document.getElementById('delete_account_password').value;
+  if (!confirm("Are you sure you want to delete your account? This cannot be undone!") == true) {
+    return;
+  }
   const http = new XMLHttpRequest();
   http.open("POST", "/api/delete-user");
   http.send(JSON.stringify({
