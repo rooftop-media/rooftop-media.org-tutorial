@@ -3036,6 +3036,13 @@ Try uploading a file with the exact same file name.  You should get an error.
 <br/><br/><br/><br/>
 
 
+
+<h3 id="e-8">  ☑️ Step 8: Create <code>/pages/cms/all-files.json</code>  </h3>
+
+<br/><br/><br/><br/>
+
+
+
 <h3 id="e-?">  ☑️ Step ?: Edit <code>server.js</code> to serve uploaded assets </h3>
 
 
