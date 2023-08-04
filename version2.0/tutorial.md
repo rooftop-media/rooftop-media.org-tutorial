@@ -3033,11 +3033,29 @@ Try uploading a file with the exact same file name.  You should get an error.
 
 <h3 id="e-7">  ☑️ Step 7: Create <code>/api/all-files</code>  </h3>
 
+In `/server.js`, add this right below `GET_routes['/api/all-pages']`:
+
+```js
+GET_routes['/api/all-files'] = function(req_data, res) {
+  let all_files = fs.readFileSync(__dirname + '/database/table_rows/files.json', 'utf8');
+  all_files = JSON.parse(all_files);
+  for (let i = 0; i < all_files.length; i++) {
+    let creator_id = parseInt(all_files[i].created_by);
+    all_files[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
+  }
+  api_response(res, 200, JSON.stringify(all_files));
+}
+```
+
 <br/><br/><br/><br/>
 
 
 
-<h3 id="e-8">  ☑️ Step 8: Create <code>/pages/cms/all-files.json</code>  </h3>
+<h3 id="e-8">  ☑️ Step 8: Create <code>/pages/cms/all-files.html</code>  </h3>
+
+```html
+
+```
 
 <br/><br/><br/><br/>
 
