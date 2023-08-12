@@ -7,7 +7,7 @@
   <p id="error"></p>
   <button onclick="upload_file()" tabindex="5">Upload</button>
   <br/><br/>
-  <p><small id="upload-status"></small></p>
+  <p id="upload-status"></p>
 </div>
 
 <script>
@@ -16,7 +16,7 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
 
 //  Page route -- lowercase, alphanumeric, and these special characters: - / _ 
 const file_name_input = document.getElementById('file_name');
-const file_name_regex = /^[a-z0-9_\-\/]*$/;
+const file_name_regex = /^[a-z0-9_\-\.]*$/;
 file_name_input.addEventListener("keydown", event => {
   if (!file_name_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
     event.preventDefault();
@@ -24,6 +24,14 @@ file_name_input.addEventListener("keydown", event => {
   } else {
     document.getElementById('error').innerHTML = "";
   }
+});
+
+document.getElementById('file').addEventListener("change", (file) => {
+  let file_name_path = file.target.value.split('/');
+  if (file.target.value.indexOf('/') == -1) {
+    file_name_path = file.target.value.split('\\');
+  }
+  document.getElementById('file_name').value = file_name_path[file_name_path.length-1];
 });
 
 function upload_file() {
@@ -46,61 +54,40 @@ function upload_file() {
     return;
   }
 
+  //  Validating name extension
+  let split_at_ext = name.split('.');
+  if (split_at_ext.length != 2) {
+    document.getElementById('error').innerHTML = "File name must include exactly 1 '.', for an extension (like .png, .jpg, or .txt)";
+    return;
+  } else if (['js', 'exe'].includes(split_at_ext[1])) {
+    document.getElementById('error').innerHTML = "These extensions aren't allowed: .js, .exe";
+    return;
+  }
+  const all_periods = /\./g;
+  name = name.replace(all_periods, '%2E');
+
   document.getElementById('upload-status').innerHTML = 'Uploading...';
 
-  //  CHUNKING FILE
-  /*
-  const CHUNK_SIZE = 5000;
-  const total_chunks = Math.ceil(event.target.result.byteLength / CHUNK_SIZE);
-  console.log(`total chunks: ${total_chunks}`)
-  
-  //  loop thru each chunk_num in total_chunks, either thru recursion or a for loop
-  function send_next_chunk(chunk_num) {
-    if (chunk_num >= total_chunks) { return; }
-    let CHUNK = file_content.slice(chunk_num * CHUNK_SIZE, (chunk_num + 1) * CHUNK_SIZE);
-          console.log(CHUNK)
-    //  use fetch or new xmlhttprequest to send chunk here
-  }
-    send_next_chunk(0);  //  Send the first chunk!
-
-  */
-  const http = new XMLHttpRequest();
-  let fd = new FormData()
-  fd.append('file_bin', file);
-
-  file.text().then(file_text => {
-    console.log(file_text);
-    http.open('POST', '/api/upload-file');
-    http.send(JSON.stringify({
-      file_chunk: file_text,
-      chunk_num: 0,
-      description,
-      name,
-      is_public,
-      created_by: _current_user.id,
-      date_created: new Date().toString(),
-    }));
-    http.onreadystatechange = (e) => {
-      let response;      
-      if (http.readyState == 4 && http.status == 200) {
-        response = JSON.parse(http.responseText);
-        if (!response.error) {
-          console.log("Response recieved! Chunk uploaded.");
-
-          document.getElementById('upload-status').innerHTML = `Uploading... `;
-          // send_next_chunk(chunk_num + 1);
-          // window.location.href = '/';
-        } else {
-          document.getElementById('error').innerHTML = response.msg;
-        }
+  let http = new XMLHttpRequest();
+  http.open('POST', `/api/upload-file?name=${name}&description=${description}&is_public=${is_public}&created_by=${_current_user.id}`);
+  http.setRequestHeader("Content-Type","application/octet-stream");
+  http.send(file);
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! File uploaded.");
+        document.getElementById('upload-status').innerHTML = `Uploading... `;
+        window.location.href = '/all-files';
+      } else {
+        document.getElementById('upload-status').innerHTML = response.msg;
       }
-    }   
-  })
-  // console.log();
-  console.log(fd.get('file_bin'));
-      
-
-                
+    } else if (http.status == 400) {
+      response = JSON.parse(http.responseText);
+      document.getElementById('upload-status').innerHTML = response.msg;
+    }
+  }             
   
 }
 </script>

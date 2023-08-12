@@ -39,7 +39,9 @@ var pageURLs = {
   '/profile': '/pages/misc/profile.html',
   '/create-page': '/pages/cms/create-page.html',
   '/all-pages': '/pages/cms/all-pages.html',
-  '/markup-rules': '/pages/cms/markup-rules.html'
+  '/markup-rules': '/pages/cms/markup-rules.html',
+  '/upload-file': '/pages/cms/upload-file.html',
+  '/all-files': '/pages/cms/all-files.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -122,6 +124,9 @@ function api_response(res, code, text) {
 
 //  Parses the data sent with a request
 function parse_req_data(req_data, res) {
+  if (Buffer.isBuffer(req_data)) {
+    return { body: req_data };
+  }
   try {
     let parsed_req_data = JSON.parse(req_data);
     if (typeof parsed_req_data === 'object' && !Array.isArray(parse_req_data) && parse_req_data !== null) {
@@ -156,11 +161,18 @@ function parse_url_params(url, res) {
 function api_routes(url, req, res) {
 
   let req_data = '';
+  let buffer_chunks = [];
   req.on('data', chunk => {
-    req_data += chunk;
+    if (Buffer.isBuffer(chunk)) {
+      buffer_chunks.push(chunk);
+    } else {
+      req_data += chunk;
+    }
   })
   req.on('end', function() {
-
+    if (buffer_chunks.length > 0) {
+      req_data = Buffer.concat(buffer_chunks);
+    }
     //  Parse the data to JSON.
     req_data = parse_req_data(req_data, res);
 
@@ -217,6 +229,16 @@ GET_routes['/api/all-pages'] = function(req_data, res) {
     all_pages[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
   }
   api_response(res, 200, JSON.stringify(all_pages));
+}
+
+GET_routes['/api/all-files'] = function(req_data, res) {
+  let all_files = fs.readFileSync(__dirname + '/database/table_rows/files.json', 'utf8');
+  all_files = JSON.parse(all_files);
+  for (let i = 0; i < all_files.length; i++) {
+    let creator_id = parseInt(all_files[i].created_by);
+    all_files[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
+  }
+  api_response(res, 200, JSON.stringify(all_files));
 }
 
 POST_routes['/api/register'] = function(new_user, res) {
@@ -384,6 +406,39 @@ POST_routes['/api/delete-page'] = function(request_info, res) {
   }
   return api_response(res, 200, JSON.stringify(response));
 }
+
+POST_routes['/api/upload-file'] = function(req_data, res) {
+  req_data._params.name = req_data._params.name.replace('%2E', '.');
+
+  let file_data = DataBase.table('files').find({ name: req_data._params.name });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (file_data.length != 0) {
+    response.error = true;
+    response.msg = `The file name ${req_data._params.name} already exists.`;
+    return api_response(res, 400, JSON.stringify(response));
+  }
+
+  try {
+    fs.writeFileSync(__dirname + '/../assets/uploads/' + req_data._params.name, req_data.body);
+  } catch (err) {
+    return api_response(res, 400, JSON.stringify(err));
+  }
+  let feedback = DataBase.table('files').insert({
+    name: req_data._params.name,
+    description: req_data._params.description,
+    date_created: new Date().toString(),
+    created_by: req_data._params.created_by,
+    is_public: req_data._params.is_public
+  })
+  if (feedback.error) {
+    return feedback;
+  }
+  return api_response(res, 200, JSON.stringify({error: false, msg: 'File uploaded successfully!'}));
+}
+
 
 ////  SECTION 4: Boot.
 
