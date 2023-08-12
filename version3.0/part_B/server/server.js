@@ -1,3 +1,5 @@
+////  SECTION 1: Imports.
+
 //  Importing NodeJS libraries.
 var http = require('http');     // listen to HTTP requests
 var path = require('path');     // manage filepath names
@@ -27,6 +29,7 @@ var mimeTypes = {
   '.otf': 'application/font-otf',
   '.wasm': 'application/wasm'
 };
+
 //  Mapping URLs to pages
 var pageURLs = {
   '/': '/pages/misc/landing.html',
@@ -34,8 +37,8 @@ var pageURLs = {
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html',
-  '/add-address': '/pages/email/add-address.html',
-  '/email': '/pages/email/email.html'
+  '/create-page': '/pages/cms/create-page.html',
+  '/all-pages': '/pages/cms/all-pages.html',
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -48,11 +51,7 @@ function server_request(req, res) {
   if (url.split('/')[1] == 'server') {  /*  Don't send anything from the /server/ folder.  */
     respond_with_a_page(res, '/404');
   } else if (extname.length == 0 && url.split('/')[1] == 'api') {     /*  API routes.      */
-    if (req.method == "GET") {
-      api_GET_routes(url, res);
-    } else if (req.method == "POST") {
-      api_POST_routes(url, req, res);
-    }
+    api_routes(url, req, res)
   } else if (extname.length == 0) {            /*  No extension? Respond with index.html.  */
     respond_with_a_page(res, url);
   } else {    /*  Extension, like .png, .css, .js, etc? If found, respond with the asset.  */
@@ -62,120 +61,187 @@ function server_request(req, res) {
 }
 
 function respond_with_a_page(res, url) {
-  if (pageURLkeys.includes(url)) {
+  let page_content = "";
+
+  if (pageURLkeys.includes(url)) {  //  If it's a static page route....
     url = pageURLs[url];
-  }
-  fs.readFile( __dirname + '/..' + url, function(error, content) {
-    var content_page = "";
-    if (error) {
-      content_page = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      content_page = content;
+    try {
+      page_content = fs.readFileSync( __dirname + '/..' + url);
+    } catch(err) {
+      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
     }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-    var page_halves = main_page.split('<!--  Insert page content here!  -->');
-    var rendered = page_halves[0] + content_page + page_halves[1];
-    res.write(rendered);
-    res.end();
-  });
+  } else if (url.substring(0, 6) == '/edit/') {
+    page_content = fs.readFileSync(__dirname + '/../pages/cms/edit-page.html');
+  } else {                          //  If it's a dynamic page route....
+    let page_data = DataBase.table('pages').find({ route: url.slice(1) });  //  Removing the "/" from the route
+    if (page_data.length < 1) {
+      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
+    } else {
+      page_content = fs.readFileSync(__dirname + '/../pages/cms/dynamic-page.html');
+    }
+  }
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
+  var page_halves = main_page.split('<!--  Insert page content here!  -->');
+  var rendered = page_halves[0] + page_content + page_halves[1];
+  res.write(rendered);
+  res.end();
 }
 
 function respond_with_asset(res, url, extname) {
   fs.readFile( __dirname + '/..' + url, function(error, content) {
     if (error) {
-        if(error.code == 'ENOENT') {
-          res.writeHead(404, { 'Content-Type': 'text/html' });
-          res.end('404 -- asset not found', 'utf-8');
-        }
-        else {
-      res.writeHead(500);
-      res.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
-        }
+      if(error.code == 'ENOENT') {
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        res.end('404 -- asset not found', 'utf-8');
+      }
+      else {
+        res.writeHead(500);
+        res.end(`Sorry, check with the site admin for error: ${error.code} ..\n`);
+      }
     } else {
-        var contentType = mimeTypes[extname] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content, 'utf-8');
+      var contentType = mimeTypes[extname] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': contentType });
+      res.end(content, 'utf-8');
     }
   });
 }
 
 ////  SECTION 3: API.
 
-function api_GET_routes(url, res) {
+let GET_routes = {};  //  Stores all GET route methods!
+let POST_routes = {}; //  Stores all POST route methods!
 
+//  Responds to HTTP requests. "code" might be 404, 200, etc. 
+function api_response(res, code, text) {
+  res.writeHead(code, {'Content-Type': 'text/html'});
+  res.write(text);
+  return res.end();
 }
 
-function api_POST_routes(url, req, res) {
+//  Parses the data sent with a request
+function parse_req_data(req_data, res) {
+  try {
+    let parsed_req_data = JSON.parse(req_data);
+    if (typeof parsed_req_data === 'object' && !Array.isArray(parse_req_data) && parse_req_data !== null) {
+      return parsed_req_data;
+    } else {
+      return { body: req_data };
+    }
+  } catch (e) {
+    return { body: req_data };
+  }
+}
+
+//  Parse URL params for example /api/users?userid=22&username=ben
+function parse_url_params(url, res) {
+  let params = { _url: url };
+  if (url.indexOf('?') != -1) {
+    let param_string = url.split('?')[1];
+    let param_pairs = param_string.split('&');
+    for (let i = 0; i < param_pairs.length; i++) {
+      let parts = param_pairs[i].split('=');
+      if (parts.length != 2) {
+        return api_response(res, 400, `Improper URL parameters.`);
+      }
+      params[parts[0]] = parts[1];
+    }
+    params._url = url.split('?')[0];
+  }
+  return params;
+}
+
+//  This is called in server_request for any req starting with /api/.  It uses the functions above and calls the functions below.
+function api_routes(url, req, res) {
+
   let req_data = '';
   req.on('data', chunk => {
     req_data += chunk;
   })
   req.on('end', function() {
-    req_data = JSON.parse(req_data);
 
-    if (url == '/api/register') {
-      POST_register(req_data, res);
-    } else if (url == '/api/login') {
-      POST_login(req_data, res);
-    } else if (url == '/api/logout') {
-      POST_logout(req_data, res);
-    } else if (url == '/api/user-by-session') {
-      POST_user_by_session(req_data, res);
-    } else if (url == '/api/update-user') {
-      POST_update_user(req_data, res);
-    } else if (url == '/api/update-password') {
-      POST_update_password(req_data, res);
-    } else if (url == '/api/add-address') {
-      POST_add_address(req_data, res);
+    //  Parse the data to JSON.
+    req_data = parse_req_data(req_data, res);
+
+    //  Get data, for example /api/users?userid=22&username=ben
+    req_data._params = parse_url_params(url, res);
+    url = req_data._params._url;
+
+    if (req.method == "GET" && typeof GET_routes[url] == 'function') {
+      GET_routes[url](req_data._params, res);
+    } else if (req.method == "POST" && typeof POST_routes[url] == 'function') {
+      POST_routes[url](req_data, res);
+    } else {
+      api_response(res, 404, `The ${req.method} API route ${url} does not exist.`);
     }
+
   })
 }
 
-function POST_register(new_user, res) {
-  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
-  user_data = JSON.parse(user_data);
+GET_routes['/api/user-by-session'] = function(params, res) {
+  let session_data = DataBase.table('sessions').find({ id: parseInt(params.session_id) });
+  if (session_data.length < 1) {
+    return api_response(res, 404, 'No session found');
+  }
+  let user_data = DataBase.table('users').find({ id: session_data[0].user_id });
+  if (user_data.length < 1) {
+    api_response(res, 404, `No user found for session ${session_data[0].id}.`);
+  } else {
+    api_response(res, 200, JSON.stringify(user_data[0]));
+  }
+}
+
+GET_routes['/api/page'] = function(req_data, res) {
+  let page_data = DataBase.table('pages').find({ route: req_data.route });
   let response = {
     error: false,
-    msg: '',
-    session_id: ''
+    data: null
   }
-  for (let i = 0; i < user_data.length; i++) {
-    if (user_data[i].username == new_user.username) {
-      response.error = true;
-      response.msg = 'Username already taken.';
-      break;
-    } else if (user_data[i].email == new_user.email) {
-      response.error = true;
-      response.msg = 'Email already taken.';
-      break;
-    } else if (user_data[i].phone == new_user.phone) {
-      response.error = true;
-      response.msg = 'Phone number already taken.';
-      break;
-    }
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = `The page ${req_data.route} was not found.`;
+  } else {
+    response.data =  page_data[0];
   }
-  //  If it's not a duplicate, encrypt the pass, and save it. 
+  api_response(res, 200, JSON.stringify(response));
+}
+
+GET_routes['/api/all-pages'] = function(req_data, res) {
+  let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
+  all_pages = JSON.parse(all_pages);
+  for (let i = 0; i < all_pages.length; i++) {
+    let creator_id = parseInt(all_pages[i].created_by);
+    all_pages[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
+  }
+  api_response(res, 200, JSON.stringify(all_pages));
+}
+
+POST_routes['/api/register'] = function(new_user, res) {
+  new_user.salt = crypto.randomBytes(16).toString('hex');
+  new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
+  //  Add the user to the db.
+  let response = DataBase.table('users').insert(new_user);
+  
+  if (new_user.invite_code != 'secret123') {
+    response.error = true;
+    response.msg = 'Incorrect invite code!';
+  }
+  
   if (!response.error) {
-    new_user.salt = crypto.randomBytes(16).toString('hex');
-    new_user.password = crypto.pbkdf2Sync(new_user.password, new_user.salt, 1000, 64, `sha512`).toString(`hex`);
-    //  Add the user to the db.
-    let user_id = DataBase.table('users').insert(new_user);
     //  Add a session to the db.
     let expire_date = new Date()
     expire_date.setDate(expire_date.getDate() + 30);
-    response.session_id = DataBase.table('sessions').insert({
-      user_id: user_id,
+    let new_session_response = DataBase.table('sessions').insert({
+      user_id: response.id,
       expires: expire_date
     })
+    response.error = new_session_response.error;
+    response.session_id = new_session_response.id;
   }
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 
-function POST_login(login_info, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
+POST_routes['/api/login'] = function(login_info, res) {
   let user_data = DataBase.table('users').find({ username: login_info.username });
   let response = {
     error: false,
@@ -186,9 +252,7 @@ function POST_login(login_info, res) {
   if (user_data.length < 1) {
     response.error = true;
     response.msg = 'No user found.';
-    res.write(JSON.stringify(response));
-    res.end();
-    return;
+    return api_response(res, 200, JSON.stringify(response));
   }
   let password = crypto.pbkdf2Sync(login_info.password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
   if (password != user_data[0].password) {
@@ -198,87 +262,27 @@ function POST_login(login_info, res) {
     response.user_data = user_data[0];
     let expire_date = new Date()
     expire_date.setDate(expire_date.getDate() + 30);
-    response.session_id = DataBase.table('sessions').insert({
+    let session_data = DataBase.table('sessions').insert({
       user_id: user_data[0].id,
       expires: expire_date
     })
+    response.error = session_data.error;
+    response.session_id = session_data.id;
   }
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 
-function POST_logout(session_id, res) {
-  let success_msg = DataBase.table('sessions').delete(session_id);
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(success_msg);
-  res.end();
+POST_routes['/api/logout'] = function(req_data, res) {
+  let success_msg = DataBase.table('sessions').delete(req_data.body);
+  api_response(res, 200, success_msg);
 }
 
-function POST_user_by_session(session_id, res) {
-  let session_data = DataBase.table('sessions').find({ id: session_id });
-  if (session_data.length < 1) {
-    res.writeHead(404, {'Content-Type': 'text/html'});
-    res.write("No session found.");
-    res.end();
-    return;
-  }
-  let user_data = DataBase.table('users').find({ id: session_data[0].user_id });
-  if (user_data.length < 1) {
-    res.writeHead(404, {'Content-Type': 'text/html'});
-    res.write(`No user found for session ${session_data[0].id}.`);
-    res.end();
-  } else {
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write(JSON.stringify(user_data[0]));
-    res.end();
-  }
+POST_routes['/api/update-user'] = function(user_update, res) {
+  let response = DataBase.table('users').update(user_update.id, user_update);
+  api_response(res, 200, JSON.stringify(response));
 }
 
-function POST_update_user(user_update, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
-
-  //  Make sure the username, email, and phone are unique. 
-  let user_data = fs.readFileSync(__dirname + '/database/table_rows/users.json', 'utf8');
-  user_data = JSON.parse(user_data);
-  let response = {
-    error: false,
-    msg: '',
-    updated_user: ''
-  }
-  for (let i = 0; i < user_data.length; i++) {
-    if (user_data[i].id != user_update.id) {
-      if (user_data[i].username == user_update.username) {
-        response.error = true;
-        response.msg = 'Username already taken.';
-        break;
-      } else if (user_data[i].email == user_update.email) {
-        response.error = true;
-        response.msg = 'Email already taken.';
-        break;
-      } else if (user_data[i].phone == user_update.phone) {
-        response.error = true;
-        response.msg = 'Phone number already taken.';
-        break;
-      }
-    }
-  }
-
-  //  If the update is valid, save it.
-  if (!response.error) {
-    response.updated_user = DataBase.table('users').update(user_update.id, user_update);
-    if (response.updated_user == null) {
-      response.error = true;
-      response.msg = `No user found for ${user_update.id}.`
-    }
-  }
-
-  res.write(JSON.stringify(response));
-  res.end();
-}
-
-function POST_update_password(password_update, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'});
-
+POST_routes['/api/update-password'] = function(password_update, res) {
   let user_data = DataBase.table('users').find({ id: password_update.id });
   let response = {
     error: false,
@@ -287,9 +291,7 @@ function POST_update_password(password_update, res) {
   if (user_data.length < 1) {
     response.error = true;
     response.msg = 'No user found.';
-    res.write(JSON.stringify(response));
-    res.end();
-    return;
+    return api_response(res, 200, JSON.stringify(response));
   }
   let password = crypto.pbkdf2Sync(password_update.old_password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
   let new_pass = '';
@@ -308,36 +310,63 @@ function POST_update_password(password_update, res) {
     }
   }
 
-  res.write(JSON.stringify(response));
-  res.end();
+  api_response(res, 200, JSON.stringify(response));
 }
 
-function POST_add_address(new_address, res) {
-  let addresses = fs.readFileSync(__dirname + '/database/table_rows/email_addresses.json', 'utf8');
-  addresses = JSON.parse(addresses);
+POST_routes['/api/delete-user'] = function(user_info, res) {
+  let user_data = DataBase.table('users').find({ id: user_info.id });
   let response = {
     error: false,
     msg: '',
-    rooftop_email: new_address.address
   }
-  for (let i = 0; i < addresses.length; i++) {
-    if (addresses[i].address == new_address.address) {
-      response.error = true;
-      response.msg = 'Email address already taken.';
-      break;
-    } else if (addresses[i].user_id == new_address.user_id) {
-      response.error = true;
-      response.msg = 'User already has an address.';
-      break;
-    } 
+  if (user_data.length < 1) {
+    response.error = true;
+    response.msg = 'No user found.';
+    return api_response(res, 200, JSON.stringify(response));
+  }
+  let password = crypto.pbkdf2Sync(user_info.password, user_data[0].salt, 1000, 64, `sha512`).toString(`hex`);
+  if (password != user_data[0].password) {
+    response.error = true;
+    response.msg = 'Incorrect password.';
+  } else {
+    let success_msg = DataBase.table('users').delete(user_info.id);
+    response.msg = `Deleted user ${user_info.id} successfully.`;
   }
 
-  if (!response.error) {
-    let address_id = DataBase.table('email_addresses').insert(new_address);
+  api_response(res, 200, JSON.stringify(response));
+}
+
+POST_routes['/api/check-invite-code'] = function(data, res) {
+  if (data.invite_code == 'secret123') {
+    api_response(res, 200, JSON.stringify({error: false}));
+  } else {
+    api_response(res, 200, JSON.stringify({error: true, msg: "incorrect code"}));
   }
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  res.write(JSON.stringify(response));
-  res.end();
+}
+
+POST_routes['/api/create-page'] = function(new_page_data, res) {
+  let response = DataBase.table('pages').insert(new_page_data);
+  api_response(res, 200, JSON.stringify(response));
+}
+
+POST_routes['/api/update-page'] = function(page_update, res) {  
+  let response = DataBase.table('pages').update(page_update.id, page_update);
+  api_response(res, 200, JSON.stringify(response));
+}
+
+POST_routes['/api/delete-page'] = function(request_info, res) {
+  let page_data = DataBase.table('pages').find({ id: request_info.id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = 'No page found.';
+  } else {
+    response.msg = DataBase.table('pages').delete(request_info.id);
+  }
+  return api_response(res, 200, JSON.stringify(response));
 }
 
 ////  SECTION 4: Boot.

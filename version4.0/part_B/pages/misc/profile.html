@@ -1,0 +1,142 @@
+<div class="p-3 center-column">
+  <h3><span id="user_display_name"></span> - Profile</h3>
+  <div>Username: <input type="text" tabindex="1" id="username" placeholder="mickeymouse"/></div>
+  <div>Display name: <input type="text" tabindex="2" id="display_name" placeholder="Mickey Mouse"/></div>
+  <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
+  <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
+  <p id="error"></p>
+  <button onclick="update_profile()">Update profile</button>
+
+  <br/>
+  <h4>Change your password:</h4>
+  <div>Old password: <input type="password" tabindex="5" id="old_password"/></div>
+  <div>New password: <input type="password" tabindex="6" id="new_password"/></div>
+  <div>Confirm new password: <input type="password" tabindex="7" id="confirm_new_password"/></div>
+  <p id="pass_error"></p>
+  <button onclick="update_password()">Update password</button>
+</div>
+
+<script>
+//  Fire this when the user's data loads 
+function update_form() {
+  document.getElementById('username').value = _current_user.username;
+  document.getElementById('display_name').value = _current_user.display_name;
+  document.getElementById('email').value = _current_user.email;
+  document.getElementById('phone').value = _current_user.phone;
+}
+current_user_loaded = function() {
+  update_form();
+}
+
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+//  Username -- lowercase alphanumeric and _ only
+const username_input = document.getElementById('username');
+const username_regex = /^[a-z0-9_]*$/;
+username_input.addEventListener("keydown", event => {
+  if (!username_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    event.preventDefault();
+    document.getElementById('error').innerHTML = "Username can only contain lowercase letters, numbers, and underscores.";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Email
+const email_input = document.getElementById('email');
+const email_regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+var email_val = email_input.value;
+email_input.addEventListener("input", event => {
+  email_val = email_input.value;
+  if (!email_regex.test(email_val) && !utility_keys.includes(event.keyCode)) {
+    document.getElementById('error').innerHTML = "Invalid email format";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+//  Phone
+const phone_input = document.getElementById('phone');
+const phone_regex = /^[0-9\-]{0,12}$/;
+var phone_val = "";
+phone_input.addEventListener("keydown", event => {
+  phone_val = phone_input.value
+  if (!phone_regex.test(phone_val + event.key) && !utility_keys.includes(event.keyCode) || event.keyCode == 173) {
+    event.preventDefault();
+  } else if (event.keyCode != 8) {
+    if (phone_val.length == 3 || phone_val.length == 7) {
+      phone_input.value = phone_input.value + "-";
+    }
+  } else {
+    if (phone_val.length == 5 || phone_val.length == 9) {
+      phone_input.value = phone_input.value.slice(0,-1);
+    }
+  }
+});
+
+function update_profile() {
+  var username = document.getElementById('username').value;
+  var display_name = document.getElementById('display_name').value;
+  var email = document.getElementById('email').value;
+  var phone = document.getElementById('phone').value;
+  if (username.length < 2) {
+    document.getElementById('error').innerHTML = 'Valid username required.';
+    return;
+  }
+
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/update-user");
+  http.send(JSON.stringify({
+    id: _current_user.id,
+    username: username,
+    display_name,
+    email,
+    phone
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = 'Profile updated!';
+        _current_user = response.updated_user;
+        update_form();
+        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
+        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+function update_password() {
+  var old_password = document.getElementById('old_password').value;
+  var new_password = document.getElementById('new_password').value;
+  var confirm_new_password = document.getElementById('confirm_new_password').value;
+  if (new_password != confirm_new_password) {
+    document.getElementById('pass_error').innerHTML = 'New passwords must match.';
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/update-password");
+  http.send(JSON.stringify({
+    id: _current_user.id,
+    old_password,
+    new_password
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('pass_error').innerHTML = 'Password updated!';
+        _current_user = response.updated_user;
+      } else {
+        document.getElementById('pass_error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+</script>

@@ -5,15 +5,23 @@
   <div>Email: <input type="text" tabindex="3" id="email" placeholder="mickey@mouse.org"/></div>
   <div>Phone #: <input type="text" tabindex="4" id="phone" placeholder="555-555-5555"/></div>
   <p id="error"></p>
-  <button onclick="update_profile()">Update profile</button>
+  <button onclick="update_profile()" tabindex="5">Update profile</button>
 
   <br/>
   <h4>Change your password:</h4>
-  <div>Old password: <input type="password" tabindex="5" id="old_password"/></div>
-  <div>New password: <input type="password" tabindex="6" id="new_password"/></div>
-  <div>Confirm new password: <input type="password" tabindex="7" id="confirm_new_password"/></div>
+  <div>Old password: <input type="password" tabindex="6" id="old_password"/></div>
+  <div>New password: <input type="password" tabindex="7" id="new_password"/></div>
+  <div>Confirm new password: <input type="password" tabindex="8" id="confirm_new_password"/></div>
   <p id="pass_error"></p>
-  <button onclick="update_password()">Update password</button>
+  <button onclick="update_password()" tabindex="9">Update password</button>
+ 
+  <br/><br/><br/><br/>
+  <h4>Delete account</h4>
+  <div style="font-style:italic">Warning: This cannot be undone!</div>
+  <div>Confirm password: <input type="password" id="delete_account_password"/></div>
+  <p id="delete_error"></p>
+  <br/>
+  <button onclick="delete_user()" style="background: var(--red)">Delete account</button>
 </div>
 
 <script>
@@ -100,10 +108,12 @@ function update_profile() {
       response = JSON.parse(http.responseText);
       if (!response.error) {
         document.getElementById('error').innerHTML = 'Profile updated!';
-        _current_user = response.updated_user;
+        _current_user.username = username;
+        _current_user.display_name = display_name,
+        _current_user.email = email;
+        _current_user.phone = phone;
         update_form();
-        document.getElementById('user-buttons').innerHTML = `<a href="/profile">${_current_user.display_name}</a>`;
-        document.getElementById('user-buttons').innerHTML += `<button onclick="logout()">Log out</button>`;
+        render_user_buttons();
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }
@@ -135,6 +145,32 @@ function update_password() {
         _current_user = response.updated_user;
       } else {
         document.getElementById('pass_error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+ 
+function delete_user() {
+  var confirm_password = document.getElementById('delete_account_password').value;
+  if (!confirm("Are you sure you want to delete your account? This cannot be undone!") == true) {
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open("POST", "/api/delete-user");
+  http.send(JSON.stringify({
+    id: _current_user.id,
+    password: confirm_password
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('delete_error').innerHTML = 'Account deleted.  Redirecting you to the login page...';
+        localStorage.removeItem('session_id'); //  sets to null
+        window.location.href = '/login';
+      } else {
+        document.getElementById('delete_error').innerHTML = response.msg;
       }
     }
   }

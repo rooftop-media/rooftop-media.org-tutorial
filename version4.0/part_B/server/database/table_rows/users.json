@@ -1,0 +1,29 @@
+[
+  {
+    "username": "ben",
+    "display_name": "Ben H",
+    "email": "ben@rooftop-media.org",
+    "phone": "123141231414",
+    "password": "ab23ab8d04538d27587954d1208de049eef2835e615e6933a919e4ac2cfecafb9e1dc940f951655edc6a30e5ec13d91ea8b723210be55877c04595f787406a06",
+    "salt": "bcfb58fdd119bd5af63677907b323f9b",
+    "id": 0
+  },
+  {
+    "username": "scott",
+    "display_name": "Scotty",
+    "email": "scott@gmail.com",
+    "phone": "123-123-1233",
+    "password": "03a39c0c07fdb160927aa526ab78dc42abed34009069258d281926aad2a36a9d54d200b1d17f390ad88f18c6b62cd11924670fa3ce40c48960e74010e401ddce",
+    "salt": "5a0d772e55b175e90883901c668a919c",
+    "id": 1
+  },
+  {
+    "username": "benh",
+    "display_name": "Ben H",
+    "email": "ben@h.com",
+    "phone": "133-123-1233",
+    "password": "a882f4108a28dbcfd7417947ebbdcc9cffce2e00a2255acca903b46a58921f662f88a7b061ad3a2cbc3828d631dcde3143f51d34a0d16a3fca0b1ee7f91aaa38",
+    "salt": "c1ceaebba69b6253eab9a04c6ca317ae",
+    "id": 2
+  }
+]

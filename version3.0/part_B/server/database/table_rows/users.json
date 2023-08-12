@@ -1,29 +1,31 @@
 [
   {
-    "username": "ben",
-    "display_name": "Ben H",
-    "email": "ben@rooftop-media.org",
-    "phone": "123141231414",
-    "password": "ab23ab8d04538d27587954d1208de049eef2835e615e6933a919e4ac2cfecafb9e1dc940f951655edc6a30e5ec13d91ea8b723210be55877c04595f787406a06",
-    "salt": "bcfb58fdd119bd5af63677907b323f9b",
-    "id": 0
-  },
-  {
-    "username": "scott",
-    "display_name": "Scotty",
-    "email": "scott@gmail.com",
-    "phone": "123-123-1233",
-    "password": "03a39c0c07fdb160927aa526ab78dc42abed34009069258d281926aad2a36a9d54d200b1d17f390ad88f18c6b62cd11924670fa3ce40c48960e74010e401ddce",
-    "salt": "5a0d772e55b175e90883901c668a919c",
-    "id": 1
-  },
-  {
-    "username": "benh",
-    "display_name": "Ben H",
-    "email": "ben@h.com",
-    "phone": "133-123-1233",
-    "password": "a882f4108a28dbcfd7417947ebbdcc9cffce2e00a2255acca903b46a58921f662f88a7b061ad3a2cbc3828d631dcde3143f51d34a0d16a3fca0b1ee7f91aaa38",
-    "salt": "c1ceaebba69b6253eab9a04c6ca317ae",
+    "username": "testuser",
+    "display_name": "Test",
+    "email": "",
+    "phone": "",
+    "password": "ebc45239da09eb2d5432af793ac422faebd4a61d6447ccf80e398ad62a9996b8271aac3b47c7897b58bb78d1a67c36f7cdc8548b8c28f68c1984c7a5cd077c37",
+    "salt": "05e9674cd824ccbca8e4e6ec9952ade9",
     "id": 2
+  },
+  {
+    "username": "ben",
+    "display_name": "Ben",
+    "email": "",
+    "phone": "",
+    "password": "eb57239d2f8c1c4387d35ce042d65e8f4672de382b88f36cfdb3a7870684f578c5229e3c8da6ad080c1d6d1a723b11a90d6604e817ad2e39cc8925afe4ea4cd9",
+    "invite_code": "secret123",
+    "salt": "93d0b2ae973ffa6e137ff604cb748379",
+    "id": 3
+  },
+  {
+    "username": "hacker",
+    "display_name": "",
+    "email": "",
+    "phone": "",
+    "password": "425ee26087efa121f3af2ddcd62139e1a40bf453949b1e105168a1fdbb7d67d5a3f99ccd2856d9caa8368df6c3432e1f4f9db08a247b85eae7d77fd6f4f4a779",
+    "invite_code": "",
+    "salt": "de0318ab164d62d12d29b2d8a21261e3",
+    "id": 4
   }
 ]
