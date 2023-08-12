@@ -19,12 +19,14 @@ You can also [visit the website](https://rooftop-media.org).
 
 rooftop-media.org is built using Javascript and NodeJS. 
 
-This tutorial is organized into 2 stable, usable **versions** -- version 1.0 and version 2.0 -- with more versions planned!    
+This tutorial is organized into 3 stable, usable **versions**, with more versions planned!    
 
 | Version   | Description                                                                 | Status      |
 |-----------|-----------------------------------------------------------------------------|-------------|
 | 1.0       | Static pages, user management                                               | Finished    |
-| 2.0       | Content Management System                                                   | in progress |
+| 2.0       | File Management System                                                      | in progress |
+| 3.0       | Content Management System                                                   | in progress |
+
 <!--| 3.0       | Email client                                                            | todo        |
 | 4.0       | [LMS](https://en.wikipedia.org/wiki/Learning_management_system)             | todo        |
 | 5.0       | vector editor                                                               | todo        |
