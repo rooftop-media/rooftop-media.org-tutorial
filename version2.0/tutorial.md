@@ -26,7 +26,7 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - /upload-file, /all-files](#part-a) | 20 min. | 13 |
+| [Part A - /files](#part-a) | 20 min. | 13 |
 | [Part B - ](#part-b) | 15 min. | 8 |
 | [Part C - ](#part-c) | 15 min. | 8 |
 | [Part D - ](#part-d) | 0 min. | 0 |
@@ -44,32 +44,23 @@ Click a part title to jump down to it, in this file.
 
 
 
-<h2 id="part-a" align="center">  Part A:  <code>/create-page</code>, <code>/all-pages</code> </h2>
+<h2 id="part-a" align="center">  Part A:  <code>/files</code> </h2>
 
-In this part, we'll create two static pages to facilitate the basic creation of dynamic pages:
- - `/create-page`, where users can create a new page with a specific title and route, and
- - `/pages`, where users can see all created pages.
-
-Dynamic pages will be saved to the database, and accessible at different URL routes.  
-We'll make sure a user is logged in before they can create pages. 
+In this part, we'll create a static page which will manage the users files.  
+The static page will have multiple "views".  Perhaps these will be mapped to app states.  
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/cms/create-page.html</code>  </h3>
+<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/files/file-manager.html</code>  </h3>
 
-Create a new folder called `/pages/cms`.  In it, add a new file, `create-page.html`.  
-This page will be a form to create new dynamic pages.  
+Create a new folder called `/pages/files`.  In it, add a new file, `file-manager.html`.  
+
 
 ```html
 <div class="p-3 center-column">
-  <h3>Create a New Page</h3>
-  <div>Page title: <input type="text" tabindex="1" id="page_title" placeholder="My Blog"/></div>
-  <div>Page route: <input type="text" tabindex="2" id="page_route" placeholder="my-blog"/></div>
-  <div>Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
-  <p id="error"></p>
-  <button onclick="create_page()" tabindex="4">Create Page</button>
+  <h3>File manager</h3>
 </div>
 
 <script>
