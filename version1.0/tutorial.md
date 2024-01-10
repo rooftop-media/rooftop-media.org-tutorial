@@ -265,7 +265,7 @@ First, create `/pages/index.css`, and add this:
 
 :root {
     --spacer: 20px;
-    --black: #1A110D; --darkest-brown: #1A110D; --darker-brown: #1A110D; --dark-brown: #2E1F17;
+    --black: #000000; --darkest-brown: #0E0907; --darker-brown: #1A110D; --dark-brown: #2E1F17;
     --brown: #432D21; --light-brown: #533E2E; --lighter-brown: #604836;
     --action-brown: #7F4C34;
     --yellow: #E3D78F;
@@ -322,7 +322,7 @@ a {
 }
 
 input, textarea {
-  background: var(--darker-brown);
+  background: var(--darkest-brown);
   color: white;
   border: solid 1px black;
 }
@@ -374,7 +374,7 @@ pre {
   width: 100%;
   white-space: pre-wrap;
   text-indent: 0px;
-  background: var(--darker-brown);
+  background: var(--darkest-brown);
 }
 
 button {
@@ -803,7 +803,7 @@ We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
 
 :root {
   --spacer: 20px;
-  --black: #1A110D; --darkest-brown: #1A110D; --darker-brown: #1A110D; --dark-brown: #2E1F17;
+  --black: #000000; --darkest-brown: #0E0907; --darker-brown: #1A110D; --dark-brown: #2E1F17;
   --brown: #432D21; --light-brown: #533E2E; --lighter-brown: #604836;
   --action-brown: #7F4C34;
   --yellow: #E3D78F;
@@ -871,7 +871,7 @@ a {
 }
 
 input, textarea {
-  background: var(--darker-brown);
+  background: var(--darkest-brown);
   color: white;
   border: solid 1px black;
 }
@@ -923,7 +923,7 @@ pre {
   width: 100%;
   white-space: pre-wrap;
   text-indent: 0px;
-  background: var(--darker-brown);
+  background: var(--darkest-brown);
 }
 
 button {
