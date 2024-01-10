@@ -2,9 +2,11 @@
 
 This is a tutorial for building rooftop-media.org version 2.0.  
 This version creates a web-based file manager, allowing users to:
- - Upload files from their computer to the website
- - Create and manage folders on the website, to organize files
- - Manage who can access their files
+ - ➕📄 Create and write new text files, saved on the webserver 
+ - 💽📄 Upload files from their computer to the webserver
+ - ➕📁 Create and manage folders, to organize files
+ - 👀📄 Let users access their files, including rendered web pages
+ - 🔐📄 Manage who can access their files
 
 *Total estimated time for this tutorial: ADD ESTIMATED TIME*
 
