@@ -265,11 +265,8 @@ First, create `/pages/index.css`, and add this:
 
 :root {
     --spacer: 20px;
-    --darker-brown: #1A110D;
-    --dark-brown: #2E1F17;
-    --brown: #432D21;
-    --light-brown: #533E2E;
-    --lighter-brown: #604836;
+    --black: #1A110D; --darkest-brown: #1A110D; --darker-brown: #1A110D; --dark-brown: #2E1F17;
+    --brown: #432D21; --light-brown: #533E2E; --lighter-brown: #604836;
     --action-brown: #7F4C34;
     --yellow: #E3D78F;
     --green: #3A7B64;
@@ -280,7 +277,7 @@ html, body {
   font-family: CrimsonText;
   margin: 0;
   min-height: 100vh;
-  background: var(--dark-brown);
+  background: var(--darker-brown);
   color: white;
 }
 
@@ -291,7 +288,7 @@ html, body {
     align-items:     center;
     justify-content: space-between;
     display:         flex;
-    background:      var(--brown);
+    background:      var(--dark-brown);
     box-shadow:      0px 0px 10px rgba(0,0,0,.5);
     padding:         10px 25px;
     box-sizing:      border-box;
@@ -806,11 +803,8 @@ We'll edit `#header` and `#logo`, and add some styling for `#user-buttons`.
 
 :root {
   --spacer: 20px;
-  --darker-brown: #1A110D;
-  --dark-brown: #2E1F17;
-  --brown: #432D21;
-  --light-brown: #533E2E;
-  --lighter-brown: #604836;
+  --black: #1A110D; --darkest-brown: #1A110D; --darker-brown: #1A110D; --dark-brown: #2E1F17;
+  --brown: #432D21; --light-brown: #533E2E; --lighter-brown: #604836;
   --action-brown: #7F4C34;
   --yellow: #E3D78F;
   --green: #3A7B64;
@@ -821,7 +815,7 @@ html, body {
   font-family: CrimsonText;
   margin: 0;
   min-height: 100vh;
-  background: var(--dark-brown);
+  background: var(--darker-brown);
   color: white;
 }
 
@@ -832,7 +826,7 @@ html, body {
   align-items:     center;
   justify-content: space-between;
   display:         flex;
-  background:      var(--brown);
+  background:      var(--dark-brown);
   box-shadow:      0px 0px 10px rgba(0,0,0,.5);
   padding:         10px 25px;
   box-sizing:      border-box;
