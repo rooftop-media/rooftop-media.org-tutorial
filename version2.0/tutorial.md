@@ -48,8 +48,8 @@ Click a part title to jump down to it, in this file.
 
 <h2 id="part-a" align="center">  Part A:  <code>/files</code> </h2>
 
-In this part, we'll create a static page which will manage the users files.  
-The static page will have multiple "views".  Perhaps these will be mapped to app states.  
+In this part, we'll create a static page, where one can view and manage webserver files.  
+The static page will have multiple "views". Views will be similar to a desktop file explorer.   
 
 <br/><br/><br/><br/>
 
