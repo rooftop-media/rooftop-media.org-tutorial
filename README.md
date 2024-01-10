@@ -25,7 +25,7 @@ This tutorial is organized into 3 stable, usable **versions**, with more version
 |-----------|-----------------------------------------------------------------------------|-------------|
 | 1.0       | Static pages, user management                                               | Finished    |
 | 2.0       | File Management System                                                      | in progress |
-| 3.0       | Content Management System                                                   | in progress |
+| 3.0       | Text and code editor                                                        | in progress |
 
 <!--| 3.0       | Email client                                                            | todo        |
 | 4.0       | [LMS](https://en.wikipedia.org/wiki/Learning_management_system)             | todo        |
