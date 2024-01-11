@@ -1,0 +1,53 @@
+<div class="p-3 center-column">
+  <h3>File explorer</h3>
+  <div id="file-explorer-window">
+    <div id="file-explorer-toolbar">
+      <span>File</span>
+      <span>View</span>
+    </div>
+    <div id="file-explorer-nav-bar">
+      <!--  -->
+    </div>
+
+    <div class="flex">
+      <div id="file-explorer-nav-pane">
+        <!--  -->
+      </div>
+      <div id="file-explorer-item-display">
+        <!--  -->
+      </div>
+      <div id="file-explorer-detail-pane">
+        <!--  -->
+      </div>
+    </div>
+
+    <div id="action-buttons">
+      <div id="upload"></div>
+      <div id="new"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+</script>
+
+<style>
+  #file-explorer-window {
+    background: var(--darkest-brown);
+    width: 100%;
+    min-height: 400px;
+  }
+
+  #file-explorer-toolbar {
+    background: var(--black);
+  }
+  #file-explorer-toolbar span {
+    opacity: .5;
+    padding: 5px 50px;
+    cursor: pointer;
+  }
+</style>
