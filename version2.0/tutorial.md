@@ -2,6 +2,7 @@
 
 This is a tutorial for building rooftop-media.org version 2.0.  
 This version creates a web-based file manager, allowing users to:
+ - 👤📁 Create "user folders" for users when they log in
  - ➕📄 Create and write new text files, saved on the webserver 
  - 💽📄 Upload files from their computer to the webserver
  - ➕📁 Create and manage folders, to organize files
@@ -49,7 +50,15 @@ Click a part title to jump down to it, in this file.
 <h2 id="part-a" align="center">  Part A:  <code>/files</code> </h2>
 
 In this part, we'll create a static page, where one can view and manage webserver files.  
-The static page will have multiple "views". Views will be similar to a desktop file explorer.   
+
+![An image of the file editor page interface](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/tutorial_assets/v2/file_manager.png?raw=true)
+
+In part A, we'll implement a few features this page, including:
+ - The entire interface
+ - Loading all root folders (but not contents)
+ - Loading all user folders (but not contents)
+
+We'll also make sure a new "user folder" is created when users are registered to the website. 
 
 <br/><br/><br/><br/>
 
