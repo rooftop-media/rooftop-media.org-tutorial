@@ -77,9 +77,9 @@ For now, we'll add the interface without any functionality.
       <div>View</div>
     </div>
     <div id="nav-bar">
-      <div id="back-button"><img src="/assets/icons/back-arrow.svg" class="icon" /></div>
-      <div id="fwd-button"><img src="/assets/icons/fwd-arrow.svg" class="icon" /></div>
-      <div id="parent-dir-button"><img src="/assets/icons/parent-dir.svg" class="icon" /></div>
+      <div id="back-button"><img src="/assets/icons/back-arrow.svg" class="icon" alt="Back" /></div>
+      <div id="fwd-button"><img src="/assets/icons/fwd-arrow.svg" class="icon" alt="Forward" /></div>
+      <div id="parent-dir-button"><img src="/assets/icons/parent-dir.svg" class="icon" alt="To parent directory" /></div>
       <input id="working-dir" type="text" value="/users/ben/research/escapement" />
       <input id="search-bar" type="text" placeholder="Search..." />
     </div>
@@ -108,6 +108,9 @@ For now, we'll add the interface without any functionality.
         <div><img src="/assets/icons/file.svg" class="icon"/> A file.css</div>
         <div><img src="/assets/icons/file.svg" class="icon"/> A file with a particularly long file name.txt</div>
         <div><img src="/assets/icons/folder.svg" class="icon"/> A folder </div>
+
+        <button id="upload-file"><img src="/assets/icons/upload.svg" class="icon" alt="Upload file"/></button>
+        <button id="new-file"><img src="/assets/icons/plus.svg" class="icon" alt="Create new file"/></button>
       </div>
       
       <div id="detail-pane">
@@ -116,11 +119,6 @@ For now, we'll add the interface without any functionality.
         <div>File name: <span>/escapement/anchor-escapement.gif</span></div>
       </div>
     
-    </div>
-
-    <div id="action-buttons">
-      <div id="upload"></div>
-      <div id="new"></div>
     </div>
 
   </div>
@@ -253,6 +251,23 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
   }
   #detail-pane span {
     color: white;
+  }
+
+  /*  Upload and new file buttons  */
+  #upload-file, #new-file {
+    position: absolute;
+    bottom: 20px;
+    height: 40px;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+  #upload-file {
+    right: 70px;
+  }
+  #new-file {
+    right: 20px;
   }
 </style>
 ```
