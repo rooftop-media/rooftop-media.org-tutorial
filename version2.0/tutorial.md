@@ -51,7 +51,7 @@ Click a part title to jump down to it, in this file.
 
 In this part, we'll create a static page, where one can view and manage webserver files.  
 
-![An image of the file editor page interface](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/tutorial_assets/v2/file_manager.png?raw=true)
+![An image of the file explorer page interface](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/tutorial_assets/v2/file_explorer.png?raw=true)
 
 In part A, we'll implement a few features this page, including:
  - The entire interface
@@ -63,8 +63,199 @@ We'll also make sure a new "user folder" is created when users are registered to
 <br/><br/><br/><br/>
 
 
-<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/files/file-manager.html</code>  </h3>
+<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/files/file-explorer.html</code>  </h3>
 
+Create a new directory called `/pages/files/`.  Add a new file called `/file-explorer.html`. 
+For now, we'll add the interface without any functionality. 
+
+```
+<div class="p-3 center-column">
+  <h3>File explorer</h3>
+  <div id="window">
+    <div id="toolbar">
+      <div>File</div>
+      <div>View</div>
+    </div>
+    <div id="nav-bar">
+      <div id="back-button"><img src="/assets/icons/back-arrow.svg" class="icon" /></div>
+      <div id="fwd-button"><img src="/assets/icons/fwd-arrow.svg" class="icon" /></div>
+      <div id="parent-dir-button"><img src="/assets/icons/parent-dir.svg" class="icon" /></div>
+      <input id="working-dir" type="text" value="/users/ben/research/escapement" />
+      <input id="search-bar" type="text" placeholder="Search..." />
+    </div>
+
+    <div id="pane-container">
+      
+      <div id="nav-pane">
+        <div><img src="/assets/icons/star.svg" class="icon"/> Favorites </div>
+        <ul>
+          <li><img src="/assets/icons/folder.svg" class="icon"/> ~/research/escapement</li>
+        </ul>
+        
+        <div><img src="/assets/icons/user.svg" class="icon"/> ~ &nbsp; <span style="opacity:.5">( /users/ben/ )</span> </div>
+        <ul>
+          <li><img src="/assets/icons/folder.svg" class="icon"/> ~/photos</li>
+          <li><img src="/assets/icons/folder.svg" class="icon"/> ~/research</li>
+        </ul>
+        <div><img src="/assets/icons/computer.svg" class="icon"/> / &nbsp; <span style="opacity:.5">(Root directory)</span> </div>
+        <ul>
+          <li><img src="/assets/icons/folder.svg" class="icon"/> /users</li>
+          <li><img src="/assets/icons/folder.svg" class="icon"/> /groups</li>
+        </ul>
+      </div>
+
+      <div id="item-display">
+        <div><img src="/assets/icons/file.svg" class="icon"/> A file.css</div>
+        <div><img src="/assets/icons/file.svg" class="icon"/> A file with a particularly long file name.txt</div>
+        <div><img src="/assets/icons/folder.svg" class="icon"/> A folder </div>
+      </div>
+      
+      <div id="detail-pane">
+        <div>Preview</div><br/>
+        <img src="/assets/icons/file.svg" id="preview-icon"/>
+        <div>File name: <span>/escapement/anchor-escapement.gif</span></div>
+      </div>
+    
+    </div>
+
+    <div id="action-buttons">
+      <div id="upload"></div>
+      <div id="new"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+</script>
+
+<style>
+  .icon {
+    height: 1em;
+  }
+  
+  #window {
+    background: var(--darkest-brown);
+    width: 100%;
+    min-height: 400px;
+    font-family: sans-serif;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #pane-container {
+    display: flex;
+    position: relative;
+    flex-grow: 1;
+  }
+
+  /*  Looks like this:    file     view    */
+  #toolbar {
+    background: var(--black);
+    display: flex;
+  }
+  #toolbar div {
+    opacity: .5;
+    padding: 5px 50px;
+    cursor: pointer;
+  }
+
+  /*  Buttons and search bars to navigate folders.  */
+  #nav-bar {
+    padding: 5px;
+    display: flex;
+    align-items: center;
+  }
+  #nav-bar input[type="text"] {
+    background: var(--dark-brown);
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin: 5px;
+  }
+  #nav-bar img {
+    padding: 5px 5px;
+    cursor: pointer;
+  }
+  #nav-bar img:hover {
+    background: var(--dark-brown);
+  }
+  #nav-bar #working-dir {
+    flex-grow: 1;
+  }
+
+  /*  Pane showing fav, root, and user folders  */
+  #nav-pane {
+    padding: 10px;
+  }
+  #nav-pane div, #nav-pane li {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: .5em 0px;
+  }
+  #nav-pane div:hover, #nav-pane li:hover {
+    background: var(--dark-brown);
+  }
+  #nav-pane img {
+    padding-right: 5px;
+  }
+  #nav-pane ul {
+    list-style: none;
+    margin: 0px;
+    padding-left: 20px;
+  }
+
+  /*  Pane showing contents of current working dir  */
+  #item-display {
+    background: var(--darker-brown);
+    flex-grow: 1;
+    position: relative;
+    top:0px;
+    bottom: 0px;
+    border: solid 1px var(--darkest-brown);
+    padding: 5px 0px;
+  }
+  #item-display div {
+    padding: 2px 10px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  #item-display div:hover {
+    background: var(--brown);
+  }
+  #item-display div img {
+    margin-right: 5px;
+    width: 1em;
+  }
+
+  /*  Pane with details about currently selected item  */
+  #detail-pane {
+    background: var(--darker-brown);
+    width: 200px;
+    position: relative;
+    top: 0px;
+    bottom: 0px;
+    border: solid 1px var(--darkest-brown);
+    padding: 5px;
+  }
+  #preview-icon {
+    width: 100px;
+    display: block;
+    margin: auto auto;
+  }
+  #detail-pane div {
+    color: gray;
+  }
+  #detail-pane span {
+    color: white;
+  }
+</style>
+```
 
 <br/><br/><br/><br/>
 
@@ -72,7 +263,21 @@ We'll also make sure a new "user folder" is created when users are registered to
 
 <h3 id="a-2">  ☑️ Step 2: Edit <code>/server/server.js</code>  </h3>
 
-First, we'll need to add the route to access our file manager page. 
+First, we'll need to add the route to access our file explorer page.  
+
+Edit `server/server.js`:
+
+```
+//  Mapping URLs to pages
+var pageURLs = {
+  '/': '/pages/misc/landing.html',
+  '/landing': '/pages/misc/landing.html',
+  '/register': '/pages/misc/register.html',
+  '/login': '/pages/misc/login.html',
+  '/profile': '/pages/misc/profile.html',
+  '/files': '/pages/files/file-explorer.html'
+}
+```
 
 <br/><br/><br/><br/>
 
