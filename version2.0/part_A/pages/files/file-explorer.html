@@ -1,22 +1,26 @@
 <div class="p-3 center-column">
   <h3>File explorer</h3>
-  <div id="file-explorer-window">
-    <div id="file-explorer-toolbar">
-      <span>File</span>
-      <span>View</span>
+  <div id="window">
+    <div id="toolbar">
+      <div>File</div>
+      <div>View</div>
     </div>
-    <div id="file-explorer-nav-bar">
-      <!--  -->
+    <div id="nav-bar">
+      <div id="back-button"><img src="/assets/icons/back-arrow.svg" /></div>
+      <div id="fwd-button"><img src="/assets/icons/fwd-arrow.svg" /></div>
+      <div id="parent-dir-button"><img src="/assets/icons/parent-dir.svg" /></div>
+      <input id="working-dir" type="text" value="/users/ben/research/escapement" />
+      <input id="search-bar" type="text" placeholder="Search..." />
     </div>
 
     <div class="flex">
-      <div id="file-explorer-nav-pane">
+      <div id="nav-pane">
         <!--  -->
       </div>
-      <div id="file-explorer-item-display">
+      <div id="item-display">
         <!--  -->
       </div>
-      <div id="file-explorer-detail-pane">
+      <div id="detail-pane">
         <!--  -->
       </div>
     </div>
@@ -36,18 +40,50 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
 </script>
 
 <style>
-  #file-explorer-window {
+  #window {
     background: var(--darkest-brown);
     width: 100%;
     min-height: 400px;
   }
 
-  #file-explorer-toolbar {
+  /*  Looks like this:    file     view    */
+  #toolbar {
     background: var(--black);
+    display: flex;
   }
-  #file-explorer-toolbar span {
+  #toolbar div {
     opacity: .5;
     padding: 5px 50px;
     cursor: pointer;
+  }
+
+  /*  Buttons and search bars to navigate folders.  */
+  #nav-bar {
+    padding: 5px;
+    display: flex;
+    align-items: center;
+  }
+  #nav-bar input[type="text"] {
+    background: var(--dark-brown);
+    padding: 5px;
+    border-radius: 15px;
+    margin: 5px;
+  }
+  #nav-bar img {
+    height: 1em;
+    padding: 0px 5px;
+  }
+  #nav-bar #working-dir {
+    flex-grow: 1;
+  }
+
+  /*  Pane showing fav, root, and user folders  */
+  #nav-pane {
+
+  }
+
+  /*  Pane showing contents of current working dir  */
+  #item-display {
+
   }
 </style>
