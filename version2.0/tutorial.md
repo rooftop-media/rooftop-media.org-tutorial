@@ -55,6 +55,7 @@ In this part, we'll create a static page, where one can view and manage webserve
 
 In part A, we'll implement a few features this page, including:
  - The entire interface
+ - Creating new files and folders
  - Loading all root folders (but not contents)
  - Loading all user folders (but not contents)
 
@@ -300,6 +301,7 @@ var pageURLs = {
 
 <h3 id="a-3">  ☑️ Step 3: Add images to <code>/assets/icons/</code>  </h3>
 
+We'll add quite a few icons for the file explorer page. 
 
 <br/><br/><br/><br/>
 
@@ -309,6 +311,13 @@ var pageURLs = {
 Restart the server and go to http://localhost:8080/files. 
 
 <br/><br/><br/><br/>
+
+
+
+<h3 id="a-5">  ☑️ Step 5:  </h3>
+
+
+
 
 
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
