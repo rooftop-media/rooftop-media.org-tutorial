@@ -63,6 +63,43 @@ We'll also make sure a new "user folder" is created when users are registered to
 <br/><br/><br/><br/>
 
 
+<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/files/file-manager.html</code>  </h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-2">  ☑️ Step 2: Edit <code>/server/server.js</code>  </h3>
+
+First, we'll need to add the route to access our file manager page. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-3">  ☑️ Step 3: Add images to <code>/assets/icons/</code>  </h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+
+
+
+
+
+
+
+
+
+
+
+
 
 <h3 id="a-1">  ☑️ Step 1: Create <code>/pages/files/file-manager.html</code>  </h3>
 
