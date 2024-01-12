@@ -106,8 +106,11 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
     margin: 5px;
   }
   #nav-bar img {
-    padding: 0px 5px;
+    padding: 5px 5px;
     cursor: pointer;
+  }
+  #nav-bar img:hover {
+    background: var(--dark-brown);
   }
   #nav-bar #working-dir {
     flex-grow: 1;
@@ -121,7 +124,7 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
     display: flex;
     align-items: center;
     cursor: pointer;
-    margin-bottom: 1em;
+    padding: .5em 0px;
   }
   #nav-pane div:hover, #nav-pane li:hover {
     background: var(--dark-brown);
