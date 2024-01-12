@@ -289,6 +289,12 @@ var pageURLs = {
 <br/><br/><br/><br/>
 
 
+<h3 id="a-4"> ☑️ Step 4:  ☞ Test the code! </h3>
+
+Restart the server and go to http://localhost:8080/files. 
+
+<br/><br/><br/><br/>
+
 
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
