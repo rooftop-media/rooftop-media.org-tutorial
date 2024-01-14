@@ -64,7 +64,9 @@ In part A, we'll implement a few features this page, including:
 <h3 id="a-1">  ☑️ Step 1: Create <code>/pages/files/file-explorer.html</code>  </h3>
 
 Create a new directory called `/pages/files/`.  Add a new file called `/file-explorer.html`. 
-For now, we'll add the interface without any functionality. 
+For now, we'll add the interface without most functionality.  
+
+To save time, we'll also add the Javascript needed for the nav bar. 
 
 ```html
 <div class="p-3 center-column">
@@ -385,21 +387,86 @@ Now, create a new file called `server/database/table_rows/metadata.json`.
 Usually, we'd just add an empty array, but in this case we'll add one row, representing the "root directory":  
 
 ```json
-[]
+[
+  {
+    "id": 0,
+    "name": "/",
+    "type": "folder",
+    "parent": -1,
+    "access": []
+  }
+]
 ```
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-6">  ☑️ Step 6:  </h3>
+<h3 id="a-6">  ☑️ Step 6: Edit <code>/server/server.js</code> </h3>
 
 Edit `server/server.js` again. 
 Next, we'll add a new GET API route, right after `GET_routes['/api/user-by-session']`: 
 
 ```js
-
+GET_routes['/api/metadata-by-dir'] = function(params, res) {
+  let dir_data = DataBase.table('metadata').find({ location: params.location });
+  if (dir_data.length < 1) {
+    return api_response(res, 404, `No file found at ${params.location}`);
+  }
+  let metadata_in_dir = DataBase.table('files').find({ parent_id: dir_data[0].id });
+  api_response(res, 200, JSON.stringify(metadata_in_dir));
+}
 ```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-7"> ☑️ Step 7:  ☞ Test the code! </h3>
+
+First, manually edit  `server/database/table_rows/metadata.json` to add two new rows:
+
+```json
+[
+  {
+    "id": 0,
+    "name": "/",
+    "type": "folder",
+    "parent": -1,
+    "access": []
+  },
+  {
+    "id": 1,
+    "name": "users/",
+    "type": "folder",
+    "parent": 0,
+    "access": []
+  },
+  {
+    "id": 2,
+    "name": "groups/",
+    "type": "folder",
+    "parent": 0,
+    "access": []
+  },
+  {
+    "id": 3,
+    "name": "testuser/",
+    "type": "folder",
+    "parent": 1,
+    "access": []
+  },
+  {
+    "id": 4,
+    "name": "hiworld.txt",
+    "type": "file",
+    "parent": 3,
+    "access": []
+  }
+]
+```
+
+<br/><br/><br/><br/>
 
 
 
