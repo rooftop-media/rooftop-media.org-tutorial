@@ -66,7 +66,7 @@ In part A, we'll implement a few features this page, including:
 Create a new directory called `/pages/files/`.  Add a new file called `/file-explorer.html`. 
 For now, we'll add the interface without any functionality. 
 
-```
+```html
 <div class="p-3 center-column">
   <h3>File explorer</h3>
   <div id="window">
@@ -346,12 +346,45 @@ Click on the "file" and "view" menu options in the toolbar to open up a submenu.
 Create a new file called `server/database/table_columns/metadata.json` and add this:
 
 ```json
-
+{
+  "name": "Metadata",
+  "snakecase": "metadata",
+  "max_id": 0,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "Item name",
+      "snakecase": "name",
+      "unique": false
+    },
+    {
+      "name": "Item type",
+      "snakecase": "type",
+      "unique": false
+    },
+    {
+      "name": "Parent folder",
+      "snakecase": "parent",
+      "unique": false,
+      "required": true
+    },
+    {
+      "name": "Access",
+      "snakecase": "access",
+      "unique": false
+    }
+  ]
+}
 ```
 
-Now, create a new file called `server/database/table_rows/metadata.json` and add an empty array:
+Now, create a new file called `server/database/table_rows/metadata.json`.  
+Usually, we'd just add an empty array, but in this case we'll add one row, representing the "root directory":  
 
-```js
+```json
 []
 ```
 
