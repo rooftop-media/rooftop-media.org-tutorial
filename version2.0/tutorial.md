@@ -29,12 +29,12 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - /files](#part-a) | 20 min. | 13 |
-| [Part B - ](#part-b) | 15 min. | 8 |
-| [Part C - ](#part-c) | 15 min. | 8 |
-| [Part D - ](#part-d) | 0 min. | 0 |
-| [Part E - ](#part-e) | 0 min. | 0 |
-| [Part F - ](#part-f) | 0 min. | 0 |
+| [Part A - /files UI and nav pane (file loading)](#part-a) | 20 min. | 13 |
+| [Part B - Item display pane (file navigating)](#part-b) | 15 min. | 8 |
+| [Part C - User folder, item creation and renaming](#part-c) | 15 min. | 8 |
+| [Part D - File upload and preview pane](#part-d) | 0 min. | 0 |
+| [Part E - Moving and deleting files](#part-e) | 0 min. | 0 |
+| [Part F - File permissions](#part-f) | 0 min. | 0 |
 | [Part G - ](#part-g) | 0 min. | 0 |
 | [Part H - ](#part-h) | 0 min. | 0 |
 | [Version 3.0. - CMS](#v3) | Todo | ? |
@@ -47,7 +47,7 @@ Click a part title to jump down to it, in this file.
 
 
 
-<h2 id="part-a" align="center">  Part A:  <code>/files</code> </h2>
+<h2 id="part-a" align="center">  Part A:  <code>/files</code> UI and nav pane (file loading)</h2>
 
 In this part, we'll create a static page, where one can view and manage webserver files.  
 
@@ -55,11 +55,8 @@ In this part, we'll create a static page, where one can view and manage webserve
 
 In part A, we'll implement a few features this page, including:
  - The entire interface
- - Creating new files and folders
- - Loading all root folders (but not contents)
- - Loading all user folders (but not contents)
-
-We'll also make sure a new "user folder" is created when users are registered to the website. 
+ - Loading all root folders 
+ - Loading all user folders 
 
 <br/><br/><br/><br/>
 
@@ -74,8 +71,19 @@ For now, we'll add the interface without any functionality.
   <h3>File explorer</h3>
   <div id="window">
     <div id="toolbar">
-      <div>File</div>
-      <div>View</div>
+      <div id="toolbar-opt-file" class="toolbar-opt" onclick="clickToolbar('file')">File</div>
+      <div id="toolbar-opt-view" class="toolbar-opt" onclick="clickToolbar('view')">View</div>
+      <div id="submenu-file" class="submenu">
+        <div>Upload a file</div>
+        <div>Create a new file</div>
+        <div>Create a new folder</div>
+      </div>
+      <div id="submenu-view" class="submenu" style="left: 125px;">
+        <div>Sort by...</div>
+        <div>Item mode...</div>
+        <div>Show nav pane...</div>
+        <div>Show preview pane...</div>
+      </div>
     </div>
     <div id="nav-bar">
       <div id="back-button"><img src="/assets/icons/back-arrow.svg" class="icon" alt="Back" /></div>
@@ -109,9 +117,6 @@ For now, we'll add the interface without any functionality.
         <div><img src="/assets/icons/file.svg" class="icon"/> A file.css</div>
         <div><img src="/assets/icons/file.svg" class="icon"/> A file with a particularly long file name.txt</div>
         <div><img src="/assets/icons/folder.svg" class="icon"/> A folder </div>
-
-        <button id="upload-file"><img src="/assets/icons/upload.svg" class="icon" alt="Upload file"/></button>
-        <button id="new-file"><img src="/assets/icons/plus.svg" class="icon" alt="Create new file"/></button>
       </div>
       
       <div id="detail-pane">
@@ -128,6 +133,16 @@ For now, we'll add the interface without any functionality.
 <script>
 
 const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+const toolbar_opts = ['file', 'view'];
+
+function clickToolbar(opt_name) {
+  for (let i = 0; i < toolbar_opts.length; i++) {
+    document.getElementById(`toolbar-opt-${toolbar_opts[i]}`).classList.remove('toolbar-opt-selected');
+    document.getElementById(`submenu-${toolbar_opts[i]}`).classList.remove('submenu-display');
+  }
+  document.getElementById(`toolbar-opt-${opt_name}`).classList.add('toolbar-opt-selected')
+  document.getElementById(`submenu-${opt_name}`).classList.add('submenu-display')
+}
 
 </script>
 
@@ -157,10 +172,36 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
     background: var(--black);
     display: flex;
   }
-  #toolbar div {
-    opacity: .5;
+  #toolbar .toolbar-opt {
     padding: 5px 50px;
     cursor: pointer;
+    color: gray;
+  }
+  #toolbar .toolbar-opt:hover {
+    background: var(--darker-brown);
+  }
+  .toolbar-opt-selected {
+    background: var(--darker-brown);
+    color: white !important;
+  }
+  .submenu {  /*  These menus pop up when a tool bar option is clicked  */
+    position: absolute;
+    display: none;
+    background: var(--darker-brown);
+    box-shadow: 3px 3px 10px var(--black);
+    top: calc(1em + 10px);
+    z-index: 2;
+  }
+  .submenu-display {
+    display: block
+  }
+  .submenu div {
+    padding: 5px;
+    width: 200px;
+    cursor: pointer;
+  }
+  .submenu div:hover {
+    background:var(--dark-brown);
   }
 
   /*  Buttons and search bars to navigate folders.  */
@@ -168,6 +209,7 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
     padding: 5px;
     display: flex;
     align-items: center;
+    position: relative;
   }
   #nav-bar input[type="text"] {
     background: var(--dark-brown);
@@ -185,6 +227,7 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
   #nav-bar #working-dir {
     flex-grow: 1;
   }
+
 
   /*  Pane showing fav, root, and user folders  */
   #nav-pane {
@@ -253,23 +296,6 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
   #detail-pane span {
     color: white;
   }
-
-  /*  Upload and new file buttons  */
-  #upload-file, #new-file {
-    position: absolute;
-    bottom: 20px;
-    height: 40px;
-    width: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-  }
-  #upload-file {
-    right: 70px;
-  }
-  #new-file {
-    right: 20px;
-  }
 </style>
 ```
 
@@ -279,9 +305,7 @@ const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
 
 <h3 id="a-2">  ☑️ Step 2: Edit <code>/server/server.js</code>  </h3>
 
-First, we'll need to add the route to access our file explorer page.  
-
-Edit `server/server.js`:
+Edit `server/server.js`. For now, we'll add the route to access our file explorer page.  
 
 ```
 //  Mapping URLs to pages
@@ -308,15 +332,41 @@ We'll add quite a few icons for the file explorer page.
 
 <h3 id="a-4"> ☑️ Step 4:  ☞ Test the code! </h3>
 
-Restart the server and go to http://localhost:8080/files. 
+Restart the server and go to http://localhost:8080/files.  
+You should see the file explorer interface!  
+
+Click on the "file" and "view" menu options in the toolbar to open up a submenu. 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="a-5">  ☑️ Step 5:  </h3>
+<h3 id="a-5">  ☑️ Step 5: Create a new database table for file metadata </h3>
+
+Create a new file called `server/database/table_columns/metadata.json` and add this:
+
+```json
+
+```
+
+Now, create a new file called `server/database/table_rows/metadata.json` and add an empty array:
+
+```js
+[]
+```
+
+<br/><br/><br/><br/>
 
 
+
+<h3 id="a-6">  ☑️ Step 6:  </h3>
+
+Edit `server/server.js` again. 
+Next, we'll add a new GET API route, right after `GET_routes['/api/user-by-session']`: 
+
+```js
+
+```
 
 
 
