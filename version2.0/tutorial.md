@@ -402,18 +402,18 @@ Usually, we'd just add an empty array, but in this case we'll add one row, repre
 
 
 
-<h3 id="a-6">  ☑️ Step 6: Edit <code>/server/server.js</code> </h3>
+<h3 id="a-6">  ☑️ Step 6: Add <code>/api/metadata-by-dir</code> to <code>/server/server.js</code> </h3>
 
 Edit `server/server.js` again. 
 Next, we'll add a new GET API route, right after `GET_routes['/api/user-by-session']`: 
 
 ```js
 GET_routes['/api/metadata-by-dir'] = function(params, res) {
-  let dir_data = DataBase.table('metadata').find({ location: params.location });
+  let dir_data = DataBase.table('metadata').find({ name: params.location });
   if (dir_data.length < 1) {
     return api_response(res, 404, `No file found at ${params.location}`);
   }
-  let metadata_in_dir = DataBase.table('files').find({ parent_id: dir_data[0].id });
+  let metadata_in_dir = DataBase.table('metadata').find({ parent: dir_data[0].id });
   api_response(res, 200, JSON.stringify(metadata_in_dir));
 }
 ```
