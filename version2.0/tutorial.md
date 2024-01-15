@@ -39,7 +39,7 @@ Click a part title to jump down to it, in this file.
 | [Part H - ](#part-h) | 0 min. | 0 |
 | [Version 3.0. - CMS](#v3) | Todo | ? |
 |                           |      |   | 
-| [Appendix i - File Metadata Storage | 3 nmin. |   |
+| [Appendix i - File Metadata Storage](#appendix-i) | 3 min. |   |
 
 
 
@@ -1119,11 +1119,11 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="appendix-1" align="center">  Appendix i:  File Metadata Storage</h2>
+<h2 id="appendix-i" align="center">  Appendix i:  File Metadata Storage</h2>
 
 There are at least two good strategies for storing file metadata, and linking it to file contents:
- 1. Using the server's filesystem to represent the folder hierarchy, and storing metadata next to folders and files.
- 2. Creating a database table of metadata, including "parent folder" info, and storing files flatly, named by their ID.
+ 1. 🖥🗃 Using the server's filesystem to represent the folder hierarchy, and storing metadata next to folders and files.
+ 2. 📝🗃 Creating a database table of metadata, including "parent folder" info, and storing files flatly, named by their ID.
 
 Both strategies offer pros and cons! 
 
