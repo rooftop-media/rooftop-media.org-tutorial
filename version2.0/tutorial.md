@@ -38,6 +38,8 @@ Click a part title to jump down to it, in this file.
 | [Part G - ](#part-g) | 0 min. | 0 |
 | [Part H - ](#part-h) | 0 min. | 0 |
 | [Version 3.0. - CMS](#v3) | Todo | ? |
+|                           |      |   | 
+| [Appendix i - File Metadata Storage | 3 nmin. |   |
 
 
 
@@ -1113,4 +1115,61 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 
 <br/><br/><br/><br/>
 <br/><br/><br/><br/>
+
+
+
+
+<h2 id="appendix-1" align="center">  Appendix i:  File Metadata Storage</h2>
+
+There are at least two good strategies for storing file metadata, and linking it to file contents:
+ 1. Using the server's filesystem to represent the folder hierarchy, and storing metadata next to folders and files.
+ 2. Creating a database table of metadata, including "parent folder" info, and storing files flatly, named by their ID.
+
+Both strategies offer pros and cons! 
+
+The first one uses the operating system of the server to structure the file system.  
+To move, rename, edit, or delete files, we would have to use the FS library in NodeJS -- usually twice, to update the metadata as well. 
+This lets a dev view the file hierarchy using server system tools. That's convenient for testing and maintanance, but could lead to inaccurate metadata if a dev isn't careful.  
+Another advantage is that the system enforces hierarchy rules.  Two items can't have the same file path and name.  Items must have a parent folder.  Etc.  
+
+In option two, we _don't_ use the server's file system.  Instead, we implement our _own_ file system.  
+This lets us use our database functions, without messing with the FS library as much.  
+Also, if we want to rename or move an item, we'll only need to edit a file's metadata. 
+
+ - **NOTE**: The main factors to consider when weighing pros and cons are operation speed and accuracy.
+   Especially when operating over HTTP calls, operations must be completed in a single request.
+   Operations must also be accurate, as in, maintain the file hierarchy, file content integrity, access restrictions, etc. 
+
+Let's explore the way that option 2 would actually work:  
+
+The database contains a new table called **metadata**.  
+When an item is added, a new row is created with a unique id.  This row stores:
+ - The unique id (of course)
+ - The item's name
+ - The unique id of the parent folder of this item
+ - Whether the item is a file or a folder
+ - A list of which users have access to read or edit the item
+If the item is a file, the file's contents are saved in a separate folder on the server.
+The file's contents are named after that file's unique id in the database.
+
+Let's look at how we'd handle some use cases using this method:
+
+ 1. For the file explorer, we want to find all the items contained in the root directory.  
+    The root directory is given the id "0".  Let's assume it contains 3 folders.
+    A query of the database for all items with the parent "0" would get the relevant metadata!
+      
+ 2. In the file explorer, want to move "/users/ben/my-file.txt" to a new location, "users/scott/".
+    We have the item id for the file, for the file's parent folder ("/users/ben/") and for the target folder.
+    We can change the "parent" field in the file's metadata to point to the target folder.
+
+ 3. We want to edit or read the contents of a file like "/users/ben/my-file.txt".
+    We know the file id.  And so, we can find the file's contents in the relevant folder.
+
+ 4. In the file explorer, we want to rename a file.  Given that file's id, we can edit the name field in the database.
+    In this use case, we also have to ensure the file name isn't already taken!
+    For that, we can read all other files in the pare
+
+<br/><br/><br/><br/><br/><br/><br/><br/>
+<br/><br/><br/><br/><br/><br/><br/><br/>
+
 
