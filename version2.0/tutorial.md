@@ -404,13 +404,13 @@ Usually, we'd just add an empty array, but in this case we'll add one row, repre
 
 
 
-<h3 id="a-6">  ☑️ Step 6: Add <code>/api/metadata-by-dir</code> to <code>/server/server.js</code> </h3>
+<h3 id="a-6">  ☑️ Step 6: Add <code>/api/folder-contents</code> to <code>/server/server.js</code> </h3>
 
 Edit `server/server.js` again. 
 Next, we'll add a new GET API route, right after `GET_routes['/api/user-by-session']`: 
 
 ```js
-GET_routes['/api/metadata-by-dir'] = function(params, res) {
+GET_routes['/api/folder-contents'] = function(params, res) {
   let dir_data = DataBase.table('metadata').find({ name: params.location });
   if (dir_data.length < 1) {
     return api_response(res, 404, `No file found at ${params.location}`);
@@ -1175,6 +1175,10 @@ Let's look at how we'd handle some use cases using this method:
     and remove results whose parent folder is not named "testuser".
     We'll then check each of *those* folder's parent folders, and remove any whose parent folder isn't named "users".
     We'll do this until we reach the root folder, at which point we should have a single result, and we can get its id!
+
+There are some potential helper functions for the server that could be reused:
+
+`function get_id_from_filepath()` would get an ID from a given filepath. (Use case #5)
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/>
