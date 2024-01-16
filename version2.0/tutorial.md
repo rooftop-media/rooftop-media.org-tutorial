@@ -1167,7 +1167,14 @@ Let's look at how we'd handle some use cases using this method:
 
  4. In the file explorer, we want to rename a file.  Given that file's id, we can edit the name field in the database.
     In this use case, we also have to ensure the file name isn't already taken!
-    For that, we can read all other files in the pare
+    For that, we can read all other files in the parent folder, and ensure the name is unique.
+
+ 5. 🔎 We know a file path, like `/users/testuser/my-file.txt`, and want to know the file id.
+    (Note that there may be similarly named files, like `/a/my-file.txt` or `/a/users/testuser/my-file.txt`.) 
+    First, we'll search for all files with the name "my-file.txt".  For each result found, we'll look at their parent folder,
+    and remove results whose parent folder is not named "testuser".
+    We'll then check each of *those* folder's parent folders, and remove any whose parent folder isn't named "users".
+    We'll do this until we reach the root folder, at which point we should have a single result, and we can get its id!
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/>
