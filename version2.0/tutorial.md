@@ -1180,6 +1180,18 @@ There are some potential helper functions for the server that could be reused:
 
 `function get_id_from_filepath()` would get an ID from a given filepath. (Use case #5)
 
+
+<h3>An alternate method</h3>
+Rather than saving the id of a file's parent folder, we could save the filepath of that file's parent folder.  
+We could also save the file contents using filepaths, rather than ids.  
+
+The benefit is avoiding the filepath-to-id lookup described in use case #5.  
+BUT, when moving a non-empty folder, the parent filepath of all child elements would need to be changed as well. 
+
+I'm not sure how modern OS's handle this.  
+The 'mv' shell command can also rename items, which implies to me that the filename == the filepath. 
+
+
 <br/><br/><br/><br/><br/><br/><br/><br/>
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
