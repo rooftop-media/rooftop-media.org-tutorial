@@ -21,14 +21,27 @@ rooftop-media.org is built using Javascript and NodeJS.
 
 This tutorial is organized into 3 stable, usable **versions**, with more versions planned!    
 
-| Version   | Description                                                                 | Status      |
-|-----------|-----------------------------------------------------------------------------|-------------|
-| 1.0       | Static pages, user management                                               | Finished    |
-<!--| 2.0       | Window management                                                           | Not started | -->
-| 2.0       | File Management System                                                      | in progress |
-| 3.0       | Text and code editor                                                        | in progress |
+<table>
+ <tr>
+  <th>Version</th>
+  <th>Description</th>
+  <th>Approx. Length</th>
+ </tr>
+ <tr>
+  <td><a href="https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md">v1.0</a></td>
+  <td>Static pages & user management</td>
+  <td>1 hour, 15 min.</td>
+ </tr>
+ <tr>
+  <td>2.0</td>
+  <td>File management?</td>
+  <td>In progress</td>
+ </tr>
+</table>
 
-<!--| 3.0       | Email client                                                            | todo        |
+<!--| 3.0       | Text and code editor                                                        | in progress |
+
+| 3.0       | Email client                                                            | todo        |
 | 4.0       | [LMS](https://en.wikipedia.org/wiki/Learning_management_system)             | todo        |
 | 5.0       | vector editor                                                               | todo        |
 | 6.0       | personal life manager                                                       | todo        |-->
