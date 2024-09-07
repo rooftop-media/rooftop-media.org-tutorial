@@ -1,10 +1,9 @@
-# NodeJS Tutorial for rooftop-media.org, version 3.0
+# NodeJS Tutorial for rooftop-media.org, version 2.0
 
-This is a tutorial for building rooftop-media.org version 3.0.  
-This version creates a Content Management System (CMS), allowing users to:
+This is a tutorial for building rooftop-media.org version 2.0.  
+This version creates a text editor, allowing users to:
  - Create new website pages
- - Add and edit page content
- - Manage page permissions
+ - Display syntax highlighting and other editor features
 
 *Total estimated time for this tutorial: ADD ESTIMATED TIME*
 
@@ -14,7 +13,7 @@ This version creates a Content Management System (CMS), allowing users to:
 
 ##  Prerequisites
 
-This tutorial requires that you've completed [version 2.0](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version3.0/tutorial.md).
+This tutorial requires that you've completed [version 1.0](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md).
 
 <br/><br/><br/><br/><br/><br/><br/><br/>
 
@@ -34,7 +33,7 @@ Click a part title to jump down to it, in this file.
 | [Part F - Page tags](#part-f) | 0 min. | 0 |
 | [Part G - Edit history](#part-g) | 0 min. | 0 |
 | [Part H - Data Download](#part-h) | 0 min. | 0 |
-| [Version 4.0. - Email](#v3) | Todo | ? |
+| [Version 3.0. - ???](#v3) | Todo | ? |
 
 
 
