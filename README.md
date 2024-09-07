@@ -33,8 +33,8 @@ This tutorial is organized into 3 stable, usable **versions**, with more version
   <td>1 hour, 15 min.</td>
  </tr>
  <tr>
-  <td>2.0</td>
-  <td>File management?</td>
+  <td><a href="https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md">2.0</a></td>
+  <td>Text editor</td>
   <td>In progress</td>
  </tr>
 </table>
