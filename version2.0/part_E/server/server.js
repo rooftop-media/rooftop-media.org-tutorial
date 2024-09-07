@@ -163,7 +163,7 @@ function api_routes(url, req, res) {
   let req_data = '';
   let buffer_chunks = [];
   req.on('data', chunk => {
-    if (Buffer.isBuffer(chunk)) {
+    if (Buffer.isBuffer(chunk) && false) {  // TODO: Fix
       buffer_chunks.push(chunk);
     } else {
       req_data += chunk;

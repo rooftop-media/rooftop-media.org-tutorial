@@ -9,8 +9,11 @@
 
 :root {
   --spacer: 20px;
-  --black: #000000; --darkest-brown: #0E0907; --darker-brown: #1A110D; --dark-brown: #2E1F17;
-  --brown: #432D21; --light-brown: #533E2E; --lighter-brown: #604836;
+  --darker-brown: #1A110D;
+  --dark-brown: #2E1F17;
+  --brown: #432D21;
+  --light-brown: #533E2E;
+  --lighter-brown: #604836;
   --action-brown: #7F4C34;
   --yellow: #E3D78F;
   --green: #3A7B64;
@@ -21,7 +24,7 @@ html, body {
   font-family: CrimsonText;
   margin: 0;
   min-height: 100vh;
-  background: var(--darker-brown);
+  background: var(--dark-brown);
   color: white;
 }
 
@@ -32,7 +35,7 @@ html, body {
   align-items:     center;
   justify-content: space-between;
   display:         flex;
-  background:      var(--dark-brown);
+  background:      var(--brown);
   box-shadow:      0px 0px 10px rgba(0,0,0,.5);
   padding:         10px 25px;
   box-sizing:      border-box;
@@ -99,7 +102,7 @@ a {
 }
 
 input, textarea {
-  background: var(--darkest-brown);
+  background: var(--darker-brown);
   color: white;
   border: solid 1px black;
 }
@@ -108,8 +111,8 @@ input:focus, textarea:focus {
 }
 
 input[type="checkbox"] {
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
   appearance: none;
   background: var(--action-brown);
   border-radius: 5px;
@@ -122,8 +125,8 @@ input[type="checkbox"]:checked::after {
   background-repeat: no-repeat;
   background-position: center;
   background-image: url(/assets/icons/check.svg);
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
 }
 input[type="radio"] {
   width: 20px;
@@ -151,7 +154,7 @@ pre {
   width: 100%;
   white-space: pre-wrap;
   text-indent: 0px;
-  background: var(--darkest-brown);
+  background: var(--darker-brown);
 }
 
 button {

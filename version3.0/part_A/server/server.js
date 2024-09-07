@@ -37,8 +37,8 @@ var pageURLs = {
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html',
-  '/create-page': '/pages/cms/create-page.html',
-  '/all-pages': '/pages/cms/all-pages.html',
+  '/files': '/pages/files/file-explorer.html'
+
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -62,21 +62,15 @@ function server_request(req, res) {
 
 function respond_with_a_page(res, url) {
   let page_content = "";
-
-  if (pageURLkeys.includes(url)) {  //  If it's a static page route....
+  if (pageURLkeys.includes(url)) {
     url = pageURLs[url];
-    try {
-      page_content = fs.readFileSync( __dirname + '/..' + url);
-    } catch(err) {
-      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    }
-  } else {                          //  If it's a dynamic page route....
-    let page_data = DataBase.table('pages').find({ route: url.slice(1) });  //  Removing the "/" from the route
-    if (page_data.length < 1) {
-      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      page_content = fs.readFileSync(__dirname + '/../pages/cms/dynamic-page.html');
-    }
+  } else {
+    url = '/pages/misc/404.html';
+  }
+  try {
+    page_content = fs.readFileSync( __dirname + '/..' + url);
+  } catch(err) {
+    page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
   }
   res.writeHead(200, {'Content-Type': 'text/html'});
   var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
@@ -187,31 +181,6 @@ GET_routes['/api/user-by-session'] = function(params, res) {
   } else {
     api_response(res, 200, JSON.stringify(user_data[0]));
   }
-}
-
-GET_routes['/api/page'] = function(req_data, res) {
-  let page_data = DataBase.table('pages').find({ route: req_data.route });
-  let response = {
-    error: false,
-    data: null
-  }
-  if (page_data.length < 1) {
-    response.error = true;
-    response.msg = `The page ${req_data.route} was not found.`;
-  } else {
-    response.data =  page_data[0];
-  }
-  api_response(res, 200, JSON.stringify(response));
-}
-
-GET_routes['/api/all-pages'] = function(req_data, res) {
-  let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
-  all_pages = JSON.parse(all_pages);
-  for (let i = 0; i < all_pages.length; i++) {
-    let creator_id = parseInt(all_pages[i].created_by);
-    all_pages[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
-  }
-  api_response(res, 200, JSON.stringify(all_pages));
 }
 
 POST_routes['/api/register'] = function(new_user, res) {
@@ -340,11 +309,6 @@ POST_routes['/api/check-invite-code'] = function(data, res) {
   } else {
     api_response(res, 200, JSON.stringify({error: true, msg: "incorrect code"}));
   }
-}
-
-POST_routes['/api/create-page'] = function(new_page_data, res) {
-  let response = DataBase.table('pages').insert(new_page_data);
-  api_response(res, 200, JSON.stringify(response));
 }
 
 ////  SECTION 4: Boot.
