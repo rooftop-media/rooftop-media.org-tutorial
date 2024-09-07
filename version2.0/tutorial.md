@@ -234,7 +234,7 @@ var pageURLkeys = Object.keys(pageURLs);
 Open up `/pages/index.js`.  We'll make two changes.
 
 First, we'll update the `render_user_buttons` function, to include links to `/create-page` and `/all-pages`.
-```
+```javascript
 // Update the "user buttons" in the header
 function render_user_buttons() {
   let userButtonsEl = document.getElementById('user-buttons');
