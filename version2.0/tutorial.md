@@ -30,9 +30,12 @@ Click a part title to jump down to it, in this file.
 | [Part C - Markup syntax](#part-c) | 15 min. | 8 |
 | [Part D - User permissions](#part-d) | 0 min. | 0 |
 | [Part E - Image & file upload](#part-e) | 0 min. | 0 |
+| [Part F - Page type: Journal Entry[#part-f] | 0 min. | 0 |
+| [Part G - Page type: Workout[#part-g] | 0 min. | 0 |
+<!--
 | [Part F - Page tags](#part-f) | 0 min. | 0 |
 | [Part G - Edit history](#part-g) | 0 min. | 0 |
-| [Part H - Data Download](#part-h) | 0 min. | 0 |
+| [Part H - Data Download](#part-h) | 0 min. | 0 |-->
 | [Version 3.0. - ???](#v3) | Todo | ? |
 
 
