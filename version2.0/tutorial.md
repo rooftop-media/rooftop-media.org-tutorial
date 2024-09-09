@@ -49,7 +49,7 @@ Click a part title to jump down to it, in this file.
 <h2 id="part-a" align="center">  Part A:  <code>/create-page</code>, <code>/all-pages</code> </h2>
 
 In this part, we'll create two static pages to facilitate the basic creation of dynamic pages:
- - `/create-page`, where users can create a new page with a specific title and route, and
+ - `/new-page`, where users can create a new page with a specific title and route, and
  - `/pages`, where users can see all created pages.
 
 Dynamic pages will be saved to the database, and accessible at different URL routes.  
@@ -61,7 +61,7 @@ We'll make sure a user is logged in before they can create pages.
 
 <h3 id="a-1">  ☑️ Step 1: Create <code>/pages/cms/create-page.html</code>  </h3>
 
-Create a new folder called `/pages/cms`.  In it, add a new file, `create-page.html`.  
+Create a new folder called `/pages/cms`.  In it, add a new file, `new-page.html`.  
 This page will be a form to create new dynamic pages.  
 
 ```html
@@ -222,8 +222,8 @@ var pageURLs = {
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html',
-  '/create-page': '/pages/cms/create-page.html',
-  '/all-pages': '/pages/cms/all-pages.html',
+  '/new-page': '/pages/cms/new-page.html',
+  '/pages': '/pages/cms/pages.html',
 }
 var pageURLkeys = Object.keys(pageURLs);
 ```
@@ -232,11 +232,11 @@ var pageURLkeys = Object.keys(pageURLs);
 
 
 
-<h3 id="a-5">  ☑️ Step 5: Using <code>/pages/index.js</code> to reroute and update the header </h3>
+<h3 id="a-5">  ☑️ Step 5: Use <code>/pages/index.js</code> to reroute and update the header </h3>
 
 Open up `/pages/index.js`.  We'll make two changes.
 
-First, we'll update the `render_user_buttons` function, to include links to `/create-page` and `/all-pages`.
+First, we'll update the `render_user_buttons` function, to include links to `/create-page` and `/pages`.
 ```javascript
 // Update the "user buttons" in the header
 function render_user_buttons() {
@@ -250,8 +250,8 @@ function render_user_buttons() {
   } else {
     buttonText = _current_user.display_name;
     menuHTML += `<a href="/profile">Your profile</a>`;
-    menuHTML += `<a href="/create-page">New page</a>`;
-    menuHTML += `<a href="/all-pages">All pages</a>`;
+    menuHTML += `<a href="/new-page">New page</a>`;
+    menuHTML += `<a href="/pages">All pages</a>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
   
@@ -295,7 +295,7 @@ function boot() {
   var onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
   var loggedIn = _session_id != null;
   var redirectToHome = (onALoggedOutPage && loggedIn);
-  var onALoggedInPage = (_current_page == '/create-page' || _current_page == '/all-pages' || _current_page.split('/')[1] == 'edit');
+  var onALoggedInPage = (_current_page == '/new-page' || _current_page == '/pages' || _current_page.split('/')[1] == 'edit');
   redirectToHome = redirectToHome || (onALoggedInPage && !loggedIn);
   if (redirectToHome) {
     window.location.href = '/';
@@ -318,13 +318,13 @@ window.addEventListener('load', (event) => {
 Restart the server!  
 
 If you're logged in and on `/login` or `/register`, you should be rerouted to `/`.  
-If you're *not* logged in and on `/create-page`, you should be rerouted to `/`.  
+If you're *not* logged in and on `/new-page` or `/pages`, you should be rerouted to `/`.  
 
-On `/create-page`, add a page name and page route.  
+On `/new-page`, add a page name and page route.  
 The page info should appear in the `/server/database/page_rows/pages.json` file.  
 You should be rerouted to the page route, displaying the 404 page -- for now.  
 
-Go back to `/create-page` to try creating the same page route.  You should get an error.  
+Go back to `/new-page` to try creating the same page route.  You should get an error.  
 
 <br/><br/><br/><br/>
 
@@ -332,7 +332,7 @@ Go back to `/create-page` to try creating the same page route.  You should get a
 
 <h3 id="a-7">  ☑️ Step 7: Creating dynamic pages in <code>server/server.js</code> </h3>
 
-We're going to edit the function `respond_with_a_page`. 
+We're going to edit the function `respond_with_a_page` in `/server.js`. 
 This function will now check if a dynamic route exists, and send `/dynamic-page.html` if it exists, and `/404.html` otherwise. 
 
 ```javascript
@@ -460,7 +460,8 @@ GET_routes['/api/page'] = function(req_data, res) {
 
 Restart the server.  
 Go to your browser and navigate to one of the `page_route`s you created.  
-You should see that page's title, as stored in the database, displayed.  
+You should see a blank page (not the 404 page) with an "edit" button in the corner.  
+The edit button should take you to a page called `/edit/[page-route]`, which will be a 404 for now.
 
 URLs that are neither in the `pages` database, nor hardcoded, static pages, should result in the 404 page.  
 
@@ -488,10 +489,10 @@ GET_routes['/api/all-pages'] = function(req_data, res) {
 
 
 
-<h3 id="a-12"> ☑️ Step 12:  Creating <code>pages/cms/all-pages.html</code> </h3>
+<h3 id="a-12"> ☑️ Step 12:  Creating <code>pages/cms/pages.html</code> </h3>
 
 This page will allow us to view all pages created in our database.  
-Create a new page, `/pages/cms/all-pages.html`, and add this:
+Create a new page, `/pages/cms/pages.html`, and add this:
 
 ```html
 <div class="p-3 center-column">
@@ -511,7 +512,7 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
     <!--  Page data goes here-->
   </table>
   <br/><br/><br/><br/>
-  <a href="/create-page"><button>+ Create new page</button></a>
+  <a href="/new-page"><button>+ Create new page</button></a>
 </div>
 
 <script>
@@ -674,7 +675,7 @@ Create a new page, `/pages/cms/all-pages.html`, and add this:
 
 <h3 id="a-13"> ☑️ Step 13:   ☞ Test the code!  </h3>
 
-Restart the server, and go to `/all-pages`.  
+Restart the server, and go to `/pages`.  
 You should see a table of all the created pages! Wonderful.   
 
 Pages that are not "public" should have a lock displayed by them.  
