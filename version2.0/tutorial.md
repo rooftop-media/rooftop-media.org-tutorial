@@ -1047,7 +1047,7 @@ Finally, go to `localhost:8080/edit/not-a-route` to display an error message.
 
 <h3 id="b-6">  ☑️ Step 6: Adding <code>POST_delete_page</code> to <code>/server/server.js</code>  </h3>
 
-Add `POST_routes['/api/delete-page']` to `/server/server.js`:
+Right after `POST_routes['/api/update-page']`, add `POST_routes['/api/delete-page']` to `/server/server.js`:
 
 ```js
 POST_routes['/api/delete-page'] = function(request_info, res) {
