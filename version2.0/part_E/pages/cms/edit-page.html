@@ -65,7 +65,8 @@ function back_to_editor() {
 
 function create_highlighting(markup_text) {
   let tokens = markup_to_tokens(markup_text);
-  let parsed = tokens_to_parse(tokens);
+  let pre_parsed = tokens_to_parse(tokens);
+  let parsed = parse_code_tags(pre_parsed);
   let colors = {
     'LESS-THAN': 'var(--yellow)',
     'GREATER-THAN': 'var(--yellow)',
@@ -81,6 +82,7 @@ function create_highlighting(markup_text) {
     'COMMENT': 'gray',
     'DASH': 'gray',
     'EXCLAMATION': 'gray',
+    'CODE-TAG-TEXT': 'gray',
     'INVALID': 'white'
   }
   let highlighted = '';
@@ -226,7 +228,6 @@ function delete_page() {
 
 ////  SECTION 4: Boot
 //  Load all page elements from API, then render buffer
-
 function load_page() {
   const http = new XMLHttpRequest();
   http.open('GET', `/api/page?route=${page_route}&session_id=${_session_id}`);
@@ -256,7 +257,7 @@ function load_page() {
     }
   }
 }
-function current_user_loaded() {
+current_user_loaded = function() {
   load_page();
 }
 

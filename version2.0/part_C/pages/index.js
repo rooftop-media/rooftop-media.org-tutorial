@@ -31,8 +31,8 @@ function render_user_buttons() {
   } else {
     buttonText = _current_user.display_name;
     menuHTML += `<a href="/profile">Your profile</a>`;
-    menuHTML += `<a href="/create-page">New page</a>`;
-    menuHTML += `<a href="/all-pages">All pages</a>`;
+    menuHTML += `<a href="/new-page">New page</a>`;
+    menuHTML += `<a href="/pages">All pages</a>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
   
@@ -72,7 +72,7 @@ function boot() {
   var onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
   var loggedIn = _session_id != null;
   var redirectToHome = (onALoggedOutPage && loggedIn);
-  var onALoggedInPage = (_current_page == '/create-page' || _current_page == '/all-pages' || _current_page.split('/')[1] == 'edit');
+  var onALoggedInPage = (_current_page == '/new-page' || _current_page == '/pages' || _current_page.split('/')[1] == 'edit');
   redirectToHome = redirectToHome || (onALoggedInPage && !loggedIn);
   if (redirectToHome) {
     window.location.href = '/';

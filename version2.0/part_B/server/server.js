@@ -37,8 +37,8 @@ var pageURLs = {
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html',
-  '/create-page': '/pages/cms/create-page.html',
-  '/all-pages': '/pages/cms/all-pages.html',
+  '/new-page': '/pages/cms/new-page.html',
+  '/pages': '/pages/cms/pages.html',
 }
 var pageURLkeys = Object.keys(pageURLs);
 

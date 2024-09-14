@@ -31,8 +31,8 @@ function render_user_buttons() {
   } else {
     buttonText = _current_user.display_name;
     menuHTML += `<a href="/profile">Your profile</a>`;
-    menuHTML += `<a href="/create-page">New page</a>`;
-    menuHTML += `<a href="/all-pages">All pages</a>`;
+    menuHTML += `<a href="/new-page">New page</a>`;
+    menuHTML += `<a href="/pages">All pages</a>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
   

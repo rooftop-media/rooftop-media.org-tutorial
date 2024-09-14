@@ -1,32 +1,15 @@
 [
   {
-    "title": "C page",
-    "route": "c-page",
+    "title": "Test Page",
+    "route": "test-page",
     "is_public": true,
-    "created_by": 3,
-    "date_created": "Thu Jul 06 2023 15:44:55 GMT-0400 (Eastern Daylight Time)",
-    "content": "",
-    "history": [],
-    "id": 0
-  },
-  {
-    "title": "A  Page",
-    "route": "a-page",
-    "is_public": false,
-    "created_by": 3,
-    "date_created": "Thu Jul 06 2023 15:45:32 GMT-0400 (Eastern Daylight Time)",
-    "content": "",
-    "history": [],
-    "id": 1
-  },
-  {
-    "title": "B page",
-    "route": "b-page",
-    "is_public": false,
     "created_by": 2,
-    "date_created": "Thu Jul 06 2023 15:45:59 GMT-0400 (Eastern Daylight Time)",
-    "content": "<html>Hello! This is some html! <a href=\"link.com\" target=\"_blank\">Link!</a></html>Text at the end! This is valid!\n\n<div style=\"color:pink;\" alt=\"hi\">This is valid, and will be kept!</div>\n<button onclick=\"hack()\" style=\"color: purple;\">This whole tag is not valid, the text will be kept though!</button>\n\n<!-- comment -->\n\n<p>Here is an example of HTML:</p>\n<pre><code>\n  <h1>Hello world!</h1>\n  <p>This is an HTML example!</p>\n</code></pre>",
+    "date_created": "Sun Sep 08 2024 20:01:28 GMT-0400 (Eastern Daylight Time)",
+    "content": "<div style=\"color:pink;\" alt=\"hi\">This is valid, and will be kept!</div>\n<button onclick=\"hack()\" style=\"color: purple;\">This whole tag is not valid, the text will be kept though!</button>",
     "history": [],
-    "id": 2
+    "_params": {
+      "_url": "/api/update-page"
+    },
+    "id": 0
   }
 ]
