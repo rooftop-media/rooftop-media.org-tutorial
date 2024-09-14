@@ -1428,8 +1428,8 @@ var pageURLs = {
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html',
-  '/create-page': '/pages/cms/create-page.html',
-  '/all-pages': '/pages/cms/all-pages.html',
+  '/new-page': '/pages/cms/new-page.html',
+  '/pages': '/pages/cms/pages.html',
   '/markup-rules': '/pages/cms/markup-rules.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
@@ -1519,7 +1519,7 @@ This page can be tested here, by opening up the page `/markup-rules`.
 
 <h3 id="c-5"> ☑️ Step 5:   Create <code>/cms/convert-markup.js</code>  </h3>
 
-In this section, we'll be writing a Javascript file which will be reused in both `/edit-page.html` and `/display-page.html`.  
+In this section, we'll be writing a Javascript file which will be reused in both `/edit-page.html` and `/dynamic-page.html`.  
 The script will have the following functions: 
  - `markup_to_tokens`, which accepts a text file of markup, and returns an array of labelled "tokens"
    - Token examples: `{ type: "LESS-THAN", text: "<" }`, `{ type: "TEXT", text: "a" }`. `{ type: "SINGLE-QUOTE", text: "'" }`
@@ -2291,9 +2291,9 @@ Click "preview".  The page should appear, with pink text on the first line, but 
 
 
 
-<h3 id="c-11">  ☑️ Step 11: Display validated pages in <code>cms/display-page.html</code>  </h3>
+<h3 id="c-11">  ☑️ Step 11: Display validated pages in <code>cms/dynamic-page.html</code>  </h3>
 
-We now need to apply our validation to `/cms/display-page.html`.  
+We now need to apply our validation to `/cms/dynamic-page.html`.  
 We'll add one line, importing our new script, right before our inline script tag:
 ```html
 <script src="/pages/cms/convert-markup.js"></script>
@@ -2303,7 +2303,7 @@ Then, we'll delete a line and edit a line in this function:
 ```js
 ////  SECTION 2: Render
 function render_page() {
-  document.getElementById('dynamic-page').innerHTML += validate_html(page_data.content);
+  document.getElementById('dynamic-page').innerHTML = validate_html(page_data.content);
   document.getElementById('dynamic-page').innerHTML += `<a href="/edit/${page_data.route}"><button id="edit-button"><img src="/assets/icons/edit.svg" />Edit</button></a>`;
 }
 ```
