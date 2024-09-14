@@ -27,7 +27,7 @@ Click a part title to jump down to it, in this file.
 | --------------------------- | ------ | ---------- |
 | [Part A - /create-page, /all-pages](#part-a) | 20 min. | 13 |
 | [Part B - Page editing](#part-b) | 15 min. | 8 |
-| [Part C - Markup syntax](#part-c) | 15 min. | 8 |
+| [Part C - Markup syntax](#part-c) | 15 min. | 11 |
 | [Part D - User permissions](#part-d) | 0 min. | 0 |
 | [Part E - Image & file upload](#part-e) | 0 min. | 0 |
 | [Part F - Page type: Journal Entry[#part-f] | 0 min. | 0 |
@@ -1047,7 +1047,7 @@ Finally, go to `localhost:8080/edit/not-a-route` to display an error message.
 
 <h3 id="b-6">  ☑️ Step 6: Adding <code>POST_delete_page</code> to <code>/server/server.js</code>  </h3>
 
-Add `POST_routes['/api/delete-page']` to `/server/server.js`:
+Right after `POST_routes['/api/update-page']`, add `POST_routes['/api/delete-page']` to `/server/server.js`:
 
 ```js
 POST_routes['/api/delete-page'] = function(request_info, res) {
@@ -1428,8 +1428,8 @@ var pageURLs = {
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html',
-  '/create-page': '/pages/cms/create-page.html',
-  '/all-pages': '/pages/cms/all-pages.html',
+  '/new-page': '/pages/cms/new-page.html',
+  '/pages': '/pages/cms/pages.html',
   '/markup-rules': '/pages/cms/markup-rules.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
@@ -1519,7 +1519,7 @@ This page can be tested here, by opening up the page `/markup-rules`.
 
 <h3 id="c-5"> ☑️ Step 5:   Create <code>/cms/convert-markup.js</code>  </h3>
 
-In this section, we'll be writing a Javascript file which will be reused in both `/edit-page.html` and `/display-page.html`.  
+In this section, we'll be writing a Javascript file which will be reused in both `/edit-page.html` and `/dynamic-page.html`.  
 The script will have the following functions: 
  - `markup_to_tokens`, which accepts a text file of markup, and returns an array of labelled "tokens"
    - Token examples: `{ type: "LESS-THAN", text: "<" }`, `{ type: "TEXT", text: "a" }`. `{ type: "SINGLE-QUOTE", text: "'" }`
@@ -2255,30 +2255,6 @@ window.addEventListener('load', (event) => {
 
 Edit a page.  You should see syntax highlighting when you type html!  
 
-<br/><br/><br/><br/>
-
-
-
-<h3 id="c-9">  ☑️ Step 9: Display page preview in <code>cms/edit-page.html</code>  </h3>
-
-We'll make the page editor preview display the sanitized version of pages as well.   
-
-In `/cms/edit-page.html`, edit the function `render_preview`:
-
-```js
-function render_preview() {
-  document.getElementById('dynamic-page').style.display = `none`;
-  document.getElementById('preview-page').style.display = 'block';
-  document.getElementById('preview-content').innerHTML = validate_html(buffer_data.content);
-}
-```
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="c-10"> ☑️ Step 10:   ☞ Test the code!  </h3>
-
 Edit a page to have something like this:
 ```html
 <div style="color:pink;" alt="hi">This is valid, and will be kept!</div>
@@ -2291,19 +2267,19 @@ Click "preview".  The page should appear, with pink text on the first line, but 
 
 
 
-<h3 id="c-11">  ☑️ Step 11: Display validated pages in <code>cms/display-page.html</code>  </h3>
+<h3 id="c-9">  ☑️ Step 9: Display validated pages in <code>cms/dynamic-page.html</code>  </h3>
 
-We now need to apply our validation to `/cms/display-page.html`.  
+We now need to apply our validation to `/cms/dynamic-page.html`.  
 We'll add one line, importing our new script, right before our inline script tag:
 ```html
 <script src="/pages/cms/convert-markup.js"></script>
 ```
 
-Then, we'll delete a line and edit a line in this function:
+Then, we'll edit this function:
 ```js
 ////  SECTION 2: Render
 function render_page() {
-  document.getElementById('dynamic-page').innerHTML += validate_html(page_data.content);
+  document.getElementById('dynamic-page').innerHTML = validate_html(page_data.content);
   document.getElementById('dynamic-page').innerHTML += `<a href="/edit/${page_data.route}"><button id="edit-button"><img src="/assets/icons/edit.svg" />Edit</button></a>`;
 }
 ```
@@ -2313,7 +2289,7 @@ function render_page() {
 
 
 
-<h3 id="c-12"> ☑️ Step 12:   ☞ Test the code!  </h3>
+<h3 id="c-12"> ☑️ Step 10:   ☞ Test the code!  </h3>
 
 Save a page with something like the test markup from [step 10](#c-10), then go to the page.   
 The valid markup should appear! 
@@ -2322,7 +2298,7 @@ The valid markup should appear!
 
 
 
-<h3 id="c-13">☑️ Step 13. ❖ Part C review. </h3>
+<h3 id="c-13">☑️ Step 11. ❖ Part C review. </h3>
 
 The complete code for Part C is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version3.0/part_C).
 
