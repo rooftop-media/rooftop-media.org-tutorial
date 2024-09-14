@@ -2819,7 +2819,7 @@ function upload_file() {
 Before we add our next API route, there's three edits we need to make to `/server/server.js`...
  1. We'll add two new static pages:
 
-```
+```js
 //  Mapping URLs to pages
 var pageURLs = {
   '/': '/pages/misc/landing.html',
@@ -2837,7 +2837,7 @@ var pageURLkeys = Object.keys(pageURLs);
 ```
  2. We'll edit part of the function `api_routes`, to ensure the [https://www.w3schools.com/nodejs/ref_buffer.asp](Buffer) we send doesn't get converted to a string:  
 
-```
+```js
 //  This is called in server_request for any req starting with /api/.  It uses the functions above and calls the functions below.
 function api_routes(url, req, res) {
 
