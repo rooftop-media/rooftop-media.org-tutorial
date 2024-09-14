@@ -39,7 +39,9 @@ var pageURLs = {
   '/profile': '/pages/misc/profile.html',
   '/new-page': '/pages/cms/new-page.html',
   '/pages': '/pages/cms/pages.html',
-  '/markup-rules': '/pages/cms/markup-rules.html'
+  '/markup-rules': '/pages/cms/markup-rules.html',
+  '/upload-file': '/pages/cms/upload-file.html',
+  '/files': '/pages/cms/files.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -121,10 +123,10 @@ function api_response(res, code, text) {
 }
 
 //  Parses the data sent with a request
-function parse_req_data(req_data, res) {
+function parse_req_data(req_data) {
   try {
     let parsed_req_data = JSON.parse(req_data);
-    if (typeof parsed_req_data === 'object' && !Array.isArray(parse_req_data) && parse_req_data !== null) {
+    if (typeof parsed_req_data === 'object' && !Array.isArray(parsed_req_data) && parsed_req_data !== null) {
       return parsed_req_data;
     } else {
       return { body: req_data };
@@ -156,16 +158,25 @@ function parse_url_params(url, res) {
 function api_routes(url, req, res) {
 
   let req_data = '';
+  let buffer_chunks = [];
   req.on('data', chunk => {
-    req_data += chunk;
+    if (req.headers['content-type'] != 'application/octet-stream') {
+      req_data += chunk;
+    } else {
+      buffer_chunks.push(chunk);
+    }
   })
-  req.on('end', function() {
+  req.on('end', function() {    
 
     //  Parse the data to JSON.
-    req_data = parse_req_data(req_data, res);
+    if (req.headers['content-type'] != 'application/octet-stream') {
+      req_data = parse_req_data(req_data, res);
+    } else {
+      req_data = { body: Buffer.concat(buffer_chunks) };
+    }
 
     //  Get data, for example /api/users?userid=22&username=ben
-    req_data._params = parse_url_params(url, res);
+    req_data._params = parse_url_params(url);
     url = req_data._params._url;
 
     if (req.method == "GET" && typeof GET_routes[url] == 'function') {
@@ -217,6 +228,16 @@ GET_routes['/api/all-pages'] = function(req_data, res) {
     all_pages[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
   }
   api_response(res, 200, JSON.stringify(all_pages));
+}
+
+GET_routes['/api/all-files'] = function(req_data, res) {
+  let all_files = fs.readFileSync(__dirname + '/database/table_rows/files.json', 'utf8');
+  all_files = JSON.parse(all_files);
+  for (let i = 0; i < all_files.length; i++) {
+    let creator_id = parseInt(all_files[i].created_by);
+    all_files[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
+  }
+  api_response(res, 200, JSON.stringify(all_files));
 }
 
 POST_routes['/api/register'] = function(new_user, res) {
@@ -384,6 +405,60 @@ POST_routes['/api/delete-page'] = function(request_info, res) {
   }
   return api_response(res, 200, JSON.stringify(response));
 }
+
+POST_routes['/api/upload-file'] = function(req_data, res) {
+  req_data._params.name = req_data._params.name.replace('%2E', '.');
+
+  let file_data = DataBase.table('files').find({ name: req_data._params.name });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (file_data.length != 0) {
+    response.error = true;
+    response.msg = `The file name ${req_data._params.name} already exists.`;
+    return api_response(res, 400, JSON.stringify(response));
+  }
+
+  try {
+    fs.writeFileSync(__dirname + '/../assets/uploads/' + req_data._params.name, req_data.body);
+  } catch (err) {
+    return api_response(res, 400, JSON.stringify(err));
+  }
+  let feedback = DataBase.table('files').insert({
+    name: req_data._params.name,
+    description: req_data._params.description.replace(/%20/g, ' '),
+    date_created: new Date().toString(),
+    created_by: req_data._params.created_by,
+    is_public: req_data._params.is_public
+  })
+  if (feedback.error) {
+    return feedback;
+  }
+  return api_response(res, 200, JSON.stringify({error: false, msg: 'File uploaded successfully!'}));
+}
+
+POST_routes['/api/delete-file'] = function(request_info, res) {
+  let file_data = DataBase.table('files').find({ id: request_info._params.id });
+  let session_data = DataBase.table('sessions').find({ id: request_info._params.session_id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (file_data.length < 1) {
+    response.error = true;
+    response.msg = 'No file found.';
+  } else if  (file_data[0].created_by != session_data[0].user_id) {
+    response.error = true;
+    response.msg = `You don't have permission to delete this file.`;
+  } else {
+    fs.unlinkSync(__dirname + '/../assets/uploads/' + file_data[0].name);
+    response.msg = DataBase.table('files').delete(request_info._params.id);
+  }
+  return api_response(res, 200, JSON.stringify(response));
+}
+
+
 
 ////  SECTION 4: Boot.
 

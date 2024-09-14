@@ -1,6 +1,6 @@
 [
   {
-    "title": "Test Page",
+    "title": "Test Page!",
     "route": "test-page",
     "is_public": false,
     "created_by": 2,
@@ -10,7 +10,8 @@
     "_params": {
       "_url": "/api/update-page"
     },
-    "id": 0
+    "id": 0,
+    "session_id": "11"
   },
   {
     "title": "public-test",

@@ -33,6 +33,7 @@ function render_user_buttons() {
     menuHTML += `<a href="/profile">Your profile</a>`;
     menuHTML += `<a href="/new-page">New page</a>`;
     menuHTML += `<a href="/pages">All pages</a>`;
+    menuHTML += `<a href="/files">All files</a>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
   
