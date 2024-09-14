@@ -25,11 +25,11 @@ Click a part title to jump down to it, in this file.
 
 | Tutorial Parts              | Est. Time | # of Steps |
 | --------------------------- | ------ | ---------- |
-| [Part A - /create-page, /all-pages](#part-a) | 20 min. | 13 |
+| [Part A - /new-page, /pages](#part-a) | 20 min. | 13 |
 | [Part B - Page editing](#part-b) | 15 min. | 8 |
 | [Part C - Markup syntax](#part-c) | 15 min. | 11 |
 | [Part D - User permissions](#part-d) | 0 min. | 11 |
-| [Part E - Image & file upload](#part-e) | 0 min. | 0 |
+| [Part E - Image & file upload](#part-e) | 0 min. | 12 |
 | [Part F - Page tags](#part-f) | 0 min. | 0 |
 | [Part G - Data download](#part-g) | 0 min. | 0 |
 <!--
@@ -45,7 +45,7 @@ Click a part title to jump down to it, in this file.
 
 
 
-<h2 id="part-a" align="center">  Part A:  <code>/create-page</code>, <code>/all-pages</code> </h2>
+<h2 id="part-a" align="center">  Part A:  <code>/new-page</code>, <code>/pages</code> </h2>
 
 In this part, we'll create two static pages to facilitate the basic creation of dynamic pages:
  - `/new-page`, where users can create a new page with a specific title and route, and
@@ -2694,7 +2694,7 @@ The complete code for Part D is available [here](https://github.com/rooftop-medi
 
 In this section, we'll let users upload images and other files to the website.   
 These images and files will be named, so they can be used in pages.  
-We'll also create a page for browsing and managing uploaded files. 
+We'll also create a page for browsing and managing uploaded files, `/files`. 
 
 <br/><br/><br/><br/>
 
@@ -2796,7 +2796,7 @@ function upload_file() {
       if (!response.error) {
         console.log("Response recieved! File uploaded.");
         document.getElementById('upload-status').innerHTML = `Uploading... `;
-        window.location.href = '/all-files';
+        window.location.href = '/files';
       } else {
         document.getElementById('upload-status').innerHTML = response.msg;
       }
@@ -2816,7 +2816,7 @@ function upload_file() {
 
 <h3 id="e-2">  ☑️ Step 2: Edit <code>server.js</code>  </h3>
 
-Before we add our next API route, there's three edits we need to make to `/server/server.js`...
+Before we add our next API route, there's two edits we need to make to `/server/server.js`...
  1. We'll add two new static pages:
 
 ```js
@@ -2844,21 +2844,23 @@ function api_routes(url, req, res) {
   let req_data = '';
   let buffer_chunks = [];
   req.on('data', chunk => {
-    if (Buffer.isBuffer(chunk)) {
-      buffer_chunks.push(chunk);
-    } else {
+    if (req.headers['content-type'] != 'application/octet-stream') {
       req_data += chunk;
+    } else {
+      buffer_chunks.push(chunk);
     }
   })
-  req.on('end', function() {
-    if (buffer_chunks.length > 0) {
-      req_data = Buffer.concat(buffer_chunks);
-    }
+  req.on('end', function() {    
+
     //  Parse the data to JSON.
-    req_data = parse_req_data(req_data, res);
+    if (req.headers['content-type'] != 'application/octet-stream') {
+      req_data = parse_req_data(req_data, res);
+    } else {
+      req_data = { body: Buffer.concat(buffer_chunks) };
+    }
 
     //  Get data, for example /api/users?userid=22&username=ben
-    req_data._params = parse_url_params(url, res);
+    req_data._params = parse_url_params(url);
     url = req_data._params._url;
 
     if (req.method == "GET" && typeof GET_routes[url] == 'function') {
@@ -2873,27 +2875,6 @@ function api_routes(url, req, res) {
 }
 
 ```
- 3. We also need to edit `parse_req_data` to ensure the Buffer doesn't convert to a string _there_.
-
-```js
-//  Parses the data sent with a request
-function parse_req_data(req_data, res) {
-  if (Buffer.isBuffer(req_data)) {
-    return { body: req_data };
-  }
-  try {
-    let parsed_req_data = JSON.parse(req_data);
-    if (typeof parsed_req_data === 'object' && !Array.isArray(parsed_req_data) && parsed_req_data !== null) {
-      return parsed_req_data;
-    } else {
-      return { body: req_data };
-    }
-  } catch (e) {
-    return { body: req_data };
-  }
-}
-```
-
 <br/><br/><br/><br/>
 
 
@@ -2924,7 +2905,7 @@ POST_routes['/api/upload-file'] = function(req_data, res) {
   }
   let feedback = DataBase.table('files').insert({
     name: req_data._params.name,
-    description: req_data._params.description,
+    description: req_data._params.description.replace(/%20/g, ' '),
     date_created: new Date().toString(),
     created_by: req_data._params.created_by,
     is_public: req_data._params.is_public
@@ -3030,29 +3011,316 @@ GET_routes['/api/all-files'] = function(req_data, res) {
 
 
 
-<h3 id="e-8">  ☑️ Step 8: Create <code>/pages/cms/all-files.html</code>  </h3>
+<h3 id="e-8">  ☑️ Step 8: Edit <code>/pages/index.js</code>  </h3>
 
-```html
+We'll edit the `render_user_buttons` function to add a link to `/files`:
 
+```js
+// Update the "user buttons" in the header
+function render_user_buttons() {
+  let userButtonsEl = document.getElementById('user-buttons');
+  let buttonText = `Menu`;
+  let menuHTML = `<div id="user-menu">`;
+
+  if (_current_user == null) {
+    menuHTML += `<a href="/register">Register</a>`;
+    menuHTML += `<a href="/login">Login</a>`;
+  } else {
+    buttonText = _current_user.display_name;
+    menuHTML += `<a href="/profile">Your profile</a>`;
+    menuHTML += `<a href="/new-page">New page</a>`;
+    menuHTML += `<a href="/pages">All pages</a>`;
+    menuHTML += `<a href="/files">All files</a>`;
+    menuHTML += `<button onclick="logout()">Log out</button>`;
+  }
+  
+  userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;render_user_buttons();">${buttonText}</button>`;
+  if (_show_user_menu) {
+    userButtonsEl.innerHTML += menuHTML + `</div>`;
+  }
+
+}
 ```
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="e-?">  ☑️ Step ?: Edit <code>server.js</code> to serve uploaded assets </h3>
+<h3 id="e-9">  ☑️ Step 9: Create <code>/pages/cms/files.html</code>  </h3>
 
+This page will display all files. 
+
+```html
+<div class="p-3 center-column">
+  <h3>All files:</h3>
+  <div id="search-bar-row">
+    <input id="search" placeholder="Search files..." oninput="search_files()"/>
+    <div id="search-settings-toggle" onclick="toggle_settings()">Settings  &#x25B8;</div>
+  </div>
+  <div id="search-settings" onclick="search_files()">
+    <div>Sort by: </div>
+    <div><input type="radio" name="sort_types" value="name" checked /> Name</div>
+    <div><input type="radio" name="sort_types" value="date"/> Date created</div>
+    <div><input type="radio" name="sort_types" value="creator"/> Creator</div>
+    <div style="display: flex;align-items: center;"><input type="checkbox" id="invert-sort"/> Invert results</div>
+  </div>
+  <div id="errors"></div>
+  <table id="file-table">
+    <!--  file data goes here-->
+  </table>
+  <br/><br/><br/><br/>
+  <a href="/upload-file"><button>+ Upload a file</button></a>
+</div>
+
+<script>
+  let fileTable = document.getElementById('file-table');
+  let all_files = [];
+  let show_settings = false;
+
+  function render_table(files) {
+    fileTable.innerHTML = `<tr>
+      <th>Preview</th>
+      <th>Private?</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Edit</th>
+    </tr>`;
+    for (var i = 0; i < files.length; i++) {
+      let file = files[i];
+      let is_image = ['png','jpg','jpeg'].includes(file.name.split('.')[1]);
+      fileTable.insertRow().innerHTML += `<tr>
+        <td>${is_image ? `<img src="/assets/uploads/${file.name}" />` : '<div style="text-align:center">&#128462;</div>'}</td>
+        <td>${file.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
+        <td>
+          <div class="file-name"><a href="/assets/uploads/${file.name}">${file.name}</a></div>
+          <div class="created-by">Created by ${file.created_by}</div>
+        </td>
+        <td>${file.description}</td>
+        <td>${_current_user.username == file.created_by ? `<a onclick="delete_file('${file.id}')">&#128465;</a>` : ''}</td>
+      </tr>`;
+    }
+    if (files.length < 1) {
+      fileTable.insertRow().innerHTML += `<tr><td></td><td id="no-files-found">(No files found)</td><td></td><td></td></tr>`;
+    }
+  }
+
+  function search_files() {
+    let search = document.getElementById('search').value;
+    if (search.length < 1) {
+      return sort_files(all_files);
+    }
+    let searched_files = all_files.filter(file => file.name.search(search) != -1)
+    sort_files(searched_files);
+  }
+
+  function sort_files(files) {
+    let sort_types = document.getElementsByName('sort_types');
+    let sorted_files = [];
+    if (sort_types[2].checked) {         // creator
+      sorted_files = files.sort((a, b) => { return a.created_by > b.created_by; });
+    } else if (sort_types[1].checked) {  // date
+      sorted_files = files.sort((a, b) => { return new Date(a.date_created) > new Date(b.date_created); });
+    } else {                             // name
+      sorted_files = files.sort((a, b) => { return a.name > b.name; });
+    }
+    if (document.getElementById('invert-sort').checked) {
+      sorted_files.reverse();
+    }
+    render_table(sorted_files);
+  }
+
+  function toggle_settings() {
+    show_settings = !show_settings;
+    if (!show_settings) {
+      document.getElementById('search-settings').style.display = `none`;
+      document.getElementById('search-settings-toggle').innerHTML = 'Settings  &#x25B8;';
+    } else {
+      document.getElementById('search-settings').style.display = 'flex';
+      document.getElementById('search-settings-toggle').innerHTML = 'Settings  &#x25BE;';
+    }
+  }
+
+  function delete_file(id) {
+    if (!confirm("Do you want to delete this file?")) {
+      return;
+    }
+    let http = new XMLHttpRequest();
+    http.open('POST', `/api/delete-file?id=${id}&session_id=${_session_id}`);
+    http.send();
+    http.onreadystatechange = (e) => {
+      let response;      
+      if (http.readyState == 4 && http.status == 200) {
+        response = JSON.parse(http.responseText);
+        if (!response.error) {
+          console.log("Response recieved! File deleted.");
+          document.getElementById('errors').innerHTML = ``;
+          get_all_files();
+        } else {
+          document.getElementById('errors').innerHTML = response.msg;
+        }
+      } else if (http.status == 400) {
+        response = JSON.parse(http.responseText);
+        document.getElementById('errors').innerHTML = response.msg;
+      }
+    }    
+  }
+
+  function get_all_files() {
+    const http = new XMLHttpRequest();
+    http.open('GET', '/api/all-files');
+    http.send();
+    http.onreadystatechange = (e) => {
+      let response;      
+      if (http.readyState == 4 && http.status == 200) {
+        response = JSON.parse(http.responseText); 
+        console.log("files loaded!");
+        all_files = response;
+        sort_files(all_files);
+      }
+    }
+  }
+
+  current_user_loaded = function () {
+    get_all_files();
+  }
+  
+  
+</script>
+
+<style>
+  
+  #search-bar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  #search {
+    width: calc(100% - 100px);
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 15px;
+  }
+  #search-settings-toggle {
+    text-decoration: underline;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+
+  #search-settings {
+    display: none;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    margin: 10px 0px;
+  }
+
+  table {
+    width: 100%;
+  }
+  tr th {
+    color: rgba(255,255,255,0.5);
+    border: none;
+    text-align: left;
+    font-weight: normal;
+  }
+  tr th:first-child, tr th:nth-child(0n + 3) {
+    max-width: 100px;
+  }
+  td {
+    border-right: none;
+    border-left: none;
+  }
+
+  div.file-name {
+    color: var(--yellow);
+    font-size: 1.3em;
+  }
+  div.created-by {
+    opacity: 0.5;
+    font-size: 1em;
+  }
+
+  td img {
+    width: 25px;
+    max-width: 25px;
+    max-height: 25px;
+    display: block;
+    margin: auto;
+    cursor: pointer;
+  }
+
+  #no-files-found {
+    text-align: center;
+    opacity: .5;
+  }
+</style>
+```
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="d-11">☑️ Step 11. ❖ Part D review. </h3>
+<h3 id="e-10">  ☑️ Step 10: Add <code>/api/delete-file</code> to <code>server.js</code>  </h3>
 
-The complete code for Part D is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version3.0/part_D).
+In `/server.js`, right below `POST_routes['/api/upload-file']`, we'll add `POST_routes['/api/delete-file']`:
+
+```js
+POST_routes['/api/delete-file'] = function(request_info, res) {
+  let file_data = DataBase.table('files').find({ id: request_info._params.id });
+  let session_data = DataBase.table('sessions').find({ id: request_info._params.session_id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (file_data.length < 1) {
+    response.error = true;
+    response.msg = 'No file found.';
+  } else if  (file_data[0].created_by != session_data[0].user_id) {
+    response.error = true;
+    response.msg = `You don't have permission to delete this file.`;
+  } else {
+    fs.unlinkSync(__dirname + '/../assets/uploads/' + file_data[0].name);
+    response.msg = DataBase.table('files').delete(request_info._params.id);
+  }
+  return api_response(res, 200, JSON.stringify(response));
+}
+```
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="e-11">  ☑️  Step 11: ☞ Test the code!  </h3>
+
+Navigate to `/files`. All the files you've uploaded should display there.  
+Images (.png, .jpg, .jpeg, .svg, .gif) should also show a preview. 
+
+Click on a file name and make sure it opens that file. 
+
+Delete a file by clicking the trash can icon. Make sure it deletes both the record in `/server/table_rows/files.json` and also the actual file in `/assets/uploads/`.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="d-11">☑️ Step 12. ❖ Part E review. </h3>
+
+The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version3.0/part_E).
 
 <br/><br/><br/><br/>
 <br/><br/><br/><br/>
 
+
+
+
+<h2 id="part-f" align="center">  Part F:  Page tags </h2>
+
+In this part, we'll allow users to add tags to pages.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/cms/create-page.html</code>  </h3>
 
 
