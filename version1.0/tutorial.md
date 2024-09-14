@@ -1324,7 +1324,7 @@ function api_response(res, code, text) {
 function parse_req_data(req_data, res) {
   try {
     let parsed_req_data = JSON.parse(req_data);
-    if (typeof parsed_req_data === 'object' && !Array.isArray(parse_req_data) && parse_req_data !== null) {
+    if (typeof parsed_req_data === 'object' && !Array.isArray(parsed_req_data) && parsed_req_data !== null) {
       return parsed_req_data;
     } else {
       return { body: req_data };
