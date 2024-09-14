@@ -28,7 +28,7 @@ Click a part title to jump down to it, in this file.
 | [Part A - /create-page, /all-pages](#part-a) | 20 min. | 13 |
 | [Part B - Page editing](#part-b) | 15 min. | 8 |
 | [Part C - Markup syntax](#part-c) | 15 min. | 11 |
-| [Part D - User permissions](#part-d) | 0 min. | 0 |
+| [Part D - User permissions](#part-d) | 0 min. | 11 |
 | [Part E - Image & file upload](#part-e) | 0 min. | 0 |
 | [Part F - Page type: Journal Entry[#part-f] | 0 min. | 0 |
 | [Part G - Page type: Workout[#part-g] | 0 min. | 0 |
@@ -2353,6 +2353,7 @@ GET_routes['/api/page'] = function(req_data, res) {
 
 <h3 id="d-2">  ☑️ Step 2: Editing <code>load_page</code> in <code>dynamic-page.html</code>  </h3>
 
+In `/dynamic-page.html`, we now need to pass the session id when requesting a page.
 
 ```js
 ////  SECTION 4: Boot
@@ -2383,7 +2384,7 @@ current_user_loaded = function() {
 
 
 
-<h3 id="d-3">  ☑️ Step 2: Editing <code>boot</code> in <code>index.js</code>  </h3>
+<h3 id="d-3">  ☑️ Step 3: Editing <code>boot</code> in <code>index.js</code>  </h3>
 
 Dynamic pages need to load even when the user isn't logged in.  
 But they can't load until we've checked whether the user is logged in.  
@@ -2827,11 +2828,11 @@ var pageURLs = {
   '/register': '/pages/misc/register.html',
   '/login': '/pages/misc/login.html',
   '/profile': '/pages/misc/profile.html',
-  '/create-page': '/pages/cms/create-page.html',
-  '/all-pages': '/pages/cms/all-pages.html',
+  '/new-page': '/pages/cms/new-page.html',
+  '/pages': '/pages/cms/pages.html',
   '/markup-rules': '/pages/cms/markup-rules.html',
   '/upload-file': '/pages/cms/upload-file.html',
-  '/all-files': '/pages/cms/all-files.html'
+  '/files': '/pages/cms/files.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
 ```
