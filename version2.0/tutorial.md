@@ -30,12 +30,11 @@ Click a part title to jump down to it, in this file.
 | [Part C - Markup syntax](#part-c) | 15 min. | 11 |
 | [Part D - User permissions](#part-d) | 0 min. | 11 |
 | [Part E - Image & file upload](#part-e) | 0 min. | 12 |
-| [Part F - Page tags](#part-f) | 0 min. | 0 |
-| [Part G - Data download](#part-g) | 0 min. | 0 |
-<!--
-| [Part G - Edit history](#part-g) | 0 min. | 0 |
-| [Part H - Data Download](#part-h) | 0 min. | 0 |-->
+| [Part F - Data backup](#part-f) | 0 min. | 0 |
 | [Version 3.0. - Rich page editor ???](#v3) | Todo | ? |
+
+<!--
+| [Part G - Edit history](#part-g) | 0 min. | 0 |-->
 
 
 
@@ -3365,11 +3364,11 @@ The complete code for Part E is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-f" align="center">  Part F:  Page tags </h2>
+<h2 id="part-f" align="center">  Part F:  Data backup </h2>
 
-In this part, we'll allow users to add tags to pages.
+In this part, we'll allow an admin user to backup their data. 
 
-A page can have multiple tags, and the user will be able to filter existing pages by tag. 
+Actually honestly? 
 
 <br/><br/><br/><br/>
 
@@ -3412,6 +3411,14 @@ POST_routes['/api/delete-file'] = function(request_info, res) {
 
 
 
-<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/cms/create-page.html</code>  </h3>
+
+
+
+<h2 id="v3" align="center">  Version 3: ??? </h2>
+
+With this section complete, you're ready to move on to the tutorial for [version 3.0](https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version3.0/tutorial.md)!
+
+<br/><br/><br/><br/><br/><br/><br/><br/>
+
 
 
