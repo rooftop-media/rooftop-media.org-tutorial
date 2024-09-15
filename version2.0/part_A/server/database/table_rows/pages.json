@@ -1,15 +1,69 @@
 [
   {
-    "title": "Test Page",
-    "route": "test-page",
-    "is_public": true,
+    "title": "Test page",
+    "route": "test",
+    "tags": [
+      "test",
+      "blog"
+    ],
+    "is_public": false,
     "created_by": 2,
-    "date_created": "Sun Sep 08 2024 20:01:28 GMT-0400 (Eastern Daylight Time)",
+    "date_created": "Sun Sep 15 2024 15:12:13 GMT-0400 (Eastern Daylight Time)",
     "content": "",
     "history": [],
     "_params": {
       "_url": "/api/create-page"
     },
     "id": 0
+  },
+  {
+    "title": "test2",
+    "route": "test2",
+    "tags": [
+      "blog",
+      "other"
+    ],
+    "is_public": false,
+    "created_by": 2,
+    "date_created": "Sun Sep 15 2024 16:10:22 GMT-0400 (Eastern Daylight Time)",
+    "content": "",
+    "history": [],
+    "_params": {
+      "_url": "/api/create-page"
+    },
+    "id": 1
+  },
+  {
+    "title": "test3",
+    "route": "test3",
+    "tags": [
+      "recipe"
+    ],
+    "is_public": false,
+    "created_by": 2,
+    "date_created": "Sun Sep 15 2024 16:11:37 GMT-0400 (Eastern Daylight Time)",
+    "content": "",
+    "history": [],
+    "_params": {
+      "_url": "/api/create-page"
+    },
+    "id": 2
+  },
+  {
+    "title": "test4",
+    "route": "test4",
+    "tags": [
+      "blog",
+      "page"
+    ],
+    "is_public": false,
+    "created_by": 2,
+    "date_created": "Sun Sep 15 2024 16:12:02 GMT-0400 (Eastern Daylight Time)",
+    "content": "",
+    "history": [],
+    "_params": {
+      "_url": "/api/create-page"
+    },
+    "id": 3
   }
 ]

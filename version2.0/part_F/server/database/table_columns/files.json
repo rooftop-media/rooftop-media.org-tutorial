@@ -1,7 +1,7 @@
 {
-  "name": "Pages",
-  "snakecase": "pages",
-  "max_id": 4,
+  "name": "Files",
+  "snakecase": "files",
+  "max_id": 10,
   "columns": [
     {
       "name": "Id",
@@ -9,29 +9,17 @@
       "unique": true
     },
     {
-      "name": "Page Title",
-      "snakecase": "title"
-    },
-    {
-      "name": "Page Route",
-      "snakecase": "route",
-      "unique": true
+      "name": "File name",
+      "snakecase": "name",
+      "required": true
     },
     {
       "name": "Is Public?",
       "snakecase": "is_public"
     },
     {
-      "name": "Content",
+      "name": "Description",
       "snakecase": "content"
-    },
-    {
-      "name": "History",
-      "snakecase": "history"
-    },
-    {
-      "name": "Tags",
-      "snakecase": "tags"
     },
     {
       "name": "Created by",

@@ -1,7 +1,7 @@
 {
   "name": "Pages",
   "snakecase": "pages",
-  "max_id": 4,
+  "max_id": 3,
   "columns": [
     {
       "name": "Id",
@@ -28,10 +28,6 @@
     {
       "name": "History",
       "snakecase": "history"
-    },
-    {
-      "name": "Tags",
-      "snakecase": "tags"
     },
     {
       "name": "Created by",
