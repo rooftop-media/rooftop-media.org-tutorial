@@ -68,6 +68,7 @@ This page will be a form to create new dynamic pages.
   <h3>Create a New Page</h3>
   <div>Page title: <input type="text" tabindex="1" id="page_title" placeholder="My Blog"/></div>
   <div>Page route: <input type="text" tabindex="2" id="page_route" placeholder="my-blog"/></div>
+  <div>Tags: <span id="tags"></span><input type="text" tabindex="3" id="page_tags" placeholder="blog, recipe" /></div>
   <div>Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
   <p id="error"></p>
   <button onclick="create_page()" tabindex="4">Create Page</button>
@@ -90,9 +91,14 @@ page_route_input.addEventListener("keydown", event => {
 });
 
 function create_page() {
-  var title = document.getElementById('page_title').value;
-  var route = document.getElementById('page_route').value;
-  var is_public = document.getElementById('is_public').checked;
+  let title = document.getElementById('page_title').value;
+  let route = document.getElementById('page_route').value;
+  let tags = document.getElementById('page_tags').value.split(',');
+  for (let i = 0; i < tags.length; i++) {
+    tags[i] = tags[i].trim();
+    if (!tags[i]) { tags.splice(i, 1); }
+  }
+  let is_public = document.getElementById('is_public').checked;
   
   if (route.length < 2) {
     document.getElementById('error').innerHTML = 'Page route must be at least 2 characters..';
@@ -110,6 +116,7 @@ function create_page() {
   http.send(JSON.stringify({
     title,
     route,
+    tags,
     is_public,
     created_by: _current_user.id,
     date_created: new Date().toString(),
@@ -174,6 +181,10 @@ Add the file `/server/database/table_columns/pages.json`:
       "snakecase": "history"
     },
     {
+      "name": "Tags",
+      "snakecase": "tags"
+    },
+    {
       "name": "Created by",
       "snakecase": "created_by"
     },
@@ -235,7 +246,7 @@ var pageURLkeys = Object.keys(pageURLs);
 
 Open up `/pages/index.js`.  We'll make two changes.
 
-First, we'll update the `render_user_buttons` function, to include links to `/create-page` and `/pages`.
+First, we'll update the `render_user_buttons` function, to include links to `/new-page` and `/pages`.
 ```javascript
 // Update the "user buttons" in the header
 function render_user_buttons() {
@@ -264,7 +275,7 @@ function render_user_buttons() {
 
 Then, we'll edit the `boot` function.   
 We'll clean up the section that redirects the user to the home page under certain circumstances.  
-We'll also redirect to the home page if on `/create-page` or `/all-pages` and not logged in, or on any route starting with `/edit/`.
+We'll also redirect to the home page if on `/new-page` or `/pages` and not logged in, or on any route starting with `/edit/`.
 
 ```javascript
 ////  SECTION 3: Boot.
@@ -529,10 +540,11 @@ Create a new page, `/pages/cms/pages.html`, and add this:
     for (var i = 0; i < pages.length; i++) {
       let page = pages[i];
       pageTable.insertRow().innerHTML += `<tr>
-        <td>${page.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
+        <td class="is-public">${page.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
         <td>
           <div class="page-title"><a href="/${page.route}">${page.title}</a></div>
           <div class="created-by">Created by ${page.created_by}</div>
+          <div class="tags">${get_tag_html(page.tags)}</div>
         </td>
         <td><a href="/${page.route}">/${page.route}</a></td>
         <td>${_current_user.username == page.created_by ? `<a href="/edit/${page.route}"><img src="/assets/icons/edit.svg"/></a>` : ''}</td>
@@ -543,12 +555,41 @@ Create a new page, `/pages/cms/pages.html`, and add this:
     }
   }
 
+  function get_tag_html(tags) {
+    let html = '';
+    for (let i = 0; i < tags.length; i++) {
+      html += `<span class="tag" onclick="search_tag('${tags[i]}')">${tags[i]}</span>`;
+    }
+    return html;
+  }
+  function search_tag(tag) {
+    document.getElementById('search').value = `tag:${tag}`;
+    search_pages();
+  }
+
   function search_pages() {
     let search = document.getElementById('search').value;
     if (search.length < 1) {
       return sort_pages(all_pages);
     }
-    let searched_pages = all_pages.filter(page => page.title.search(search) != -1)
+    let tags = [];
+    while (search.includes('tag:')) {
+      let tag_text_pos = search.indexOf('tag:');
+      let end_of_tag_pos = search.indexOf(' ', tag_text_pos+4);
+      if (end_of_tag_pos == -1) { end_of_tag_pos = search.length};
+      let tag = search.slice(tag_text_pos + 4, end_of_tag_pos);
+      tags.push(tag);
+      search = search.slice(0,tag_text_pos) + search.slice(end_of_tag_pos,search.length);
+    }
+    
+    let searched_pages = all_pages.filter(page => {
+      let is_match = true;
+      if (page.title.search(search.trim()) == -1) is_match = false;
+      for (let i = 0; i < tags.length; i++) {
+        if (!page.tags.includes(tags[i])) is_match = false;
+      }
+      return is_match
+    })
     sort_pages(searched_pages);
   }
 
@@ -644,6 +685,10 @@ Create a new page, `/pages/cms/pages.html`, and add this:
     border-left: none;
   }
 
+  td.is-public {
+    width: 50px;
+  }
+
   div.page-title {
     color: var(--yellow);
     font-size: 1.3em;
@@ -651,6 +696,13 @@ Create a new page, `/pages/cms/pages.html`, and add this:
   div.created-by {
     opacity: 0.5;
     font-size: 1em;
+  }
+  span.tag {
+    background: var(--lighter-brown);
+    color: rgba(255,255,255,0.5);
+    padding: 0px 4px;
+    margin: 4px 5px;
+    cursor: pointer;
   }
 
   td img {
@@ -3316,6 +3368,45 @@ The complete code for Part E is available [here](https://github.com/rooftop-medi
 <h2 id="part-f" align="center">  Part F:  Page tags </h2>
 
 In this part, we'll allow users to add tags to pages.
+
+A page can have multiple tags, and the user will be able to filter existing pages by tag. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-1">  ☑️ Step 11: Edit <code>/pages/cms/new-page.html</code>  </h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-1">  ☑️ Step 11: Edit <code>/pages/cms/new-page.html</code>  </h3>
+
+I
+
+```js
+POST_routes['/api/delete-file'] = function(request_info, res) {
+  let file_data = DataBase.table('files').find({ id: request_info._params.id });
+  let session_data = DataBase.table('sessions').find({ id: request_info._params.session_id });
+  let response = {
+    error: false,
+    msg: '',
+  }
+  if (file_data.length < 1) {
+    response.error = true;
+    response.msg = 'No file found.';
+  } else if  (file_data[0].created_by != session_data[0].user_id) {
+    response.error = true;
+    response.msg = `You don't have permission to delete this file.`;
+  } else {
+    fs.unlinkSync(__dirname + '/../assets/uploads/' + file_data[0].name);
+    response.msg = DataBase.table('files').delete(request_info._params.id);
+  }
+  return api_response(res, 200, JSON.stringify(response));
+}
+```
 
 <br/><br/><br/><br/>
 
