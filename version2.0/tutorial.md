@@ -3368,14 +3368,26 @@ The complete code for Part E is available [here](https://github.com/rooftop-medi
 
 In this part, we'll allow an admin user to backup their data. 
 
-Actually honestly? 
+This part will use a bash script to copy all the database files into a folder.  
+Then we'll use the scheduling program [cron](https://en.wikipedia.org/wiki/Cron) 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="f-1">  ☑️ Step 11: Edit <code>/pages/cms/new-page.html</code>  </h3>
+<h3 id="f-1">  ☑️ Step 1: Create a file <code>~/bin/website-backup.sh</code>  </h3>
 
+This will be a bash script that will back up our website data.  
+It can be called something else, or placed in a different folder, if you'd prefer.  
+
+```bash
+#!/bin/bash
+
+for file in ./HW5/*/; do 
+  cp ./mondial.* ./"$file"
+done
+
+```
 
 <br/><br/><br/><br/>
 
