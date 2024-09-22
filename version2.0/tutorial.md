@@ -3354,7 +3354,7 @@ Delete a file by clicking the trash can icon. Make sure it deletes both the reco
 
 
 
-<h3 id="d-11">☑️ Step 12. ❖ Part E review. </h3>
+<h3 id="e-11">☑️ Step 12. ❖ Part E review. </h3>
 
 The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version3.0/part_E).
 
@@ -3377,15 +3377,74 @@ Then we'll use the scheduling program [cron](https://en.wikipedia.org/wiki/Cron)
 
 <h3 id="f-1">  ☑️ Step 1: Create a file <code>~/bin/website-backup.sh</code>  </h3>
 
+Create the file <code>~/bin/website-backup.sh</code>.  
 This will be a bash script that will back up our website data.  
 It can be called something else, or placed in a different folder, if you'd prefer.  
+The database files will be stored in `~/backups/`.
 
 ```bash
 #!/bin/bash
 
-for file in ./HW5/*/; do 
-  cp ./mondial.* ./"$file"
-done
+#  Ensure the folder ~/backups exists.
+if [ ! -d ~/backups ]; then
+  echo "~/backups does not exist. Creating it now..."
+  mkdir ~/backups
+fi
+
+#  Save a new string variable with the data
+printf -v backupdate '%(%Y-%m-%d-%H:%M:%S)T' -1
+
+#  Create a folder for backups
+mkdir ~/backups/backup-${backupdate}
+if [[ ! $? -eq 0 ]]; then
+    echo "Error creating ~/backups/backup-${backupdate}"
+fi
+
+#  Save the backup
+cp -a ~/github/rooftop-media.org-tutorial/version2.0/part_E/server/database/table_rows/. ~/backups/backup-${backupdate}/
+if [[ $? -eq 0 ]]; then
+    echo "Saved a backup of the database to ~/backups/backup-${backupdate}"
+else
+    echo "Error copying the database"
+fi
+
+```
+
+Make this file executable by running `chmod +x ~/bin/website-backup.sh`.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-2">  ☑️  Step 2: ☞ Test the code!  </h3>
+
+In the terminal, run `~/bin/website-backup.sh`.  You should see output saying it was successful.  
+Go to `~/backups/` and make sure there's a folder there containing everything from the database's rows. 
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-3">  ☑️ Step 3: Use cron to backup data regularly  </h3>
+
+Create the file <code>~/bin/website-backup.sh</code>.  
+This will be a bash script that will back up our website data.  
+It can be called something else, or placed in a different folder, if you'd prefer.  
+The database files will be stored in `~/backups/`.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-4">  ☑️ Step 4: Get data off of the server  </h3>
+
+Backups are now being regularly made on the server.  
+But what if the server is deleted?  
+
+You can also manually copy files from the server to your computer. 
+Or, you can set up a script to copy the server's files regulary. 
+
+```bash
 
 ```
 
@@ -3393,36 +3452,22 @@ done
 
 
 
-<h3 id="f-1">  ☑️ Step 11: Edit <code>/pages/cms/new-page.html</code>  </h3>
+<h3 id="f-5">  ☑️  Step 5: ☞ Test the code!  </h3>
 
-I
-
-```js
-POST_routes['/api/delete-file'] = function(request_info, res) {
-  let file_data = DataBase.table('files').find({ id: request_info._params.id });
-  let session_data = DataBase.table('sessions').find({ id: request_info._params.session_id });
-  let response = {
-    error: false,
-    msg: '',
-  }
-  if (file_data.length < 1) {
-    response.error = true;
-    response.msg = 'No file found.';
-  } else if  (file_data[0].created_by != session_data[0].user_id) {
-    response.error = true;
-    response.msg = `You don't have permission to delete this file.`;
-  } else {
-    fs.unlinkSync(__dirname + '/../assets/uploads/' + file_data[0].name);
-    response.msg = DataBase.table('files').delete(request_info._params.id);
-  }
-  return api_response(res, 200, JSON.stringify(response));
-}
-```
+After a day or two, make sure your cron jobs are continuing to run successfully!
 
 <br/><br/><br/><br/>
 
 
+<h3 id="f-6">☑️ Step 6. ❖ Part F review. </h3>
 
+The only code used in part 6 is in [step 1](#f-1) and...
+But rest assured that your data will now be backed up.
+
+The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version3.0/part_E).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
 
 
 
