@@ -3394,7 +3394,7 @@ fi
 #  Save a new string variable with the data
 printf -v backupdate '%(%Y-%m-%d-%H:%M:%S)T' -1
 
-#  Create a folder for backups
+#  Create a folder for the new backups
 mkdir ~/backups/backup-${backupdate}
 if [[ ! $? -eq 0 ]]; then
     echo "Error creating ~/backups/backup-${backupdate}"
@@ -3408,6 +3408,20 @@ else
     echo "Error copying the database"
 fi
 
+#  Create a folder for the upload backups
+mkdir ~/backups/backup-${backupdate}/uploads
+if [[ ! $? -eq 0 ]]; then
+    echo "Error creating ~/backups/backup-${backupdate}/uploads/"
+fi
+
+#  Save the uploads
+cp -a ~/github/rooftop-media.org-tutorial/version2.0/part_E/server/assets/uploads/. ~/backups/backup-${backupdate}/uploads/
+if [[ $? -eq 0 ]]; then
+    echo "Saved a backup of the uploaded files to ~/backups/backup-${backupdate}/uploads"
+else
+    echo "Error copying the upload files"
+fi
+
 ```
 
 Make this file executable by running `chmod +x ~/bin/website-backup.sh`.
@@ -3419,7 +3433,8 @@ Make this file executable by running `chmod +x ~/bin/website-backup.sh`.
 <h3 id="f-2">  ☑️  Step 2: ☞ Test the code!  </h3>
 
 In the terminal, run `~/bin/website-backup.sh`.  You should see output saying it was successful.  
-Go to `~/backups/` and make sure there's a folder there containing everything from the database's rows. 
+Go to `~/backups/` and make sure there's a folder there containing everything from the database's rows.  
+Make sure the uploaded files copied too. 
 
 <br/><br/><br/><br/>
 
@@ -3427,10 +3442,19 @@ Go to `~/backups/` and make sure there's a folder there containing everything fr
 
 <h3 id="f-3">  ☑️ Step 3: Use cron to backup data regularly  </h3>
 
-Create the file <code>~/bin/website-backup.sh</code>.  
-This will be a bash script that will back up our website data.  
-It can be called something else, or placed in a different folder, if you'd prefer.  
-The database files will be stored in `~/backups/`.
+[Cron](https://en.wikipedia.org/wiki/Cron) is job-scheduling software that comes on Linux machines.  
+We can use it to run our script every week (or at any frequency).
+The syntax is briefly describe [here](https://askubuntu.com/questions/2368/how-do-i-set-up-a-cron-job).
+
+Enter this command, and an editor should open:
+`crontab -e`
+
+At the bottom of this file, add:
+```bash
+# Run at 5:30pm (17:30) every monday (1)
+30 17 * * 1 /home/benholland/bin/website-backup.sh
+```
+And save the file. 
 
 <br/><br/><br/><br/>
 
@@ -3441,8 +3465,8 @@ The database files will be stored in `~/backups/`.
 Backups are now being regularly made on the server.  
 But what if the server is deleted?  
 
-You can also manually copy files from the server to your computer. 
-Or, you can set up a script to copy the server's files regulary. 
+You can also manually copy files from the server to your computer using (scp)[https://superuser.com/questions/92233/how-can-i-copy-files-with-ssh]
+(Or, you can set up a cron script to copy the server's files regulary. )
 
 ```bash
 
