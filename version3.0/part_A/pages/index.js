@@ -31,9 +31,12 @@ function render_user_buttons() {
   } else {
     buttonText = _current_user.display_name;
     menuHTML += `<a href="/profile">Your profile</a>`;
+    menuHTML += `<a href="/new-page">New page</a>`;
+    menuHTML += `<a href="/pages">All pages</a>`;
+    menuHTML += `<a href="/files">All files</a>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
-
+  
   userButtonsEl.innerHTML = `<button onclick="_show_user_menu = !_show_user_menu;render_user_buttons();">${buttonText}</button>`;
   if (_show_user_menu) {
     userButtonsEl.innerHTML += menuHTML + `</div>`;
@@ -55,22 +58,28 @@ function boot() {
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
-        current_user_loaded();
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
       }
+      current_user_loaded();
       render_user_buttons();
     }
   } else {
     render_user_buttons();
+    current_user_loaded();
   }
   
-  //  Redirect away from register or login if we're logged in.
-  if ((_current_page == '/register' || _current_page == '/login') && _session_id != null) {
+  //  Redirect to home if...
+  var onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
+  var loggedIn = _session_id != null;
+  var redirectToHome = (onALoggedOutPage && loggedIn);
+  var onALoggedInPage = (_current_page == '/create-page' || _current_page == '/all-pages' || _current_page.split('/')[1] == 'edit');
+  redirectToHome = redirectToHome || (onALoggedInPage && !loggedIn);
+  if (redirectToHome) {
     window.location.href = '/';
   }
-  
+
 }
 window.addEventListener('load', (event) => {
   boot()
