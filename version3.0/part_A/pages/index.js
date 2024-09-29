@@ -34,6 +34,7 @@ function render_user_buttons() {
     menuHTML += `<a href="/new-page">New page</a>`;
     menuHTML += `<a href="/pages">All pages</a>`;
     menuHTML += `<a href="/files">All files</a>`;
+    menuHTML += `<a href="/components">All components</a>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
   
@@ -71,10 +72,11 @@ function boot() {
   }
   
   //  Redirect to home if...
-  var onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
-  var loggedIn = _session_id != null;
-  var redirectToHome = (onALoggedOutPage && loggedIn);
-  var onALoggedInPage = (_current_page == '/create-page' || _current_page == '/all-pages' || _current_page.split('/')[1] == 'edit');
+  let onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
+  let loggedIn = _session_id != null;
+  let redirectToHome = (onALoggedOutPage && loggedIn);
+  let authReqdPages = ['/new-page', '/pages', '/files', '/upload-file', '/components', '/new-component']
+  let onALoggedInPage = (authReqdPages.includes(_current_page) || _current_page.split('/')[1] == 'edit');
   redirectToHome = redirectToHome || (onALoggedInPage && !loggedIn);
   if (redirectToHome) {
     window.location.href = '/';

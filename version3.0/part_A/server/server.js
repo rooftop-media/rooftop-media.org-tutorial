@@ -32,16 +32,18 @@ var mimeTypes = {
 
 //  Mapping URLs to pages
 var pageURLs = {
-  '/': '/pages/misc/landing.html',
-  '/landing': '/pages/misc/landing.html',
-  '/register': '/pages/misc/register.html',
-  '/login': '/pages/misc/login.html',
-  '/profile': '/pages/misc/profile.html',
-  '/new-page': '/pages/cms/new-page.html',
-  '/pages': '/pages/cms/pages.html',
-  '/markup-rules': '/pages/cms/markup-rules.html',
-  '/upload-file': '/pages/cms/upload-file.html',
-  '/files': '/pages/cms/files.html'
+  '/':              '/pages/misc/landing.html',
+  '/landing':       '/pages/misc/landing.html',
+  '/register':      '/pages/misc/register.html',
+  '/login':         '/pages/misc/login.html',
+  '/profile':       '/pages/misc/profile.html',
+  '/new-page':      '/pages/cms/new-page.html',
+  '/pages':         '/pages/cms/pages.html',
+  '/markup-rules':  '/pages/cms/markup-rules.html',
+  '/upload-file':   '/pages/cms/upload-file.html',
+  '/files':         '/pages/cms/files.html',
+  '/new-component': '/pages/cms/components/new-component.html',
+  '/components':    '/pages/cms/components/components.html'
 }
 var pageURLkeys = Object.keys(pageURLs);
 
@@ -456,6 +458,11 @@ POST_routes['/api/delete-file'] = function(request_info, res) {
     response.msg = DataBase.table('files').delete(request_info._params.id);
   }
   return api_response(res, 200, JSON.stringify(response));
+}
+
+POST_routes['/api/create-component'] = function(new_component_data, res) {
+  let response = DataBase.table('components').insert(new_component_data);
+  api_response(res, 200, JSON.stringify(response));
 }
 
 
