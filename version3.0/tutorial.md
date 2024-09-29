@@ -633,43 +633,20 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 
 In this section, we'll create a test component, and ensure it can be rendered properly in a dynamic page. 
 
+On the server side, this will happen:
+ - Find component tag names in dynamic page HTML.
+   - Also get the attributes and innerHTML associated with that tag.
+ - Replace the component tag with the component's template HTML.
+ - Fill in custom "props" in the compontent template HTML, using attributes. 
+
 <br/><br/><br/><br/>
 
 
 
-<h3 id="b-1">  ☑️ Step 1: Adding <code>/edit/:page_route</code> to <code>/server/server.js</code>  </h3>
+<h3 id="b-1">  ☑️ Step 1: Edit <code>GET_routes['/api/page']</code> in <code>/server/server.js</code>  </h3>
 
-First, we'll edit `respond_with_a_page` to check for URLs starting with `/edit/`: 
+The function `GET_routes['/api/page']` will now replace component tags with component templates before sending the page's HTML.
 
-```js
-function respond_with_a_page(res, url) {
-  let page_content = "";
-
-  if (pageURLkeys.includes(url)) {  //  If it's a static page route....
-    url = pageURLs[url];
-    try {
-      page_content = fs.readFileSync( __dirname + '/..' + url);
-    } catch(err) {
-      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    }
-  } else if (url.substring(0, 6) == '/edit/') {
-    page_content = fs.readFileSync(__dirname + '/../pages/cms/edit-page.html');
-  } else {                          //  If it's a dynamic page route....
-    let page_data = DataBase.table('pages').find({ route: url.slice(1) });  //  Removing the "/" from the route
-    if (page_data.length < 1) {
-      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      page_content = fs.readFileSync(__dirname + '/../pages/cms/dynamic-page.html');
-    }
-  }
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-  var page_halves = main_page.split('<!--  Insert page content here!  -->');
-  var rendered = page_halves[0] + page_content + page_halves[1];
-  res.write(rendered);
-  res.end();
-}
-```
 
 <br/><br/><br/><br/>
 
