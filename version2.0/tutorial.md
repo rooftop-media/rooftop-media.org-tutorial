@@ -330,7 +330,7 @@ If you're logged in and on `/login` or `/register`, you should be rerouted to `/
 If you're *not* logged in and on `/new-page` or `/pages`, you should be rerouted to `/`.  
 
 On `/new-page`, add a page name and page route.  
-The page info should appear in the `/server/database/page_rows/pages.json` file.  
+The page info should appear in the `/server/database/table_rows/pages.json` file.  
 You should be rerouted to the page route, displaying the 404 page -- for now.  
 
 Go back to `/new-page` to try creating the same page route.  You should get an error.  

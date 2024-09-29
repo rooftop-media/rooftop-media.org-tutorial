@@ -1,0 +1,214 @@
+<div class="p-3 center-column">
+  <h3>All components:</h3>
+  <div id="search-bar-row">
+    <input id="search" placeholder="Search components..." oninput="search_components()"/>
+    <div id="search-settings-toggle" onclick="toggle_settings()">Settings  &#x25B8;</div>
+  </div>
+  <div id="search-settings" onclick="search_components()">
+    <div>Sort by: </div>
+    <div><input type="radio" name="sort_types" value="title" checked /> Title</div>
+    <div><input type="radio" name="sort_types" value="date"/> Date created</div>
+    <div><input type="radio" name="sort_types" value="creator"/> Creator</div>
+    <div style="display: flex;align-items: center;"><input type="checkbox" id="invert-sort"/> Invert results</div>
+  </div>
+  <table id="component-table">
+    <!--  Component data goes here-->
+  </table>
+  <br/><br/><br/><br/>
+  <a href="/new-component"><button>+ Create new component</button></a>
+</div>
+
+<script>
+  let componentTable = document.getElementById('component-table');
+  let all_components = [];
+  let show_settings = false;
+
+  function render_table(components) {
+    componentTable.innerHTML = `<tr>
+      <th>Private?</th>
+      <th>Title</th>
+      <th>Tag</th>
+      <th>Edit</th>
+    </tr>`;
+    for (var i = 0; i < components.length; i++) {
+      let component = components[i];
+      componentTable.insertRow().innerHTML += `<tr>
+        <td class="is-public">${component.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
+        <td>
+          <div class="component-title"><a href="/${component.route}">${component.title}</a></div>
+          <div class="created-by">Created by ${component.created_by}</div>
+          <div class="tags">${get_tag_html(component.tags)}</div>
+        </td>
+        <td>&lt;${component.route}&gt;</td>
+        <td>${_current_user.username == component.created_by ? `<a href="/edit-component/${component.route}"><img src="/assets/icons/edit.svg"/></a>` : ''}</td>
+      </tr>`;
+    }
+    if (components.length < 1) {
+      componentTable.insertRow().innerHTML += `<tr><td></td><td id="no-components-found">(No components found)</td><td></td><td></td></tr>`;
+    }
+  }
+
+  function get_tag_html(tags) {
+    let html = '';
+    for (let i = 0; i < tags.length; i++) {
+      html += `<span class="tag" onclick="search_tag('${tags[i]}')">${tags[i]}</span>`;
+    }
+    return html;
+  }
+  function search_tag(tag) {
+    document.getElementById('search').value = `tag:${tag}`;
+    search_components();
+  }
+
+  function search_components() {
+    let search = document.getElementById('search').value;
+    if (search.length < 1) {
+      return sort_components(all_components);
+    }
+    let tags = [];
+    while (search.includes('tag:')) {
+      let tag_text_pos = search.indexOf('tag:');
+      let end_of_tag_pos = search.indexOf(' ', tag_text_pos+4);
+      if (end_of_tag_pos == -1) { end_of_tag_pos = search.length};
+      let tag = search.slice(tag_text_pos + 4, end_of_tag_pos);
+      tags.push(tag);
+      search = search.slice(0,tag_text_pos) + search.slice(end_of_tag_pos,search.length);
+    }
+    
+    let searched_components = all_components.filter(component => {
+      let is_match = true;
+      if (component.title.search(search.trim()) == -1) is_match = false;
+      for (let i = 0; i < tags.length; i++) {
+        if (!component.tags.includes(tags[i])) is_match = false;
+      }
+      return is_match
+    })
+    sort_components(searched_components);
+  }
+
+  function sort_components(components) {
+    let sort_types = document.getElementsByName('sort_types');
+    let sorted_components = [];
+    if (sort_types[2].checked) {         // creator
+      sorted_components = components.sort((a, b) => { return a.created_by > b.created_by; });
+    } else if (sort_types[1].checked) {  // date
+      sorted_components = components.sort((a, b) => { return new Date(a.date_created) > new Date(b.date_created); });
+    } else {                             // title
+      sorted_components = components.sort((a, b) => { return a.title > b.title; });
+    }
+    if (document.getElementById('invert-sort').checked) {
+      sorted_components.reverse();
+    }
+    render_table(sorted_components);
+  }
+
+  function toggle_settings() {
+    show_settings = !show_settings;
+    if (!show_settings) {
+      document.getElementById('search-settings').style.display = `none`;
+      document.getElementById('search-settings-toggle').innerHTML = 'Settings  &#x25B8;';
+    } else {
+      document.getElementById('search-settings').style.display = 'flex';
+      document.getElementById('search-settings-toggle').innerHTML = 'Settings  &#x25BE;';
+    }
+  }
+
+  function get_all_components() {
+    const http = new XMLHttpRequest();
+    http.open('GET', '/api/all-components');
+    http.send();
+    http.onreadystatechange = (e) => {
+      let response;      
+      if (http.readyState == 4 && http.status == 200) {
+        response = JSON.parse(http.responseText); 
+        console.log("Components loaded!");
+        all_components = response;
+        sort_components(all_components);
+      }
+    }
+  }
+
+  current_user_loaded = function () {
+    get_all_components();
+  }
+  
+</script>
+
+<style>
+  
+  #search-bar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  #search {
+    width: calc(100% - 100px);
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 15px;
+  }
+  #search-settings-toggle {
+    text-decoration: underline;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+
+  #search-settings {
+    display: none;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    margin: 10px 0px;
+  }
+
+  table {
+    width: 100%;
+  }
+  tr th {
+    color: rgba(255,255,255,0.5);
+    border: none;
+    text-align: left;
+    font-weight: normal;
+  }
+  tr th:first-child, tr th:nth-child(0n + 3) {
+    max-width: 100px;
+  }
+  td {
+    border-right: none;
+    border-left: none;
+  }
+
+  td.is-public {
+    width: 50px;
+  }
+
+  div.component-title {
+    color: var(--yellow);
+    font-size: 1.3em;
+  }
+  div.created-by {
+    opacity: 0.5;
+    font-size: 1em;
+  }
+  span.tag {
+    background: var(--lighter-brown);
+    color: rgba(255,255,255,0.5);
+    padding: 0px 4px;
+    margin: 4px 5px;
+    cursor: pointer;
+  }
+
+  td img {
+    width: 25px;
+    max-width: 25px;
+    max-height: 25px;
+    display: block;
+    margin: auto;
+    cursor: pointer;
+  }
+
+  #no-components-found {
+    text-align: center;
+    opacity: .5;
+  }
+</style>

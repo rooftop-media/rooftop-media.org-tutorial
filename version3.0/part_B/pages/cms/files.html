@@ -1,0 +1,203 @@
+<div class="p-3 center-column">
+    <h3>All files:</h3>
+    <div id="search-bar-row">
+      <input id="search" placeholder="Search files..." oninput="search_files()"/>
+      <div id="search-settings-toggle" onclick="toggle_settings()">Settings  &#x25B8;</div>
+    </div>
+    <div id="search-settings" onclick="search_files()">
+      <div>Sort by: </div>
+      <div><input type="radio" name="sort_types" value="name" checked /> Name</div>
+      <div><input type="radio" name="sort_types" value="date"/> Date created</div>
+      <div><input type="radio" name="sort_types" value="creator"/> Creator</div>
+      <div style="display: flex;align-items: center;"><input type="checkbox" id="invert-sort"/> Invert results</div>
+    </div>
+    <div id="errors"></div>
+    <table id="file-table">
+      <!--  file data goes here-->
+    </table>
+    <br/><br/><br/><br/>
+    <a href="/upload-file"><button>+ Upload a file</button></a>
+  </div>
+  
+  <script>
+    let fileTable = document.getElementById('file-table');
+    let all_files = [];
+    let show_settings = false;
+  
+    function render_table(files) {
+      fileTable.innerHTML = `<tr>
+        <th>Preview</th>
+        <th>Private?</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Edit</th>
+      </tr>`;
+      for (var i = 0; i < files.length; i++) {
+        let file = files[i];
+        let is_image = ['png','jpg','jpeg','svg','gif'].includes(file.name.split('.')[1]);
+        fileTable.insertRow().innerHTML += `<tr>
+          <td>${is_image ? `<img src="/assets/uploads/${file.name}" />` : '<div style="text-align:center">&#128462;</div>'}</td>
+          <td>${file.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
+          <td>
+            <div class="file-name"><a href="/assets/uploads/${file.name}">${file.name}</a></div>
+            <div class="created-by">Created by ${file.created_by}</div>
+          </td>
+          <td>${file.description}</td>
+          <td>${_current_user.username == file.created_by ? `<a onclick="delete_file('${file.id}')">&#128465;</a>` : ''}</td>
+        </tr>`;
+      }
+      if (files.length < 1) {
+        fileTable.insertRow().innerHTML += `<tr><td></td><td id="no-files-found">(No files found)</td><td></td><td></td></tr>`;
+      }
+    }
+  
+    function search_files() {
+      let search = document.getElementById('search').value;
+      if (search.length < 1) {
+        return sort_files(all_files);
+      }
+      let searched_files = all_files.filter(file => file.name.search(search) != -1)
+      sort_files(searched_files);
+    }
+  
+    function sort_files(files) {
+      let sort_types = document.getElementsByName('sort_types');
+      let sorted_files = [];
+      if (sort_types[2].checked) {         // creator
+        sorted_files = files.sort((a, b) => { return a.created_by > b.created_by; });
+      } else if (sort_types[1].checked) {  // date
+        sorted_files = files.sort((a, b) => { return new Date(a.date_created) > new Date(b.date_created); });
+      } else {                             // name
+        sorted_files = files.sort((a, b) => { return a.name > b.name; });
+      }
+      if (document.getElementById('invert-sort').checked) {
+        sorted_files.reverse();
+      }
+      render_table(sorted_files);
+    }
+  
+    function toggle_settings() {
+      show_settings = !show_settings;
+      if (!show_settings) {
+        document.getElementById('search-settings').style.display = `none`;
+        document.getElementById('search-settings-toggle').innerHTML = 'Settings  &#x25B8;';
+      } else {
+        document.getElementById('search-settings').style.display = 'flex';
+        document.getElementById('search-settings-toggle').innerHTML = 'Settings  &#x25BE;';
+      }
+    }
+
+    function delete_file(id) {
+      if (!confirm("Do you want to delete this file?")) {
+        return;
+      }
+      let http = new XMLHttpRequest();
+      http.open('POST', `/api/delete-file?id=${id}&session_id=${_session_id}`);
+      http.send();
+      http.onreadystatechange = (e) => {
+        let response;      
+        if (http.readyState == 4 && http.status == 200) {
+          response = JSON.parse(http.responseText);
+          if (!response.error) {
+            console.log("Response recieved! File deleted.");
+            document.getElementById('errors').innerHTML = ``;
+            get_all_files();
+          } else {
+            document.getElementById('errors').innerHTML = response.msg;
+          }
+        } else if (http.status == 400) {
+          response = JSON.parse(http.responseText);
+          document.getElementById('errors').innerHTML = response.msg;
+        }
+      }    
+    }
+  
+    function get_all_files() {
+      const http = new XMLHttpRequest();
+      http.open('GET', '/api/all-files');
+      http.send();
+      http.onreadystatechange = (e) => {
+        let response;      
+        if (http.readyState == 4 && http.status == 200) {
+          response = JSON.parse(http.responseText); 
+          console.log("files loaded!");
+          all_files = response;
+          sort_files(all_files);
+        }
+      }
+    }
+  
+    current_user_loaded = function () {
+      get_all_files();
+    }
+    
+    
+  </script>
+  
+  <style>
+    
+    #search-bar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    #search {
+      width: calc(100% - 100px);
+      padding: 10px;
+      box-sizing: border-box;
+      border-radius: 15px;
+    }
+    #search-settings-toggle {
+      text-decoration: underline;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+  
+    #search-settings {
+      display: none;
+      flex-flow: row wrap;
+      justify-content: space-around;
+      margin: 10px 0px;
+    }
+  
+    table {
+      width: 100%;
+    }
+    tr th {
+      color: rgba(255,255,255,0.5);
+      border: none;
+      text-align: left;
+      font-weight: normal;
+    }
+    tr th:first-child, tr th:nth-child(0n + 3) {
+      max-width: 100px;
+    }
+    td {
+      border-right: none;
+      border-left: none;
+    }
+  
+    div.file-name {
+      color: var(--yellow);
+      font-size: 1.3em;
+    }
+    div.created-by {
+      opacity: 0.5;
+      font-size: 1em;
+    }
+  
+    td img {
+      width: 25px;
+      max-width: 25px;
+      max-height: 25px;
+      display: block;
+      margin: auto;
+      cursor: pointer;
+    }
+  
+    #no-files-found {
+      text-align: center;
+      opacity: .5;
+    }
+  </style>
