@@ -3204,10 +3204,12 @@ Add your domain name, and make it redirect to the new server droplet, with "@" a
 Follow [this tutorial](https://docs.digitalocean.com/products/droplets/how-to/add-ssh-keys/) to set up a private ssh key for your droplet.  
 Create the key on your computer, and add it to the droplet. 
 
-Then, using the command line, SSH into your server like so: 
+Then, using the command line, SSH into your server like so:
 ```bash
 ssh -i ~/path/to/publickey.pem root@<your-domain-ip>
 ```
+
+(The .pem extension is used on mac, linux keys needs no extension.)
 
 <br/><br/><br/><br/>
 
