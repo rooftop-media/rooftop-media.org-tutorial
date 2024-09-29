@@ -1,0 +1,22 @@
+{
+  "name": "Email addresses",
+  "snakecase": "email_addresses",
+  "max_id": 1,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "User id",
+      "snakecase": "user_id",
+      "unique": true
+    },
+    {
+      "name": "Address",
+      "snakecase": "address",
+      "unique": true
+    }
+  ]
+}

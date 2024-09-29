@@ -57,7 +57,7 @@ We'll make sure a user is logged in before they can create pages.
 
 
 
-<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/cms/create-page.html</code>  </h3>
+<h3 id="a-1">  ☑️ Step 1: Create <code>/pages/cms/new-page.html</code>  </h3>
 
 Create a new folder called `/pages/cms`.  In it, add a new file, `new-page.html`.  
 This page will be a form to create new dynamic pages.  
