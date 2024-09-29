@@ -63,6 +63,8 @@ In this part, we'll create two static pages to facilitate creation of components
 Components will be saved to the database.  They can then be used in dynamic pages, which we will implement in part B. 
 We'll make sure a user is logged in before they can create components. 
 
+_You may notice this part is very similar to version 2 part A._
+
 <br/><br/><br/><br/>
 
 
@@ -152,15 +154,15 @@ function create_page() {
 
 
 
-<h3 id="a-2">  ☑️ Step 2: Adding a Pages table to the database  </h3>
+<h3 id="a-2">  ☑️ Step 2: Adding a Components table to the database  </h3>
 
 To add a new table, we'll first add a set of table columns.  
-Add the file `/server/database/table_columns/pages.json`:  
+Add the file `/server/database/table_columns/components.json`:  
 
 ```json
 {
-  "name": "Pages",
-  "snakecase": "pages",
+  "name": "Components",
+  "snakecase": "components",
   "max_id": 0,
   "columns": [
     {
@@ -169,11 +171,11 @@ Add the file `/server/database/table_columns/pages.json`:
       "unique": true
     },
     {
-      "name": "Page Title",
+      "name": "Component Title",
       "snakecase": "title"
     },
     {
-      "name": "Page Route",
+      "name": "Component Route",
       "snakecase": "route",
       "unique": true
     },
@@ -205,7 +207,7 @@ Add the file `/server/database/table_columns/pages.json`:
 }
 ```
 
-Then, add the file `/server/database/table_rows/pages.json`.  Add an empty array:  
+Then, add the file `/server/database/table_rows/components.json`.  Add an empty array:  
 
 ```json
 []
@@ -215,13 +217,13 @@ Then, add the file `/server/database/table_rows/pages.json`.  Add an empty array
 
 
 
-<h3 id="a-3">  ☑️ Step 3: Add <code>/api/create-page</code> to <code>/server/server.js</code>  </h3>
+<h3 id="a-3">  ☑️ Step 3: Add <code>/api/create-component</code> to <code>/server/server.js</code>  </h3>
 
-In `/server/server.js`, add `POST_routes['/api/create-page']` right after `POST_routes['/api/check-invite-code']`:  
+In `/server/server.js`, add `POST_routes['/api/create-component']` right after `POST_routes['/api/delete-file']`:  
 
 ```javascript
-POST_routes['/api/create-page'] = function(new_page_data, res) {
-  let response = DataBase.table('pages').insert(new_page_data);
+POST_routes['/api/create-component'] = function(new_component_data, res) {
+  let response = DataBase.table('components').insert(new_component_data);
   api_response(res, 200, JSON.stringify(response));
 }
 ```
@@ -234,17 +236,20 @@ POST_routes['/api/create-page'] = function(new_page_data, res) {
 We're also going to add two new static page URL routes to `server.js`:  
 
 ```javascript
-//  Mapping URLs to pages
-var pageURLs = {
-  '/': '/pages/misc/landing.html',
-  '/landing': '/pages/misc/landing.html',
-  '/register': '/pages/misc/register.html',
-  '/login': '/pages/misc/login.html',
-  '/profile': '/pages/misc/profile.html',
-  '/new-page': '/pages/cms/new-page.html',
-  '/pages': '/pages/cms/pages.html',
+ar pageURLs = {
+  '/':              '/pages/misc/landing.html',
+  '/landing':       '/pages/misc/landing.html',
+  '/register':      '/pages/misc/register.html',
+  '/login':         '/pages/misc/login.html',
+  '/profile':       '/pages/misc/profile.html',
+  '/new-page':      '/pages/cms/new-page.html',
+  '/pages':         '/pages/cms/pages.html',
+  '/markup-rules':  '/pages/cms/markup-rules.html',
+  '/upload-file':   '/pages/cms/upload-file.html',
+  '/files':         '/pages/cms/files.html',
+  '/new-component': '/pages/cms/components/new-component.html',
+  '/components':    '/pages/cms/components/components.html'
 }
-var pageURLkeys = Object.keys(pageURLs);
 ```
 
 <br/><br/><br/><br/>
@@ -255,7 +260,7 @@ var pageURLkeys = Object.keys(pageURLs);
 
 Open up `/pages/index.js`.  We'll make two changes.
 
-First, we'll update the `render_user_buttons` function, to include links to `/new-page` and `/pages`.
+First, we'll update the `render_user_buttons` function, to include links to `/new-component` and `/components`.
 ```javascript
 // Update the "user buttons" in the header
 function render_user_buttons() {
@@ -271,6 +276,8 @@ function render_user_buttons() {
     menuHTML += `<a href="/profile">Your profile</a>`;
     menuHTML += `<a href="/new-page">New page</a>`;
     menuHTML += `<a href="/pages">All pages</a>`;
+    menuHTML += `<a href="/files">All files</a>`;
+    menuHTML += `<a href="/components">All tags</a>`;
     menuHTML += `<button onclick="logout()">Log out</button>`;
   }
   
@@ -299,22 +306,24 @@ function boot() {
     http.onreadystatechange = (e) => {
       if (http.readyState == 4 && http.status == 200) {
         _current_user = JSON.parse(http.responseText);
-        current_user_loaded();
       } else if (http.readyState == 4 && http.status == 404) {
         console.log('No session found.');
         localStorage.removeItem('session_id');
       }
+      current_user_loaded();
       render_user_buttons();
     }
   } else {
     render_user_buttons();
+    current_user_loaded();
   }
   
   //  Redirect to home if...
-  var onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
-  var loggedIn = _session_id != null;
-  var redirectToHome = (onALoggedOutPage && loggedIn);
-  var onALoggedInPage = (_current_page == '/new-page' || _current_page == '/pages' || _current_page.split('/')[1] == 'edit');
+  let onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
+  let loggedIn = _session_id != null;
+  let redirectToHome = (onALoggedOutPage && loggedIn);
+  let authReqdPages = ['/new-page', '/pages', '/files', '/upload-file', '/components', '/new-component']
+  let onALoggedInPage = (authReqdPages.includes(_current_page) || _current_page.split('/')[1] == 'edit');
   redirectToHome = redirectToHome || (onALoggedInPage && !loggedIn);
   if (redirectToHome) {
     window.location.href = '/';
