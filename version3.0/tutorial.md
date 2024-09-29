@@ -76,59 +76,62 @@ This page will be a form to create new components.
 
 ```html
 <div class="p-3 center-column">
-  <h3>Create a New Page</h3>
-  <div>Page title: <input type="text" tabindex="1" id="page_title" placeholder="My Blog"/></div>
-  <div>Page route: <input type="text" tabindex="2" id="page_route" placeholder="my-blog"/></div>
-  <div>Tags: <span id="tags"></span><input type="text" tabindex="3" id="page_tags" placeholder="blog, recipe" /></div>
+  <h3>Create a New Component</h3>
+  <div>Component title: <input type="text" tabindex="1" id="component_title" placeholder="Click counter"/></div>
+  <div>Component tag name: <input type="text" tabindex="2" id="component_route" placeholder="click-counter"/></div>
+  <div>Tags: <span id="tags"></span><input type="text" tabindex="3" id="component_tags" placeholder="counter, demo" /></div>
   <div>Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
+  <div>Content:<textarea id="component_content" spellcheck="false" tabindex="4" placeholder="<template> ..."></textarea></div>
   <p id="error"></p>
-  <button onclick="create_page()" tabindex="4">Create Page</button>
+  <button onclick="create_component()" tabindex="5">Create Component</button>
 </div>
 
 <script>
 
 const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
 
-//  Page route -- lowercase, alphanumeric, and these special characters: - / _ 
-const page_route_input = document.getElementById('page_route');
-const page_route_regex = /^[a-z0-9_\-\/]*$/;
-page_route_input.addEventListener("keydown", event => {
-  if (!page_route_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+//  Component route -- lowercase, alphanumeric, and these special characters: - / _ 
+const component_route_input = document.getElementById('component_route');
+const component_route_regex = /^[a-z0-9_\-\/]*$/;
+component_route_input.addEventListener("keydown", event => {
+  if (!component_route_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
     event.preventDefault();
-    document.getElementById('error').innerHTML = "Page route can only contain lowercase letters, numbers, underscores and dashes.";
+    document.getElementById('error').innerHTML = "Component route can only contain lowercase letters, numbers, underscores and dashes.";
   } else {
     document.getElementById('error').innerHTML = "";
   }
 });
 
-function create_page() {
-  let title = document.getElementById('page_title').value;
-  let route = document.getElementById('page_route').value;
-  let tags = document.getElementById('page_tags').value.split(',');
+function create_component() {
+  let title = document.getElementById('component_title').value;
+  let route = document.getElementById('component_route').value;
+  let tags = document.getElementById('component_tags').value.split(',');
   for (let i = 0; i < tags.length; i++) {
     tags[i] = tags[i].trim();
     if (!tags[i]) { tags.splice(i, 1); }
   }
   let is_public = document.getElementById('is_public').checked;
+  let content = document.getElementById('component_content').value;
   
   if (route.length < 2) {
-    document.getElementById('error').innerHTML = 'Page route must be at least 2 characters..';
+    document.getElementById('error').innerHTML = 'Component tag name must be at least 2 characters..';
     return;
   } else if (title.length < 2) {
-    document.getElementById('error').innerHTML = 'Page title must be at least 2 characters..';
+    document.getElementById('error').innerHTML = 'Component title must be at least 2 characters..';
     return;
-  } else if (!page_route_regex.test(route)) {
-    document.getElementById('error').innerHTML = "Page route can only contain lowercase letters, numbers, underscores and dashes.";
+  } else if (!component_route_regex.test(route)) {
+    document.getElementById('error').innerHTML = "Component tag name can only contain lowercase letters, numbers, underscores and dashes.";
     return;
   }
 
   const http = new XMLHttpRequest();
-  http.open('POST', '/api/create-page');
+  http.open('POST', '/api/create-component');
   http.send(JSON.stringify({
     title,
     route,
     tags,
     is_public,
+    content,
     created_by: _current_user.id,
     date_created: new Date().toString(),
     content: '',
@@ -139,14 +142,15 @@ function create_page() {
     if (http.readyState == 4 && http.status == 200) {
       response = JSON.parse(http.responseText);
       if (!response.error) {
-        console.log("Response recieved! Creating page.");
-        window.location.href = '/' + route;
+        console.log("Response recieved! Creating component.");
+        window.location.href = '/edit-component/' + route;
       } else {
         document.getElementById('error').innerHTML = response.msg;
       }
     }
   }
 }
+
 </script>
 ```
 
@@ -256,7 +260,22 @@ ar pageURLs = {
 
 
 
-<h3 id="a-5">  ☑️ Step 5: Use <code>/pages/index.js</code> to reroute and update the header </h3>
+
+<h3 id="a-5"> ☑️ Step 5:  ☞ Test the code! </h3>
+
+Restart the server!  
+
+On `/new-component`, add a component name and tag name.  
+The page info should appear in the `/server/database/table_rows/components.json` file.  
+You should be rerouted to `/edit-component/{component-tag-name}`, displaying the 404 page -- for now.  
+
+Go back to `/new-component` to try creating the same component tag name.  You should get an error.  
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="a-6">  ☑️ Step 6: Use <code>/pages/index.js</code> to reroute and update the header </h3>
 
 Open up `/pages/index.js`.  We'll make two changes.
 
@@ -290,8 +309,7 @@ function render_user_buttons() {
 ```
 
 Then, we'll edit the `boot` function.   
-We'll clean up the section that redirects the user to the home page under certain circumstances.  
-We'll also redirect to the home page if on `/new-page` or `/pages` and not logged in, or on any route starting with `/edit/`.
+We'll  redirect to the home page if on `/new-component` or `/components` and not logged in, or on any route starting with `/edit-component/`.
 
 ```javascript
 ////  SECTION 3: Boot.
@@ -322,8 +340,9 @@ function boot() {
   let onALoggedOutPage = (_current_page == '/register' || _current_page == '/login');
   let loggedIn = _session_id != null;
   let redirectToHome = (onALoggedOutPage && loggedIn);
-  let authReqdPages = ['/new-page', '/pages', '/files', '/upload-file', '/components', '/new-component']
-  let onALoggedInPage = (authReqdPages.includes(_current_page) || _current_page.split('/')[1] == 'edit');
+  let authReqdPages = ['/new-page', '/pages', '/files', '/upload-file', '/components', '/new-component'];
+  let authReqdDirectories = ['edit', 'edit-component'];
+  let onALoggedInPage = (authReqdPages.includes(_current_page) || authReqdDirectories.includes(_current_page.split('/')[1]));
   redirectToHome = redirectToHome || (onALoggedInPage && !loggedIn);
   if (redirectToHome) {
     window.location.href = '/';
@@ -337,57 +356,21 @@ window.addEventListener('load', (event) => {
 
 <br/><br/><br/><br/>
 
-<!--Note that most would suggest I put the AJAX call set up in a [separate reusable function](https://stackoverflow.com/questions/2818648/using-two-xmlhttprequest-calls-on-a-page).  I'm not doing that for now. -->
 
 
+<h3 id="a-7"> ☑️ Step 7:  Making an API route for getting all components, in <code>server.js</code> </h3>
 
-<h3 id="a-6"> ☑️ Step 6:  ☞ Test the code! </h3>
-
-Restart the server!  
-
-If you're logged in and on `/login` or `/register`, you should be rerouted to `/`.  
-If you're *not* logged in and on `/new-page` or `/pages`, you should be rerouted to `/`.  
-
-On `/new-page`, add a page name and page route.  
-The page info should appear in the `/server/database/page_rows/pages.json` file.  
-You should be rerouted to the page route, displaying the 404 page -- for now.  
-
-Go back to `/new-page` to try creating the same page route.  You should get an error.  
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="a-7">  ☑️ Step 7: Creating dynamic pages in <code>server/server.js</code> </h3>
-
-We're going to edit the function `respond_with_a_page` in `/server.js`. 
-This function will now check if a dynamic route exists, and send `/dynamic-page.html` if it exists, and `/404.html` otherwise. 
+In `/server/server.js`, right under `GET_routes['/api/all-files']`, add a new function, `GET_routes['/api/all-components']`:
 
 ```javascript
-function respond_with_a_page(res, url) {
-  let page_content = "";
-
-  if (pageURLkeys.includes(url)) {  //  If it's a static page route....
-    url = pageURLs[url];
-    try {
-      page_content = fs.readFileSync( __dirname + '/..' + url);
-    } catch(err) {
-      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    }
-  } else {                          //  If it's a dynamic page route....
-    let page_data = DataBase.table('pages').find({ route: url.slice(1) });  //  Removing the "/" from the route
-    if (page_data.length < 1) {
-      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      page_content = fs.readFileSync(__dirname + '/../pages/cms/dynamic-page.html');
-    }
+GET_routes['/api/all-components'] = function(req_data, res) {
+  let all_components = fs.readFileSync(__dirname + '/database/table_rows/components.json', 'utf8');
+  all_components = JSON.parse(all_components);
+  for (let i = 0; i < all_components.length; i++) {
+    let creator_id = parseInt(all_components[i].created_by);
+    all_components[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
   }
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-  var page_halves = main_page.split('<!--  Insert page content here!  -->');
-  var rendered = page_halves[0] + page_content + page_halves[1];
-  res.write(rendered);
-  res.end();
+  api_response(res, 200, JSON.stringify(all_components));
 }
 ```
 
@@ -395,181 +378,59 @@ function respond_with_a_page(res, url) {
 
 
 
-<h3 id="a-8">  ☑️ Step 8: Creating <code>pages/cms/dynamic-page.html</code> </h3>
+<h3 id="a-8"> ☑️ Step 8:  Creating <code>pages/cms/components/components.html</code> </h3>
 
-Create a new page,  `/pages/cms/dynamic-page.html`, and add this:. 
-
-```javascript
-<div class="p-3 center-column" id="dynamic-page">
-  <i>Loading page...</i>
-</div>
-
-<script>
-////  SECTION 1: Page memory
-let page_route = _current_page.slice(1, _current_page.length);
-let page_data = {};
-
-////  SECTION 2: Render
-function render_page() {
-  document.getElementById('dynamic-page').innerHTML = page_data.content;
-  document.getElementById('dynamic-page').innerHTML += `<a href="/edit/${page_data.route}"><button id="edit-button"><img src="/assets/icons/edit.svg" />Edit</button></a>`;
-}
-
-////  SECTION 4: Boot
-//  Load page from API, then render buffer
-function load_page() {
-  const http = new XMLHttpRequest();
-  http.open('GET', `/api/page?route=${page_route}`);
-  http.send();
-  http.onreadystatechange = (e) => {
-    let response;      
-    if (http.readyState == 4 && http.status == 200) {
-      response = JSON.parse(http.responseText);
-      if (!response.error) {
-        console.log("Response recieved! Loading page.");
-        page_data = response.data;
-        render_page();
-      } else {
-        document.getElementById('dynamic-page').innerHTML = response.msg;
-      }
-    }
-  }
-}
-load_page();
-
-</script>
-
-<style>
-  #edit-button {
-    display: flex;
-    width: 90px;
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-  }
-  #edit-button img {
-    height: 16px;
-    margin-right: 10px;
-  }
-</style>
-```
-
-<br/><br/><br/><br/>
-
-
-<h3 id="a-9">  ☑️ Step 9: Adding <code>/api/page</code> to <code>/server/server.js</code>  </h3>
-
-This route will return a page's details and content, given a page's route.  
-
-Add `GET_routes['/api/page']` right after `GET_routes['/api/user-by-session']`:
-
-```javascript
-GET_routes['/api/page'] = function(req_data, res) {
-  let page_data = DataBase.table('pages').find({ route: req_data.route });
-  let response = {
-    error: false,
-    data: null
-  }
-  if (page_data.length < 1) {
-    response.error = true;
-    response.msg = `The page ${req_data.route} was not found.`;
-  } else {
-    response.data =  page_data[0];
-  }
-  api_response(res, 200, JSON.stringify(response));
-}
-```
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="a-10"> ☑️ Step 10:  ☞ Test the code! </h3>
-
-Restart the server.  
-Go to your browser and navigate to one of the `page_route`s you created.  
-You should see a blank page (not the 404 page) with an "edit" button in the corner.  
-The edit button should take you to a page called `/edit/[page-route]`, which will be a 404 for now.
-
-URLs that are neither in the `pages` database, nor hardcoded, static pages, should result in the 404 page.  
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="a-11"> ☑️ Step 11:  Making an API route for getting all pages, in <code>server.js</code> </h3>
-
-In `/server/server.js`, right under `GET_routes['/api/page']`, add a new function, `GET_routes['/api/all-pages']`:
-
-```javascript
-GET_routes['/api/all-pages'] = function(req_data, res) {
-  let all_pages = fs.readFileSync(__dirname + '/database/table_rows/pages.json', 'utf8');
-  all_pages = JSON.parse(all_pages);
-  for (let i = 0; i < all_pages.length; i++) {
-    let creator_id = parseInt(all_pages[i].created_by);
-    all_pages[i].created_by = DataBase.table('users').find({id: creator_id})[0].username;
-  }
-  api_response(res, 200, JSON.stringify(all_pages));
-}
-```
-
-<br/><br/><br/><br/>
-
-
-
-<h3 id="a-12"> ☑️ Step 12:  Creating <code>pages/cms/pages.html</code> </h3>
-
-This page will allow us to view all pages created in our database.  
-Create a new page, `/pages/cms/pages.html`, and add this:
+This page will allow us to view all components created in our database.  
+Create a new page, `/pages/cms/components/components.html`, and add this:
 
 ```html
 <div class="p-3 center-column">
-  <h3>All dynamic pages:</h3>
+  <h3>All components:</h3>
   <div id="search-bar-row">
-    <input id="search" placeholder="Search pages..." oninput="search_pages()"/>
+    <input id="search" placeholder="Search components..." oninput="search_components()"/>
     <div id="search-settings-toggle" onclick="toggle_settings()">Settings  &#x25B8;</div>
   </div>
-  <div id="search-settings" onclick="search_pages()">
+  <div id="search-settings" onclick="search_components()">
     <div>Sort by: </div>
     <div><input type="radio" name="sort_types" value="title" checked /> Title</div>
     <div><input type="radio" name="sort_types" value="date"/> Date created</div>
     <div><input type="radio" name="sort_types" value="creator"/> Creator</div>
     <div style="display: flex;align-items: center;"><input type="checkbox" id="invert-sort"/> Invert results</div>
   </div>
-  <table id="page-table">
-    <!--  Page data goes here-->
+  <table id="component-table">
+    <!--  Component data goes here-->
   </table>
   <br/><br/><br/><br/>
-  <a href="/new-page"><button>+ Create new page</button></a>
+  <a href="/new-component"><button>+ Create new component</button></a>
 </div>
 
 <script>
-  let pageTable = document.getElementById('page-table');
-  let all_pages = [];
+  let componentTable = document.getElementById('component-table');
+  let all_components = [];
   let show_settings = false;
 
-  function render_table(pages) {
-    pageTable.innerHTML = `<tr>
+  function render_table(components) {
+    componentTable.innerHTML = `<tr>
       <th>Private?</th>
       <th>Title</th>
-      <th>Route</th>
+      <th>Tag</th>
       <th>Edit</th>
     </tr>`;
-    for (var i = 0; i < pages.length; i++) {
-      let page = pages[i];
-      pageTable.insertRow().innerHTML += `<tr>
-        <td class="is-public">${page.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
+    for (var i = 0; i < components.length; i++) {
+      let component = components[i];
+      componentTable.insertRow().innerHTML += `<tr>
+        <td class="is-public">${component.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
         <td>
-          <div class="page-title"><a href="/${page.route}">${page.title}</a></div>
-          <div class="created-by">Created by ${page.created_by}</div>
-          <div class="tags">${get_tag_html(page.tags)}</div>
+          <div class="component-title"><a href="/${component.route}">${component.title}</a></div>
+          <div class="created-by">Created by ${component.created_by}</div>
+          <div class="tags">${get_tag_html(component.tags)}</div>
         </td>
-        <td><a href="/${page.route}">/${page.route}</a></td>
-        <td>${_current_user.username == page.created_by ? `<a href="/edit/${page.route}"><img src="/assets/icons/edit.svg"/></a>` : ''}</td>
+        <td>&lt;${component.route}&gt;</td>
+        <td>${_current_user.username == component.created_by ? `<a href="/edit-component/${component.route}"><img src="/assets/icons/edit.svg"/></a>` : ''}</td>
       </tr>`;
     }
-    if (pages.length < 1) {
-      pageTable.insertRow().innerHTML += `<tr><td></td><td id="no-pages-found">(No pages found)</td><td></td><td></td></tr>`;
+    if (components.length < 1) {
+      componentTable.insertRow().innerHTML += `<tr><td></td><td id="no-components-found">(No components found)</td><td></td><td></td></tr>`;
     }
   }
 
@@ -582,13 +443,13 @@ Create a new page, `/pages/cms/pages.html`, and add this:
   }
   function search_tag(tag) {
     document.getElementById('search').value = `tag:${tag}`;
-    search_pages();
+    search_components();
   }
 
-  function search_pages() {
+  function search_components() {
     let search = document.getElementById('search').value;
     if (search.length < 1) {
-      return sort_pages(all_pages);
+      return sort_components(all_components);
     }
     let tags = [];
     while (search.includes('tag:')) {
@@ -600,31 +461,31 @@ Create a new page, `/pages/cms/pages.html`, and add this:
       search = search.slice(0,tag_text_pos) + search.slice(end_of_tag_pos,search.length);
     }
     
-    let searched_pages = all_pages.filter(page => {
+    let searched_components = all_components.filter(component => {
       let is_match = true;
-      if (page.title.search(search.trim()) == -1) is_match = false;
+      if (component.title.search(search.trim()) == -1) is_match = false;
       for (let i = 0; i < tags.length; i++) {
-        if (!page.tags.includes(tags[i])) is_match = false;
+        if (!component.tags.includes(tags[i])) is_match = false;
       }
       return is_match
     })
-    sort_pages(searched_pages);
+    sort_components(searched_components);
   }
 
-  function sort_pages(pages) {
+  function sort_components(components) {
     let sort_types = document.getElementsByName('sort_types');
-    let sorted_pages = [];
+    let sorted_components = [];
     if (sort_types[2].checked) {         // creator
-      sorted_pages = pages.sort((a, b) => { return a.created_by > b.created_by; });
+      sorted_components = components.sort((a, b) => { return a.created_by > b.created_by; });
     } else if (sort_types[1].checked) {  // date
-      sorted_pages = pages.sort((a, b) => { return new Date(a.date_created) > new Date(b.date_created); });
+      sorted_components = components.sort((a, b) => { return new Date(a.date_created) > new Date(b.date_created); });
     } else {                             // title
-      sorted_pages = pages.sort((a, b) => { return a.title > b.title; });
+      sorted_components = components.sort((a, b) => { return a.title > b.title; });
     }
     if (document.getElementById('invert-sort').checked) {
-      sorted_pages.reverse();
+      sorted_components.reverse();
     }
-    render_table(sorted_pages);
+    render_table(sorted_components);
   }
 
   function toggle_settings() {
@@ -638,23 +499,23 @@ Create a new page, `/pages/cms/pages.html`, and add this:
     }
   }
 
-  function get_all_pages() {
+  function get_all_components() {
     const http = new XMLHttpRequest();
-    http.open('GET', '/api/all-pages');
+    http.open('GET', '/api/all-components');
     http.send();
     http.onreadystatechange = (e) => {
       let response;      
       if (http.readyState == 4 && http.status == 200) {
         response = JSON.parse(http.responseText); 
-        console.log("Pages loaded!");
-        all_pages = response;
-        sort_pages(all_pages);
+        console.log("Components loaded!");
+        all_components = response;
+        sort_components(all_components);
       }
     }
   }
 
   current_user_loaded = function () {
-    get_all_pages();
+    get_all_components();
   }
   
 </script>
@@ -707,7 +568,7 @@ Create a new page, `/pages/cms/pages.html`, and add this:
     width: 50px;
   }
 
-  div.page-title {
+  div.component-title {
     color: var(--yellow);
     font-size: 1.3em;
   }
@@ -732,7 +593,7 @@ Create a new page, `/pages/cms/pages.html`, and add this:
     cursor: pointer;
   }
 
-  #no-pages-found {
+  #no-components-found {
     text-align: center;
     opacity: .5;
   }
@@ -742,20 +603,23 @@ Create a new page, `/pages/cms/pages.html`, and add this:
 <br/><br/><br/><br/>
 
 
-<h3 id="a-13"> ☑️ Step 13:   ☞ Test the code!  </h3>
+<h3 id="a-9"> ☑️ Step 9:   ☞ Test the code!  </h3>
 
-Restart the server, and go to `/pages`.  
-You should see a table of all the created pages! Wonderful.   
+Restart the server.  
 
-Pages that are not "public" should have a lock displayed by them.  
-Pages created by the current user should have an "edit" icon, linking to an edit page -- which is a 404 for now.  
+On `/new-component` and `/components`, if you're *not* logged in you should be rerouted to `/`.  
 
-You should also be able to search for pages by title, and sort the page display by title, creator, or date created. 
+You should see a table of all the created components! Wonderful.   
+
+Components that are not "public" should have a lock displayed by them.  
+Components created by the current user should have an "edit" icon, linking to an edit page -- which is a 404 for now.  
+
+You should also be able to search for components by title, and sort the page display by title, creator, or date created. 
 
 <br/><br/><br/><br/>
 
 
-<h3 id="a-14">☑️ Step 14. ❖ Part A review. </h3>
+<h3 id="a-10">☑️ Step 10. ❖ Part A review. </h3>
 
 The complete code for Part A is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version3.0/part_A).
 
@@ -765,50 +629,24 @@ The complete code for Part A is available [here](https://github.com/rooftop-medi
 
 
 
-<h2 id="part-b" align="center">  Part B:  Page element editing </h2>
+<h2 id="part-b" align="center">  Part B:  Component server-side rendering </h2>
 
-In this section, we'll create a new dynamic route, `/edit/:page_route`.  
-On this page, users can edit a page's title, add elements to the page, and edit those element's properties. 
+In this section, we'll create a test component, and ensure it can be rendered properly in a dynamic page. 
 
-This page is a true webapp interface, and thus deserves a lot of attention, similar to a full [terminal app](https://github.com/rooftop-media/ktty-tutorial/blob/main/js/version1.0/tutorial.md).
+On the server side, this will happen:
+ - Find component tag names in dynamic page HTML.
+   - Also get the attributes and innerHTML associated with that tag.
+ - Replace the component tag with the component's template HTML.
+ - Fill in custom "props" in the compontent template HTML, using attributes. 
 
 <br/><br/><br/><br/>
 
 
 
-<h3 id="b-1">  ☑️ Step 1: Adding <code>/edit/:page_route</code> to <code>/server/server.js</code>  </h3>
+<h3 id="b-1">  ☑️ Step 1: Edit <code>GET_routes['/api/page']</code> in <code>/server/server.js</code>  </h3>
 
-First, we'll edit `respond_with_a_page` to check for URLs starting with `/edit/`: 
+The function `GET_routes['/api/page']` will now replace component tags with component templates before sending the page's HTML.
 
-```js
-function respond_with_a_page(res, url) {
-  let page_content = "";
-
-  if (pageURLkeys.includes(url)) {  //  If it's a static page route....
-    url = pageURLs[url];
-    try {
-      page_content = fs.readFileSync( __dirname + '/..' + url);
-    } catch(err) {
-      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    }
-  } else if (url.substring(0, 6) == '/edit/') {
-    page_content = fs.readFileSync(__dirname + '/../pages/cms/edit-page.html');
-  } else {                          //  If it's a dynamic page route....
-    let page_data = DataBase.table('pages').find({ route: url.slice(1) });  //  Removing the "/" from the route
-    if (page_data.length < 1) {
-      page_content = fs.readFileSync(__dirname + '/../pages/misc/404.html');
-    } else {
-      page_content = fs.readFileSync(__dirname + '/../pages/cms/dynamic-page.html');
-    }
-  }
-  res.writeHead(200, {'Content-Type': 'text/html'});
-  var main_page = fs.readFileSync(__dirname + '/../pages/index.html', {encoding:'utf8'});
-  var page_halves = main_page.split('<!--  Insert page content here!  -->');
-  var rendered = page_halves[0] + page_content + page_halves[1];
-  res.write(rendered);
-  res.end();
-}
-```
 
 <br/><br/><br/><br/>
 
