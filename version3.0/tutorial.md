@@ -643,289 +643,171 @@ On the server side, this will happen:
 
 
 
-<h3 id="b-1">  ☑️ Step 1: Add <code>GET_routes['/api/SSR-page']</code> in <code>/server/server.js</code>  </h3>
+<h3 id="b-1">  ☑️ Step 1: Create <code>/server/utils/ssr.js</code>  </h3>
 
-Add the function `GET_routes['/api/SSR-page']` right below `GET_routes['/api/page']`. This will replace component tags with component templates before sending the page's HTML.
+Create a new folder `/server/utils/` and add a new file, `ssr.js`. SSR stands for Server Side Rendering. 
+
+```js
+//  This script has functions to do server side rendering. 
+
+//  Importing our custom libraries
+const DataBase = require('../database/database.js');
+const ConvertMarkup = require('../../pages/cms/convert-markup.js');
 
 
-<br/><br/><br/><br/>
-
-
-
-<h3 id="b-3">  ☑️ Step 3: Create <code>/pages/cms/edit-page.html</code>  </h3>
-
-This is another dynamic page. It will get a page's details via an API call to `POST_get_page`.  
-Then, it will load the page's content, as markdown, into an editable box.
-
-A "buffer" (a draft) of the page's markdown can then be edited.
-Finally, pages can be "saved", updating the published page.  
-
-Create the file `/pages/cms/edit-page.html`, with the following code:  
-
-```html
-<div class="p-3 center-column" id="loading-page">
-  Loading page...
-</div>
-
-<div class="p-3 center-column" id="dynamic-page">
-  <div class="flex-row">
-    <div style="width:40%;">Route: / <input id="page-route" type="text" value="" oninput="update_pageRoute()" tabindex="1" /></div>
-    <div style="display: flex; align-items: center;">Public? <input id="is-public" type="checkbox" onclick="toggle_publicity()" tabindex="2"/></div>
-  </div>
-  <div class="flex-row">
-    <input id="page-title" type="text" value="" oninput="update_pageTitle()" tabindex="3">
-    <button onclick="cancel()">Cancel</button>
-    <button id="save" onclick="save()" tabindex="6">Save</button>
-  </div>
-  <div id="error"></div>
-
-  <textarea id="page-buffer" oninput="update_buffer(event.currentTarget.value)" tabindex="5"></textarea/>
-  <br/><br/>
-  <button onclick="render_preview()">Preview</button>
-  <button style="margin-left:20px;" onclick="window.location.href = `/${page_route}`">Go to Page</button>
-  <br/><br/><br/><hr/><br/><br/>
-  <button style="background: var(--red);" onclick="delete_page()">Delete Page</button>
-</div>
-
-<div class="p-3 center-column" id="preview-page">
-  <button onclick="back_to_editor()">Edit</button><br/><hr/><br/>
-  <div id="preview-content"></div>
-</div>
-
-<script>
-
-////  SECTION 1: Page memory
-let page_route = _current_page.slice(6, _current_page.length);
-let buffer_data = {};
-let page_data = {};
-let is_saved = true;
-
-////  SECTION 2: Render
-
-//  Renders the text editor, final page, or "page does not exist" message.
-function render_page() {
-  document.getElementById('page-route').value = buffer_data.route;
-  document.getElementById('is-public').checked = buffer_data.is_public;
-  document.getElementById('page-title').value = buffer_data.title;
-  document.getElementById('page-buffer').innerHTML = buffer_data.content;
-  check_if_saved();
-}
-
-function render_preview() {
-  document.getElementById('dynamic-page').style.display = `none`;
-  document.getElementById('preview-page').style.display = 'block';
-  document.getElementById('preview-content').innerHTML = buffer_data.content;
-}
-
-function back_to_editor() {
-  document.getElementById('dynamic-page').style.display = `block`;
-  document.getElementById('preview-page').style.display = 'none';
-  render_page();
-}
-
-////  SECTION 3: Event reactions
-
-//  Fired if unsaved changes exist
-function beforeUnloadListener(event) {
-  event.preventDefault();
-  return (event.returnValue = "");
-};
-
-//  Fired in render_page() and in any buffer editing function
-function check_if_saved() {
-  is_saved = (buffer_data.content == page_data.content) && (buffer_data.title == page_data.title) 
-    && (buffer_data.is_public == page_data.is_public) && (buffer_data.route == page_data.route);
-  if (!is_saved) {
-    addEventListener("beforeunload", beforeUnloadListener, { capture: true });
-    document.getElementById('save').classList.remove('inactive');
-  } else {
-    removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
-    document.getElementById('save').classList.add('inactive');
+//  Take an HTML string w/ components, returns an html string
+function render_components(html) {
+  let _tokens = ConvertMarkup.markup_to_tokens(html);
+  let _parsed = tokens_to_parse(_tokens);
+  let _escaped_parse = parse_code_tags(_parsed);
+  let _tags = parse_to_tags(_escaped_parse);
+  //  Find + replace components
+  let allowed_tags = [
+    'h1','h2','h3','h4','h5','h6','p','div','span','b','i','pre','code','style',
+    'ol','ul','li','table','tr','th','td','a','img','br','hr'
+  ];
+  let _component = {
+    tag_name: '',
+    attrs: {},
+    text: ''
   }
-}
-
-//  Fires when new page content is typed.
-function update_buffer(newval) {
-  buffer_data.content = newval;
-  check_if_saved();
-}
-
-//  Fires when the page title is changed. 
-function update_pageTitle() {
-  buffer_data.title = document.getElementById('page-title').value;
-  check_if_saved();
-}
-
-function update_pageRoute() {
-  buffer_data.route = document.getElementById('page-route').value;
-  check_if_saved();
-}
-
-function toggle_publicity() {
-  buffer_data.is_public = !buffer_data.is_public;
-  render_page();
-}
-
-//  Fires when "Save page changes" is clicked.
-function save() {
-  console.log("saving...")
-  const http = new XMLHttpRequest();
-  http.open('POST', '/api/update-page');
-  http.send(JSON.stringify({ 
-    id: page_data.id,
-    title: buffer_data.title,
-    content: buffer_data.content,
-    route: buffer_data.route,
-    is_public: buffer_data.is_public
-  }));
-  http.onreadystatechange = (e) => {
-    let response;      
-    if (http.readyState == 4 && http.status == 200) {
-      response = JSON.parse(http.responseText);
-      if (!response.error) {
-        console.log("Response recieved! Page updated.");
-        page_data.content = buffer_data.content;
-        page_data.title = buffer_data.title;
-        page_data.route = buffer_data.route;
-        page_data.is_public = buffer_data.is_public;
-        render_page();
-        if (_current_page.split('/edit/')[1] != buffer_data.route) {
-          window.location.href = '/edit/' + buffer_data.route;
-        }
+  let _attr_name = '';
+  let _replace_start_pt;
+  for (let i = 0; i < _tags.length; i++) {
+    if ( !_component.tag_name && _tags[i].type == 'OPEN-TAG' && !allowed_tags.includes(_tags[i].value)) {
+      _component.tag_name = _tags[i].value;
+      _replace_start_pt = i;
+    } else if (_component.tag_name && tags[i].type == 'ATTR-NAME') {
+      _attr_name = tags[i].value;
+    } else if (_component.tag_name && tags[i].type == 'ATTR-VALUE') {
+      _component[_attr_name] = tags[i].value;
+    } else if (_component.tag_name && tags[i].type == 'TEXT') {
+      _component.text = tags[i].value;
+    } else if (_component.tag_name && tags[i].type == 'CLOSE-TAG') {
+      // now we have the component info... time to replace it.
+      let found_components = DataBase.table('components').find(_component.tag_name);
+      if (found_components.length != 0) {
+        let c_html = found_components[0].content;
+        let c_tokens = ConvertMarkup.markup_to_tokens(c_html);
+        let c_parsed = tokens_to_parse(c_tokens);
+        let c_escaped_parse = parse_code_tags(c_parsed);
+        let c_tags = parse_to_tags(c_escaped_parse);  
+        _tags.splice(_replace_start_pt, i-_replace_start_pt,c_tags);
+        i = _replace_start_pt;
+        //
+        
       } else {
-        console.warn("Err")
-        document.getElementById('error').innerHTML = response.msg;
+        //  Error? Component not found
+      }
+      _component = {
+        tag_name: '',
+        attrs: {},
+        text: ''
       }
     }
   }
+  //  let _valid_tags = tags_to_valid_tags(_tags);
+  let final_html = tags_to_html(_valid_tags);
+  return final_html;
 }
 
-//  Fires when the cancel button is clicked.
-function cancel() {
-  if (confirm('Are you sure? Changes will not be saved!')) {
-    window.location.href = '/edit/' + page_route;
-  }
+module.exports = {
+  render_components
 }
-
-//  Fired when the delete page button is clicked
-function delete_page() {
-  if (!confirm(`Are you sure you want to permanently delete /${page_route}?`)) {
-    return;
-  }
-  const http = new XMLHttpRequest();
-  http.open('POST', '/api/delete-page');
-  http.send(JSON.stringify({ 
-    id: page_data.id
-  }));
-  http.onreadystatechange = (e) => {
-    if (http.readyState == 4 && http.status == 200) {
-      response = JSON.parse(http.responseText);
-      if (!response.error) {
-        document.getElementById('error').innerHTML = "Page deleted.  Redirecting you...";
-        window.location.href = '/';
-      } else {
-        console.warn("Err")
-        document.getElementById('error').innerHTML = response.msg;
-      }
-    }
-  }
-}
-
-////  SECTION 4: Boot
-//  Load all page elements from API, then render buffer
-function load_page() {
-  const http = new XMLHttpRequest();
-  http.open('GET', `/api/page?route=${page_route}`);
-  http.send();
-  http.onreadystatechange = (e) => {
-    let response;      
-    if (http.readyState == 4 && http.status == 200) {
-      response = JSON.parse(http.responseText);
-      document.getElementById('loading-page').style.display = 'none';
-      document.getElementById('dynamic-page').style.display = 'block';
-      if (!response.error) {
-        console.log("Response recieved! Loading page.");
-        page_data = response.data;
-        buffer_data.content = page_data.content || "";
-        buffer_data.title = page_data.title || "";
-        buffer_data.route = page_data.route;
-        buffer_data.is_public = page_data.is_public;
-        render_page();
-      } else {
-        document.getElementById('dynamic-page').innerHTML = response.msg;
-      }
-    }
-  }
-}
-load_page();
-
-</script>
-
-<style> 
-  #dynamic-page {
-    position: relative;
-    display: none;
-  }
-
-  #preview-page {
-    display: none;
-  }
-
-  #dynamic-page input:not([type='checkbox']) {
-    font-family: CrimsonText;
-    width: 60%;
-  }
-
-  input#page-route {
-    font-size: 1em;
-  }
-
-  input#page-title {
-    margin: 0.67em 0px;
-    padding: 0px;
-    font-size: 2em;
-  }
-  
-  #page-buffer {
-    min-height: 60vh;
-    min-width: 100%;
-  }
-
-  .flex-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  #dynamic-page button {
-    width: 15%;
-  }
-
-  #dynamic-page button#save {
-    background: #3A7B64;
-  }
-  .inactive {
-    opacity: 0.5;
-  }
-
-</style>
 ```
 
 <br/><br/><br/><br/>
 
 
-<h3 id="b-4">  ☑️ Step 4: Adding <code>/api/update-page</code> to <code>/server/server.js</code>  </h3>
 
-Another API route, here we go.  
+<h3 id="b-2">  ☑️ Step 2: Add <code>GET_routes['/api/SSR-page']</code> in <code>/server/server.js</code>  </h3>
 
-Right after `POST_routes['/api/create-page']`, add a function called `POST_routes['/api/update-page']`:  
+First, at the top of `/server/server.js`, we need to import the SSR functions we just wrote:
 
-```javascript
-POST_routes['/api/update-page'] = function(page_update, res) {  
-  let response = DataBase.table('pages').update(page_update.id, page_update);
+```js
+//  Importing our custom libraries
+const DataBase = require('./database/database.js');
+const SSR = require('./utils/ssr.js');
+```
+
+Now, add the function `GET_routes['/api/SSR-page']` right below `GET_routes['/api/page']`. This will replace component tags with component templates before sending the page's HTML.
+
+```js
+GET_routes['/api/SSR-page'] = function(req_data, res) {
+  let response = { error: false };
+  let page_data = DataBase.table('pages').find({ route: req_data.route });
+  let session_data = DataBase.table('sessions').find({ id: req_data.session_id });
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = `The page ${req_data.route} was not found.`;
+  } else if (page_data[0].is_public || (session_data.length > 0 && page_data[0].created_by == session_data[0].user_id)) {
+    response.data =  page_data[0];
+  } else {
+    response.error = true;
+    response.msg = `You don't have permission to view this page.`;
+  }
+  //  Now we have our page, we SSR components
+  response.data.content = SSR.render_components(response.data.content);
+  
+  console.log(response.data.content)
+  console.log(ConvertMarkup.markup_to_tokens(response.data.content))
   api_response(res, 200, JSON.stringify(response));
 }
 ```
+
+<br/><br/><br/><br/>
+
+
+<h3 id="b-3">  ☑️ Step 3: Edit `/pages/cms/dynamic-page.html` to use SSR.  </h3>
+
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="b-4"> ☑️ Step 4:   ☞ Test the code!  </h3>
+
+Restart the server.  
+
+Save a component with the name `profile-card` following HTML content:
+
+```html
+<div class="profile-card">
+  {{ name }}
+</div>
+<style>
+  .profile-card {
+    border-radius: 5px;
+    padding: 5px;
+    background: darkgreen;
+  }
+</style>
+```
+
+(We haven't made the editor yet, so either create a new one or edit `table_rows/components.json`.)
+
+Now create a new page, using this component twice:
+
+```html
+<h1>Component test!</h1>
+<div>Below should be two components:</div>
+<profile-card></profile-card/>
+<div>Here's the second:</div>
+<profile-card/>
+<div>Did that work?</div>
+```
+
+Open up that page. It should render. 
+
+<br/><br/><br/><br/>
+
+
+
+
+
+<h3 id="b-4">  ☑️ Step 4:   </h3>
+
+
 
 <br/><br/><br/><br/>
 
