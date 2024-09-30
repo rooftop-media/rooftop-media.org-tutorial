@@ -643,9 +643,9 @@ On the server side, this will happen:
 
 
 
-<h3 id="b-1">  ☑️ Step 1: Edit <code>GET_routes['/api/page']</code> in <code>/server/server.js</code>  </h3>
+<h3 id="b-1">  ☑️ Step 1: Add <code>GET_routes['/api/SSR-page']</code> in <code>/server/server.js</code>  </h3>
 
-The function `GET_routes['/api/page']` will now replace component tags with component templates before sending the page's HTML.
+Add the function `GET_routes['/api/SSR-page']` right below `GET_routes['/api/page']`. This will replace component tags with component templates before sending the page's HTML.
 
 
 <br/><br/><br/><br/>
