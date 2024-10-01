@@ -81,7 +81,7 @@ This page will be a form to create new components.
   <div>Component tag name: <input type="text" tabindex="2" id="component_route" placeholder="click-counter"/></div>
   <div>Tags: <span id="tags"></span><input type="text" tabindex="3" id="component_tags" placeholder="counter, demo" /></div>
   <div>Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
-  <div>Content:<textarea id="component_content" spellcheck="false" tabindex="4" placeholder="<template> ..."></textarea></div>
+  <div>Content:<textarea id="component_content" spellcheck="false" tabindex="4" placeholder="&lt;template> ..."></textarea></div>
   <p id="error"></p>
   <button onclick="create_component()" tabindex="5">Create Component</button>
 </div>
@@ -134,7 +134,6 @@ function create_component() {
     content,
     created_by: _current_user.id,
     date_created: new Date().toString(),
-    content: '',
     history: []
   }));
   http.onreadystatechange = (e) => {
@@ -760,6 +759,34 @@ GET_routes['/api/SSR-page'] = function(req_data, res) {
 
 <h3 id="b-3">  ☑️ Step 3: Edit `/pages/cms/dynamic-page.html` to use SSR.  </h3>
 
+We're just changing one line in `/pages/cms/dynamic-page.html`: in `load_page`, call our new `/api/SSR-page` route.
+Here's the full function anyway though. 
+
+```js
+////  SECTION 4: Boot
+//  Load page from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('GET', `/api/SSR-page?route=${page_route}&session_id=${_session_id}`);
+  http.send();
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Loading page.");
+        page_data = response.data;
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+current_user_loaded = function() {
+  load_page();
+}
+```
 
 <br/><br/><br/><br/>
 
