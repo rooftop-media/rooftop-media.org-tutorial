@@ -806,7 +806,9 @@ Save a component with the name `profile-card` following HTML content:
   .profile-card {
     border-radius: 5px;
     padding: 5px;
-    background: darkgreen;
+    background: #432D21;
+    width: 100px;
+    text-align: center;
   }
 </style>
 ```
