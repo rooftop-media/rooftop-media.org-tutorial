@@ -28,13 +28,24 @@ This tutorial is organized into 3 stable, usable **versions**, with more version
   <th>Approx. Length</th>
  </tr>
  <tr>
-  <td><a href="https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md">v1.0</a></td>
+  <td>
+   <a href="https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version1.0/tutorial.md">v1.0</a>
+  </td>
   <td>Static pages & user management</td>
   <td>1 hour, 15 min.</td>
  </tr>
  <tr>
-  <td><a href="https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md">v2.0</a></td>
+  <td>
+   <a href="https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version2.0/tutorial.md">v2.0</a>
+  </td>
   <td>Text editor</td>
+  <td>? hour, ? minutes</td>
+ </tr>
+ <tr>
+  <td>
+   <a href="https://github.com/rooftop-media/rooftop-media.org-tutorial/blob/main/version3.0/tutorial.md">v3.0</a>
+  </td>
+  <td>Components</td>
   <td>In progress</td>
  </tr>
 </table>
