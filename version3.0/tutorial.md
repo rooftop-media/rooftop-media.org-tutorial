@@ -35,7 +35,12 @@ Click a part title to jump down to it, in this file.
     <td>??</td>
   </tr>
   <tr>
-    <td><a href="#part-b">Part B - </a></td>
+    <td><a href="#part-b">Part B - Component server-side rendering</a></td>
+    <td>?? min.</td>
+    <td>??</td>
+  </tr>
+ <tr>
+    <td><a href="#part-c">Part C - Component editing and preview</a></td>
     <td>?? min.</td>
     <td>??</td>
   </tr>
