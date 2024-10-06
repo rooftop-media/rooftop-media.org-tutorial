@@ -1,0 +1,331 @@
+<div class="p-3 center-column" id="loading-page">
+  Loading page...
+</div>
+
+<div class="p-3 center-column" id="dynamic-page">
+  <div class="flex-row">
+    <div style="width:40%;">Route: / <input id="page-route" type="text" value="" oninput="update_pageRoute()" tabindex="1" /></div>
+    <div style="display: flex; align-items: center;">Public? <input id="is-public" type="checkbox" onclick="toggle_publicity()" tabindex="2"/></div>
+  </div>
+  <div class="flex-row">
+    <input id="page-title" type="text" value="" oninput="update_pageTitle()" tabindex="3">
+    <button onclick="cancel()">Cancel</button>
+    <button id="save" onclick="save()" tabindex="6">Save</button>
+  </div>
+  <div id="error"></div>
+
+  <textarea id="page-buffer" spellcheck="false" oninput="update_buffer(event.currentTarget.value)" onscroll="sync_scroll(this);" tabindex="5"></textarea>
+  <pre id="highlighting" aria-hidden="true"><code id="highlighting-content"></code></pre>
+    
+  <br/><br/>
+  <button onclick="render_preview()">Preview</button>
+  <button style="margin-left:20px;" onclick="window.location.href = `/${page_route}`">Go to Page</button>
+  <br/><br/><br/><hr/><br/><br/>
+  <button style="background: var(--red);" onclick="delete_page()">Delete Page</button>
+</div>
+
+<div class="p-3 center-column" id="preview-page">
+  <button onclick="back_to_editor()">Edit</button><br/><hr/><br/>
+  <div id="preview-content"></div>
+</div>
+
+<script src="/pages/cms/convert-markup.js"></script>
+<script>
+
+////  SECTION 1: Page memory
+let page_route = _current_page.slice(6, _current_page.length);
+let buffer_data = {};
+let page_data = {};
+let is_saved = true;
+
+////  SECTION 2: Render
+
+//  Renders the text editor, final page, or "page does not exist" message.
+function render_page() {
+  document.getElementById('page-route').value = buffer_data.route;
+  document.getElementById('is-public').checked = buffer_data.is_public;
+  document.getElementById('page-title').value = buffer_data.title;
+  document.getElementById('page-buffer').value = buffer_data.content;
+
+  document.getElementById('highlighting-content').innerHTML = create_highlighting(buffer_data.content);
+  check_if_saved();
+}
+
+function render_preview() {
+  document.getElementById('dynamic-page').style.display = `none`;
+  document.getElementById('preview-page').style.display = 'block';
+  document.getElementById('preview-content').innerHTML = validate_html(buffer_data.content);
+}
+
+function back_to_editor() {
+  document.getElementById('dynamic-page').style.display = `block`;
+  document.getElementById('preview-page').style.display = 'none';
+  render_page();
+}
+
+function create_highlighting(markup_text) {
+  let tokens = markup_to_tokens(markup_text);
+  let pre_parsed = tokens_to_parse(tokens);
+  let parsed = parse_code_tags(pre_parsed);
+  let colors = {
+    'LESS-THAN': 'var(--yellow)',
+    'GREATER-THAN': 'var(--yellow)',
+    'OPEN-TAG': '#90E2B6',
+    'CLOSE-TAG': '#90E2B6',
+    'FORWARD-SLASH': 'white',
+    'ATTR-NAME': '#FFD024',
+    'EQUALS': 'white',
+    'ATTR-VALUE': '#86C3FD',
+    'DOUBLE-QUOTE': '#86C3FD',
+    'SINGLE-QUOTE': '#86C3FD',
+    'TEXT': 'white',
+    'COMMENT': 'gray',
+    'DASH': 'gray',
+    'EXCLAMATION': 'gray',
+    'CODE-TAG-TEXT': 'gray',
+    'INVALID': 'white'
+  }
+  let highlighted = '';
+  for (let i = 0; i < parsed.length; i++) {
+    let escaped_text = parsed[i].value.replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#39;");
+
+    highlighted += parsed[i].type == 'INVALID' ? '<span style="text-decoration:underline;text-decoration-color:red;">' : '';
+    highlighted += `<span style="color:${colors[parsed[i].type]};">${escaped_text}</span>`;
+    highlighted += parsed[i].type == 'INVALID' ? '</span>' : '';
+
+  }
+  if(buffer_data.content[buffer_data.content.length - 1] == "\n") {     // Fixing "last newline" error -- see css-tricks article
+    highlighted += " ";  
+  }
+  return highlighted;
+}
+
+////  SECTION 3: Event reactions
+
+//  Fired if unsaved changes exist
+function beforeUnloadListener(event) {
+  event.preventDefault();
+  return (event.returnValue = "");
+};
+
+//  Fired in render_page() and in any buffer editing function
+function check_if_saved() {
+  is_saved = (buffer_data.content == page_data.content) && (buffer_data.title == page_data.title) 
+    && (buffer_data.is_public == page_data.is_public) && (buffer_data.route == page_data.route);
+  if (!is_saved) {
+    addEventListener("beforeunload", beforeUnloadListener, { capture: true });
+    document.getElementById('save').classList.remove('inactive');
+  } else {
+    removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
+    document.getElementById('save').classList.add('inactive');
+  }
+}
+
+//  Fires when new page content is typed.
+function update_buffer(newval) {
+  buffer_data.content = newval;
+  document.getElementById('highlighting-content').innerHTML = create_highlighting(buffer_data.content);
+
+  if(buffer_data.content[buffer_data.content.length - 1] == "\n") {     // Fixing "last newline" error -- see css-tricks article
+    document.getElementById('highlighting-content').innerHTML += " ";  
+  }
+  check_if_saved();
+}
+
+//  Syncronizes the textarea scroll with the highlighted <pre> scroll
+function sync_scroll(element) {
+  let result_element = document.querySelector("#highlighting");
+  result_element.scrollTop = element.scrollTop;
+  result_element.scrollLeft = element.scrollLeft;
+}
+
+//  Fires when the page title is changed. 
+function update_pageTitle() {
+  buffer_data.title = document.getElementById('page-title').value;
+  check_if_saved();
+}
+
+function update_pageRoute() {
+  buffer_data.route = document.getElementById('page-route').value;
+  check_if_saved();
+}
+
+function toggle_publicity() {
+  buffer_data.is_public = !buffer_data.is_public;
+  render_page();
+}
+
+//  Fires when "Save page changes" is clicked.
+function save() {
+  console.log("saving...")
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/update-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    title: buffer_data.title,
+    content: buffer_data.content,
+    route: buffer_data.route,
+    is_public: buffer_data.is_public,
+    session_id: _session_id
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Page updated.");
+        page_data.content = buffer_data.content;
+        page_data.title = buffer_data.title;
+        page_data.route = buffer_data.route;
+        page_data.is_public = buffer_data.is_public;
+        render_page();
+        if (_current_page.split('/edit/')[1] != buffer_data.route) {
+          window.location.href = '/edit/' + buffer_data.route;
+        }
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+//  Fires when the cancel button is clicked.
+function cancel() {
+  if (confirm('Are you sure? Changes will not be saved!')) {
+    window.location.href = '/edit/' + page_route;
+  }
+}
+
+//  Fired when the delete page button is clicked
+function delete_page() {
+  if (!confirm(`Are you sure you want to permanently delete /${page_route}?`)) {
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/delete-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    session_id: _session_id
+  }));
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = "Page deleted.  Redirecting you...";
+        window.location.href = '/';
+      } else {
+        console.warn(response.msg);
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+////  SECTION 4: Boot
+//  Load all page elements from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('GET', `/api/page?route=${page_route}&session_id=${_session_id}`);
+  http.send();
+  console.log('Requesting page')
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      document.getElementById('loading-page').style.display = 'none';
+      document.getElementById('dynamic-page').style.display = 'block';
+      if (!response.error) {
+        console.log("Response recieved! Loading page.");
+        page_data = response.data;
+        if (page_data.created_by != _current_user.id) {
+          document.getElementById('dynamic-page').innerHTML = "You don't have permission to edit this page.";
+          return;
+        }
+        buffer_data.content = page_data.content || "";
+        buffer_data.title = page_data.title || "";
+        buffer_data.route = page_data.route;
+        buffer_data.is_public = page_data.is_public;
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+current_user_loaded = function() {
+  load_page();
+}
+
+</script>
+
+<style> 
+  #dynamic-page {
+    position: relative;
+    padding: 40px 0px;
+    display: none;
+  }
+
+  #preview-page {
+    display: none;
+  }
+
+  #dynamic-page input:not([type='checkbox']) {
+    font-family: CrimsonText;
+    width: 60%;
+  }
+
+  input#page-route {
+    font-size: 1em;
+  }
+
+  input#page-title {
+    margin: 0.67em 0px;
+    padding: 0px;
+    font-size: 2em;
+  }
+  
+  /*  Page buffer + highlighter */
+  #page-buffer, #highlighting {
+    height: 60vh;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    box-sizing: border-box;
+    overflow-y: scroll;
+    
+  }
+  #page-buffer {
+    position: absolute;
+    z-index: 1;
+    color: transparent;
+    background: transparent;
+    caret-color: white;
+    resize: none;
+  }
+  #highlighting {
+    z-index: 0;
+  }
+
+  .flex-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #dynamic-page button {
+    width: 15%;
+  }
+
+  #dynamic-page button#save {
+    background: #3A7B64;
+  }
+  .inactive {
+    opacity: 0.5;
+  }
+
+</style>

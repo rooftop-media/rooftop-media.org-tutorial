@@ -1,0 +1,332 @@
+<div class="p-3 center-column" id="loading-component">
+  Loading component...
+</div>
+
+<div class="p-3 center-column" id="dynamic-component">
+  <div class="flex-row">
+    <div style="width:40%;">Route: / <input id="component-route" type="text" value="" oninput="update_componentRoute()" tabindex="1" /></div>
+    <div style="display: flex; align-items: center;">Public? <input id="is-public" type="checkbox" onclick="toggle_publicity()" tabindex="2"/></div>
+  </div>
+  <div class="flex-row">
+    <input id="component-title" type="text" value="" oninput="update_componentTitle()" tabindex="3">
+    <button onclick="cancel()">Cancel</button>
+    <button id="save" onclick="save()" tabindex="6">Save</button>
+  </div>
+  <div id="error"></div>
+
+  <textarea id="component-buffer" spellcheck="false" oninput="update_buffer(event.currentTarget.value)" onscroll="sync_scroll(this);" tabindex="5"></textarea>
+  <pre id="highlighting" aria-hidden="true"><code id="highlighting-content"></code></pre>
+    
+  <br/><br/>
+  <button onclick="render_preview()">Preview</button>
+  <button style="margin-left:20px;" onclick="window.location.href = `/${component_route}`">Go to Component</button>
+  <br/><br/><br/><hr/><br/><br/>
+  <button style="background: var(--red);" onclick="delete_component()">Delete Component</button>
+</div>
+
+<div class="p-3 center-column" id="preview-component">
+  <button onclick="back_to_editor()">Edit</button><br/><hr/><br/>
+  <div id="preview-content"></div>
+</div>
+
+<script src="/pages/cms/convert-markup.js"></script>
+<script>
+
+////  SECTION 1: Component memory
+let component_route = _current_page.slice(16, _current_page.length);
+let buffer_data = {};
+let component_data = {};
+let is_saved = true;
+
+////  SECTION 2: Render
+
+//  Renders the text editor, final component, or "component does not exist" message.
+function render_component() {
+  document.getElementById('component-route').value = buffer_data.route;
+  document.getElementById('is-public').checked = buffer_data.is_public;
+  document.getElementById('component-title').value = buffer_data.title;
+  document.getElementById('component-buffer').value = buffer_data.content;
+
+  document.getElementById('highlighting-content').innerHTML = create_highlighting(buffer_data.content);
+  check_if_saved();
+}
+
+function render_preview() {
+  document.getElementById('dynamic-component').style.display = `none`;
+  document.getElementById('preview-component').style.display = 'block';
+  document.getElementById('preview-content').innerHTML = validate_html(buffer_data.content);
+}
+
+function back_to_editor() {
+  document.getElementById('dynamic-component').style.display = `block`;
+  document.getElementById('preview-component').style.display = 'none';
+  render_component();
+}
+
+function create_highlighting(markup_text) {
+  let tokens = markup_to_tokens(markup_text);
+  let pre_parsed = tokens_to_parse(tokens);
+  let parsed = parse_code_tags(pre_parsed);
+  let colors = {
+    'LESS-THAN': 'var(--yellow)',
+    'GREATER-THAN': 'var(--yellow)',
+    'OPEN-TAG': '#90E2B6',
+    'CLOSE-TAG': '#90E2B6',
+    'FORWARD-SLASH': 'white',
+    'ATTR-NAME': '#FFD024',
+    'EQUALS': 'white',
+    'ATTR-VALUE': '#86C3FD',
+    'DOUBLE-QUOTE': '#86C3FD',
+    'SINGLE-QUOTE': '#86C3FD',
+    'TEXT': 'white',
+    'COMMENT': 'gray',
+    'DASH': 'gray',
+    'EXCLAMATION': 'gray',
+    'CODE-TAG-TEXT': 'gray',
+    'INVALID': 'white'
+  }
+  let highlighted = '';
+  for (let i = 0; i < parsed.length; i++) {
+    let escaped_text = parsed[i].value.replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#39;");
+
+    highlighted += parsed[i].type == 'INVALID' ? '<span style="text-decoration:underline;text-decoration-color:red;">' : '';
+    highlighted += `<span style="color:${colors[parsed[i].type]};">${escaped_text}</span>`;
+    highlighted += parsed[i].type == 'INVALID' ? '</span>' : '';
+
+  }
+  if(buffer_data.content[buffer_data.content.length - 1] == "\n") {     // Fixing "last newline" error -- see css-tricks article
+    highlighted += " ";  
+  }
+  return highlighted;
+}
+
+////  SECTION 3: Event reactions
+
+//  Fired if unsaved changes exist
+function beforeUnloadListener(event) {
+  event.preventDefault();
+  return (event.returnValue = "");
+};
+
+//  Fired in render_component() and in any buffer editing function
+function check_if_saved() {
+  is_saved = (buffer_data.content == component_data.content) && (buffer_data.title == component_data.title) 
+    && (buffer_data.is_public == component_data.is_public) && (buffer_data.route == component_data.route);
+  if (!is_saved) {
+    addEventListener("beforeunload", beforeUnloadListener, { capture: true });
+    document.getElementById('save').classList.remove('inactive');
+  } else {
+    removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
+    document.getElementById('save').classList.add('inactive');
+  }
+}
+
+//  Fires when new component content is typed.
+function update_buffer(newval) {
+  buffer_data.content = newval;
+  document.getElementById('highlighting-content').innerHTML = create_highlighting(buffer_data.content);
+
+  if(buffer_data.content[buffer_data.content.length - 1] == "\n") {     // Fixing "last newline" error -- see css-tricks article
+    document.getElementById('highlighting-content').innerHTML += " ";  
+  }
+  check_if_saved();
+}
+
+//  Syncronizes the textarea scroll with the highlighted <pre> scroll
+function sync_scroll(element) {
+  let result_element = document.querySelector("#highlighting");
+  result_element.scrollTop = element.scrollTop;
+  result_element.scrollLeft = element.scrollLeft;
+}
+
+//  Fires when the component title is changed. 
+function update_componentTitle() {
+  buffer_data.title = document.getElementById('component-title').value;
+  check_if_saved();
+}
+
+function update_componentRoute() {
+  buffer_data.route = document.getElementById('component-route').value;
+  check_if_saved();
+}
+
+function toggle_publicity() {
+  buffer_data.is_public = !buffer_data.is_public;
+  render_component();
+}
+
+//  Fires when "Save component changes" is clicked.
+function save() {
+  console.log("saving...")
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/update-component');
+  http.send(JSON.stringify({ 
+    id: component_data.id,
+    title: buffer_data.title,
+    content: buffer_data.content,
+    route: buffer_data.route,
+    is_public: buffer_data.is_public,
+    session_id: _session_id
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Component updated.");
+        component_data.content = buffer_data.content;
+        component_data.title = buffer_data.title;
+        component_data.route = buffer_data.route;
+        component_data.is_public = buffer_data.is_public;
+        render_component();
+        if (_current_page.split('/edit-component/')[1] != buffer_data.route) {
+          window.location.href = '/edit-component/' + buffer_data.route;
+        }
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+//  Fires when the cancel button is clicked.
+function cancel() {
+  if (confirm('Are you sure? Changes will not be saved!')) {
+    window.location.href = '/edit-component/' + component_route;
+  }
+}
+
+//  Fired when the delete component button is clicked
+function delete_component() {
+  if (!confirm(`Are you sure you want to permanently delete /${component_route}?`)) {
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/delete-component');
+  http.send(JSON.stringify({ 
+    id: component_data.id,
+    session_id: _session_id
+  }));
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = "Component deleted.  Redirecting you...";
+        window.location.href = '/';
+      } else {
+        console.warn(response.msg);
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+////  SECTION 4: Boot
+//  Load all component elements from API, then render buffer
+function load_component() {
+
+  const http = new XMLHttpRequest();
+  http.open('GET', `/api/component?route=${component_route}&session_id=${_session_id}`);
+  http.send();
+  console.log('Requesting component')
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      document.getElementById('loading-component').style.display = 'none';
+      document.getElementById('dynamic-component').style.display = 'block';
+      if (!response.error) {
+        console.log("Response recieved! Loading component.");
+        component_data = response.data;
+        if (component_data.created_by != _current_user.id) {
+          document.getElementById('dynamic-component').innerHTML = "You don't have permission to edit this component.";
+          return;
+        }
+        buffer_data.content = component_data.content || "";
+        buffer_data.title = component_data.title || "";
+        buffer_data.route = component_data.route;
+        buffer_data.is_public = component_data.is_public;
+        render_component();
+      } else {
+        document.getElementById('dynamic-component').innerHTML = response.msg;
+      }
+    }
+  }
+}
+current_user_loaded = function() {
+  load_component();
+}
+
+</script>
+
+<style> 
+  #dynamic-component {
+    position: relative;
+    padding: 40px 0px;
+    display: none;
+  }
+
+  #preview-component {
+    display: none;
+  }
+
+  #dynamic-component input:not([type='checkbox']) {
+    font-family: CrimsonText;
+    width: 60%;
+  }
+
+  input#component-route {
+    font-size: 1em;
+  }
+
+  input#component-title {
+    margin: 0.67em 0px;
+    padding: 0px;
+    font-size: 2em;
+  }
+  
+  /*  Component buffer + highlighter */
+  #component-buffer, #highlighting {
+    height: 60vh;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    box-sizing: border-box;
+    overflow-y: scroll;
+    
+  }
+  #component-buffer {
+    position: absolute;
+    z-index: 1;
+    color: transparent;
+    background: transparent;
+    caret-color: white;
+    resize: none;
+  }
+  #highlighting {
+    z-index: 0;
+  }
+
+  .flex-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #dynamic-component button {
+    width: 15%;
+  }
+
+  #dynamic-component button#save {
+    background: #3A7B64;
+  }
+  .inactive {
+    opacity: 0.5;
+  }
+
+</style>

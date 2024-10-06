@@ -1,0 +1,45 @@
+{
+  "name": "Pages",
+  "snakecase": "pages",
+  "max_id": 5,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "Page Title",
+      "snakecase": "title"
+    },
+    {
+      "name": "Page Route",
+      "snakecase": "route",
+      "unique": true
+    },
+    {
+      "name": "Is Public?",
+      "snakecase": "is_public"
+    },
+    {
+      "name": "Content",
+      "snakecase": "content"
+    },
+    {
+      "name": "History",
+      "snakecase": "history"
+    },
+    {
+      "name": "Tags",
+      "snakecase": "tags"
+    },
+    {
+      "name": "Created by",
+      "snakecase": "created_by"
+    },
+    {
+      "name": "Date created",
+      "snakecase": "date_created"
+    }
+  ]
+}

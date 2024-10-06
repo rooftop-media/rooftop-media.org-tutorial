@@ -1,0 +1,45 @@
+{
+  "name": "Components",
+  "snakecase": "components",
+  "max_id": 6,
+  "columns": [
+    {
+      "name": "Id",
+      "snakecase": "id",
+      "unique": true
+    },
+    {
+      "name": "Component Title",
+      "snakecase": "title"
+    },
+    {
+      "name": "Component Route",
+      "snakecase": "route",
+      "unique": true
+    },
+    {
+      "name": "Is Public?",
+      "snakecase": "is_public"
+    },
+    {
+      "name": "Content",
+      "snakecase": "content"
+    },
+    {
+      "name": "History",
+      "snakecase": "history"
+    },
+    {
+      "name": "Tags",
+      "snakecase": "tags"
+    },
+    {
+      "name": "Created by",
+      "snakecase": "created_by"
+    },
+    {
+      "name": "Date created",
+      "snakecase": "date_created"
+    }
+  ]
+}

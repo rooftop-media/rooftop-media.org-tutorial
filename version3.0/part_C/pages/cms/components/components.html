@@ -1,55 +1,54 @@
 <div class="p-3 center-column">
-  <h3>All dynamic pages:</h3>
+  <h3>All components:</h3>
   <div id="search-bar-row">
-    <input id="search" placeholder="Search pages..." oninput="search_pages()"/>
+    <input id="search" placeholder="Search components..." oninput="search_components()"/>
     <div id="search-settings-toggle" onclick="toggle_settings()">Settings  &#x25B8;</div>
   </div>
-  <div id="search-settings" onclick="search_pages()">
+  <div id="search-settings" onclick="search_components()">
     <div>Sort by: </div>
     <div><input type="radio" name="sort_types" value="title" checked /> Title</div>
     <div><input type="radio" name="sort_types" value="date"/> Date created</div>
     <div><input type="radio" name="sort_types" value="creator"/> Creator</div>
     <div style="display: flex;align-items: center;"><input type="checkbox" id="invert-sort"/> Invert results</div>
   </div>
-  <table id="page-table">
-    <!--  Page data goes here-->
+  <table id="component-table">
+    <!--  Component data goes here-->
   </table>
   <br/><br/><br/><br/>
-  <a href="/new-page"><button>+ Create new page</button></a>
+  <a href="/new-component"><button>+ Create new component</button></a>
 </div>
 
 <script>
-  let pageTable = document.getElementById('page-table');
-  let all_pages = [];
+  let componentTable = document.getElementById('component-table');
+  let all_components = [];
   let show_settings = false;
 
-  function render_table(pages) {
-    pageTable.innerHTML = `<tr>
+  function render_table(components) {
+    componentTable.innerHTML = `<tr>
       <th>Private?</th>
       <th>Title</th>
-      <th>Route</th>
+      <th>Tag</th>
       <th>Edit</th>
     </tr>`;
-    for (var i = 0; i < pages.length; i++) {
-      let page = pages[i];
-      pageTable.insertRow().innerHTML += `<tr>
-        <td class="is-public">${page.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
+    for (var i = 0; i < components.length; i++) {
+      let component = components[i];
+      componentTable.insertRow().innerHTML += `<tr>
+        <td class="is-public">${component.is_public ? '' : '<img src="/assets/icons/lock.svg"/>'}</td>
         <td>
-          <div class="page-title"><a href="/${page.route}">${page.title}</a></div>
-          <div class="created-by">Created by ${page.created_by}</div>
-          <div class="tags">${get_tag_html(page.tags)}</div>
+          <div class="component-title"><a href="/${component.route}">${component.title}</a></div>
+          <div class="created-by">Created by ${component.created_by}</div>
+          <div class="tags">${get_tag_html(component.tags)}</div>
         </td>
-        <td><a href="/${page.route}">/${page.route}</a></td>
-        <td>${_current_user.username == page.created_by ? `<a href="/edit/${page.route}"><img src="/assets/icons/edit.svg"/></a>` : ''}</td>
+        <td>&lt;${component.route}&gt;</td>
+        <td>${_current_user.username == component.created_by ? `<a href="/edit-component/${component.route}"><img src="/assets/icons/edit.svg"/></a>` : ''}</td>
       </tr>`;
     }
-    if (pages.length < 1) {
-      pageTable.insertRow().innerHTML += `<tr><td></td><td id="no-pages-found">(No pages found)</td><td></td><td></td></tr>`;
+    if (components.length < 1) {
+      componentTable.insertRow().innerHTML += `<tr><td></td><td id="no-components-found">(No components found)</td><td></td><td></td></tr>`;
     }
   }
 
   function get_tag_html(tags) {
-    if (!tags) return;
     let html = '';
     for (let i = 0; i < tags.length; i++) {
       html += `<span class="tag" onclick="search_tag('${tags[i]}')">${tags[i]}</span>`;
@@ -58,13 +57,13 @@
   }
   function search_tag(tag) {
     document.getElementById('search').value = `tag:${tag}`;
-    search_pages();
+    search_components();
   }
 
-  function search_pages() {
+  function search_components() {
     let search = document.getElementById('search').value;
     if (search.length < 1) {
-      return sort_pages(all_pages);
+      return sort_components(all_components);
     }
     let tags = [];
     while (search.includes('tag:')) {
@@ -76,31 +75,31 @@
       search = search.slice(0,tag_text_pos) + search.slice(end_of_tag_pos,search.length);
     }
     
-    let searched_pages = all_pages.filter(page => {
+    let searched_components = all_components.filter(component => {
       let is_match = true;
-      if (page.title.search(search.trim()) == -1) is_match = false;
+      if (component.title.search(search.trim()) == -1) is_match = false;
       for (let i = 0; i < tags.length; i++) {
-        if (!page.tags.includes(tags[i])) is_match = false;
+        if (!component.tags.includes(tags[i])) is_match = false;
       }
       return is_match
     })
-    sort_pages(searched_pages);
+    sort_components(searched_components);
   }
 
-  function sort_pages(pages) {
+  function sort_components(components) {
     let sort_types = document.getElementsByName('sort_types');
-    let sorted_pages = [];
+    let sorted_components = [];
     if (sort_types[2].checked) {         // creator
-      sorted_pages = pages.sort((a, b) => { return a.created_by > b.created_by; });
+      sorted_components = components.sort((a, b) => { return a.created_by > b.created_by; });
     } else if (sort_types[1].checked) {  // date
-      sorted_pages = pages.sort((a, b) => { return new Date(a.date_created) > new Date(b.date_created); });
+      sorted_components = components.sort((a, b) => { return new Date(a.date_created) > new Date(b.date_created); });
     } else {                             // title
-      sorted_pages = pages.sort((a, b) => { return a.title > b.title; });
+      sorted_components = components.sort((a, b) => { return a.title > b.title; });
     }
     if (document.getElementById('invert-sort').checked) {
-      sorted_pages.reverse();
+      sorted_components.reverse();
     }
-    render_table(sorted_pages);
+    render_table(sorted_components);
   }
 
   function toggle_settings() {
@@ -114,23 +113,23 @@
     }
   }
 
-  function get_all_pages() {
+  function get_all_components() {
     const http = new XMLHttpRequest();
-    http.open('GET', '/api/all-pages');
+    http.open('GET', '/api/all-components');
     http.send();
     http.onreadystatechange = (e) => {
       let response;      
       if (http.readyState == 4 && http.status == 200) {
         response = JSON.parse(http.responseText); 
-        console.log("Pages loaded!");
-        all_pages = response;
-        sort_pages(all_pages);
+        console.log("Components loaded!");
+        all_components = response;
+        sort_components(all_components);
       }
     }
   }
 
   current_user_loaded = function () {
-    get_all_pages();
+    get_all_components();
   }
   
 </script>
@@ -183,7 +182,7 @@
     width: 50px;
   }
 
-  div.page-title {
+  div.component-title {
     color: var(--yellow);
     font-size: 1.3em;
   }
@@ -208,7 +207,7 @@
     cursor: pointer;
   }
 
-  #no-pages-found {
+  #no-components-found {
     text-align: center;
     opacity: .5;
   }

@@ -1,0 +1,56 @@
+<div class="p-3 center-column" id="dynamic-page">
+  <i>Loading page...</i>
+</div>
+
+<script src="/pages/cms/convert-markup.js"></script>
+<script>
+////  SECTION 1: Page memory
+let page_route = _current_page.slice(1, _current_page.length);
+let page_data = {};
+
+////  SECTION 2: Render
+function render_page() {
+  document.getElementById('dynamic-page').innerHTML = validate_html(page_data.content);
+  document.getElementById('dynamic-page').innerHTML += `<a href="/edit/${page_data.route}"><button id="edit-button"><img src="/assets/icons/edit.svg" />Edit</button></a>`;
+}
+
+////  SECTION 4: Boot
+//  Load page from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('GET', `/api/SSR-page?route=${page_route}&session_id=${_session_id}`);
+  http.send();
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Loading page.");
+        page_data = response.data;
+        console.log(page_data)
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+current_user_loaded = function() {
+  load_page();
+}
+
+</script>
+
+<style>
+  #edit-button {
+    display: flex;
+    width: 90px;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+  }
+  #edit-button img {
+    height: 16px;
+    margin-right: 10px;
+  }
+</style>

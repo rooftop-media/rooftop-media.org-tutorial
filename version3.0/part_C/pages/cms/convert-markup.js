@@ -351,3 +351,17 @@ function validate_html(_html) {
   let final_html = tags_to_html(_valid_tags);
   return final_html;
 }
+
+
+//  This lets us use this file on both the web and server
+if (typeof window === 'undefined') {
+  module.exports = {
+    markup_to_tokens,
+    tokens_to_parse,
+    parse_code_tags,
+    parse_to_tags,
+    tags_to_valid_tags,
+    tags_to_html,
+    validate_html
+  }
+}

@@ -555,6 +555,7 @@ Create a new page, `/pages/cms/pages.html`, and add this:
   }
 
   function get_tag_html(tags) {
+    if (!tags) return;
     let html = '';
     for (let i = 0; i < tags.length; i++) {
       html += `<span class="tag" onclick="search_tag('${tags[i]}')">${tags[i]}</span>`;
@@ -1590,7 +1591,7 @@ Create a new file, `/cms/convert-markup.js`, and add the following:
 ```js
 //  Convert-markup.js -- Functions to sanitize and convert markup to html
 
-//  Tokens include <, /, =, ", ', >, whitespace, and text. 
+//  Tokens include <, /, =, ", ', >, -, !, whitespace, and text. 
 function markup_to_tokens(markup) {
   let tokens = [];
   let tokenNames = {
@@ -1625,7 +1626,7 @@ function markup_to_tokens(markup) {
 
   return tokens;
 }
-
+  
 //  Uses context to create an array of "parsed tokens."
 function tokens_to_parse(tokens) {
   let parsed_tokens = [];
@@ -1657,11 +1658,24 @@ function tokens_to_parse(tokens) {
         if (index_of_space > 0) {
           tag_name = tokens[i].value.substring(0, index_of_space);
         }
-        parsed_tokens.push({ type: 'OPEN-TAG', value: tag_name });
-        context = 'in-a-tag';
+        current_value += tag_name;
+
+        let next_char_dash = (i < tokens.length - 1 && tokens[i+1].type == 'DASH'); //  True if the tag name is "tag-name" OR "p my-attr="
+        if (!next_char_dash) {
+          addCurrentValue('OPEN-TAG');
+          context = 'in-a-tag';
+        } 
+        
         if (index_of_space > 0) {                         //  If the tag name looks like "a href", try the "href" again in new context.
           tokens[i].value = tokens[i].value.substring(tokens[i].value.indexOf(' '), tokens[i].value.length);
           i--;
+        }
+      } else if (tokens[i].type == 'DASH') {              //  Needed to support <dashed-tags>
+        current_value += tokens[i].value;
+        let next_char_text = (i < tokens.length - 1 && tokens[i+1].type == 'TEXT'); //  True if the tag name is <tag-name
+        if (!next_char_text || (i < tokens.length - 1 && tokens[i+1].value.indexOf(' ') == 0)) {
+          addCurrentValue('INVALID');
+          context = 'invalid';
         }
       } else if (tokens[i].type == 'FORWARD-SLASH') {
         context = 'start-of-close-tag';
@@ -1746,7 +1760,7 @@ function tokens_to_parse(tokens) {
         parsed_tokens.push({ type: 'INVALID', value: tokens[i].value });
         context = 'invalid';
       }
- 
+  
     } else if (context == 'end-of-single-tag') {    ////  If we just saw a / inside a tag, after the tag name, expect >.  Anything else is invalid
       if (tokens[i].type == 'GREATER-THAN') {               //  Examples:  <br/>   or <img src="cat.png" />
         parsed_tokens.push(tokens[i]);

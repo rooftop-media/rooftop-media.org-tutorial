@@ -1,0 +1,76 @@
+<div class="p-3 center-column">
+  <h3>Create a New Component</h3>
+  <div>Component title: <input type="text" tabindex="1" id="component_title" placeholder="Click counter"/></div>
+  <div>Component tag name: <input type="text" tabindex="2" id="component_route" placeholder="click-counter"/></div>
+  <div>Tags: <span id="tags"></span><input type="text" tabindex="3" id="component_tags" placeholder="counter, demo" /></div>
+  <div>Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
+  <div>Content:<textarea id="component_content" spellcheck="false" tabindex="4" placeholder="&lt;template> ..."></textarea></div>
+  <p id="error"></p>
+  <button onclick="create_component()" tabindex="5">Create Component</button>
+</div>
+
+<script>
+
+const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+
+//  Component route -- lowercase, alphanumeric, and these special characters: - / _ 
+const component_route_input = document.getElementById('component_route');
+const component_route_regex = /^[a-z0-9_\-\/]*$/;
+component_route_input.addEventListener("keydown", event => {
+  if (!component_route_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+    event.preventDefault();
+    document.getElementById('error').innerHTML = "Component route can only contain lowercase letters, numbers, underscores and dashes.";
+  } else {
+    document.getElementById('error').innerHTML = "";
+  }
+});
+
+function create_component() {
+  let title = document.getElementById('component_title').value;
+  let route = document.getElementById('component_route').value;
+  let tags = document.getElementById('component_tags').value.split(',');
+  for (let i = 0; i < tags.length; i++) {
+    tags[i] = tags[i].trim();
+    if (!tags[i]) { tags.splice(i, 1); }
+  }
+  let is_public = document.getElementById('is_public').checked;
+  let content = document.getElementById('component_content').value;
+
+  if (route.length < 2) {
+    document.getElementById('error').innerHTML = 'Component tag name must be at least 2 characters..';
+    return;
+  } else if (title.length < 2) {
+    document.getElementById('error').innerHTML = 'Component title must be at least 2 characters..';
+    return;
+  } else if (!component_route_regex.test(route)) {
+    document.getElementById('error').innerHTML = "Component tag name can only contain lowercase letters, numbers, underscores and dashes.";
+    return;
+  }
+  
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/create-component');
+  http.send(JSON.stringify({
+    title,
+    route,
+    tags,
+    is_public,
+    content,
+    created_by: _current_user.id,
+    date_created: new Date().toString(),
+    history: []
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Creating component.");
+        window.location.href = '/edit-component/' + route;
+      } else {
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+</script>
