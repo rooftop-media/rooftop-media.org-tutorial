@@ -4,7 +4,7 @@
   <div>Component tag name: <input type="text" tabindex="2" id="component_route" placeholder="click-counter"/></div>
   <div>Tags: <span id="tags"></span><input type="text" tabindex="3" id="component_tags" placeholder="counter, demo" /></div>
   <div>Public? <input type="checkbox" tabindex="3" id="is_public"/></div>
-  <div>Content:<textarea id="component_content" spellcheck="false" tabindex="4" placeholder="<template> ..."></textarea></div>
+  <div>Content:<textarea id="component_content" spellcheck="false" tabindex="4" placeholder="&lt;template> ..."></textarea></div>
   <p id="error"></p>
   <button onclick="create_component()" tabindex="5">Create Component</button>
 </div>
@@ -35,7 +35,7 @@ function create_component() {
   }
   let is_public = document.getElementById('is_public').checked;
   let content = document.getElementById('component_content').value;
-  
+
   if (route.length < 2) {
     document.getElementById('error').innerHTML = 'Component tag name must be at least 2 characters..';
     return;
@@ -46,7 +46,7 @@ function create_component() {
     document.getElementById('error').innerHTML = "Component tag name can only contain lowercase letters, numbers, underscores and dashes.";
     return;
   }
-
+  
   const http = new XMLHttpRequest();
   http.open('POST', '/api/create-component');
   http.send(JSON.stringify({
@@ -57,7 +57,6 @@ function create_component() {
     content,
     created_by: _current_user.id,
     date_created: new Date().toString(),
-    content: '',
     history: []
   }));
   http.onreadystatechange = (e) => {

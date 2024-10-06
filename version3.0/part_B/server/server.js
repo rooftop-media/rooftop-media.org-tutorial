@@ -8,6 +8,7 @@ var crypto = require('crypto'); // encrypt user passwords
 
 //  Importing our custom libraries
 const DataBase = require('./database/database.js');
+const SSR = require('./utils/ssr.js');
 
 ////  SECTION 2: Request response.
 
@@ -217,7 +218,28 @@ GET_routes['/api/page'] = function(req_data, res) {
   } else {
     response.error = true;
     response.msg = `You don't have permission to view this page.`;
-  } 
+  }
+  api_response(res, 200, JSON.stringify(response));
+}
+
+GET_routes['/api/SSR-page'] = function(req_data, res) {
+  let response = { error: false };
+  let page_data = DataBase.table('pages').find({ route: req_data.route });
+  let session_data = DataBase.table('sessions').find({ id: req_data.session_id });
+  if (page_data.length < 1) {
+    response.error = true;
+    response.msg = `The page ${req_data.route} was not found.`;
+  } else if (page_data[0].is_public || (session_data.length > 0 && page_data[0].created_by == session_data[0].user_id)) {
+    response.data =  page_data[0];
+  } else {
+    response.error = true;
+    response.msg = `You don't have permission to view this page.`;
+  }
+  //  Now we have our page, we SSR components
+  response.data.content = SSR.render_components(response.data.content);
+  
+  // console.log(response.data.content)
+  //console.log(ConvertMarkup.markup_to_tokens(response.data.content))
   api_response(res, 200, JSON.stringify(response));
 }
 

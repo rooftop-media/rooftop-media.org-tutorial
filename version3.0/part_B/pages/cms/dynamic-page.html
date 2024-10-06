@@ -18,7 +18,7 @@ function render_page() {
 //  Load page from API, then render buffer
 function load_page() {
   const http = new XMLHttpRequest();
-  http.open('GET', `/api/page?route=${page_route}&session_id=${_session_id}`);
+  http.open('GET', `/api/SSR-page?route=${page_route}&session_id=${_session_id}`);
   http.send();
   http.onreadystatechange = (e) => {
     let response;      
@@ -27,6 +27,7 @@ function load_page() {
       if (!response.error) {
         console.log("Response recieved! Loading page.");
         page_data = response.data;
+        console.log(page_data)
         render_page();
       } else {
         document.getElementById('dynamic-page').innerHTML = response.msg;
