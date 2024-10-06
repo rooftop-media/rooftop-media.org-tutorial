@@ -5,7 +5,7 @@
     "is_public": true,
     "created_by": 2,
     "date_created": "Sun Sep 08 2024 20:01:28 GMT-0400 (Eastern Daylight Time)",
-    "content": "<div style=\"color:pink;\" alt=\"hi\">This is valid, and will be kept!</div>\n<button onclick=\"hack()\" style=\"color: purple;\">This whole tag is not valid, the text will be kept though!</button>",
+    "content": "<div style=\"color:pink;\" alt=\"hi\">This is valid, and will be kept!</div>\n<button onclick=\"hack()\" style=\"color: purple;\">This whole tag is not valid, the text will be kept though!</button>\n<test-tag fdsa/>g\n<test-tag-double-triple w=\"www\"/>",
     "history": [],
     "_params": {
       "_url": "/api/update-page"

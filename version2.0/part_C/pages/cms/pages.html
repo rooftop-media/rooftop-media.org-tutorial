@@ -49,6 +49,7 @@
   }
 
   function get_tag_html(tags) {
+    if (!tags) return;
     let html = '';
     for (let i = 0; i < tags.length; i++) {
       html += `<span class="tag" onclick="search_tag('${tags[i]}')">${tags[i]}</span>`;
