@@ -1,0 +1,30 @@
+[
+  {
+    "title": "Test Page!",
+    "route": "test-page",
+    "is_public": false,
+    "created_by": 2,
+    "date_created": "Sun Sep 08 2024 20:01:28 GMT-0400 (Eastern Daylight Time)",
+    "content": "<div style=\"color:pink;\" alt=\"hi\">This is valid, and will be kept!</div>\n<button onclick=\"hack()\" style=\"color: purple;\">This whole tag is not valid, the text will be kept though!</button>",
+    "history": [],
+    "_params": {
+      "_url": "/api/update-page"
+    },
+    "id": 0,
+    "session_id": "11"
+  },
+  {
+    "title": "public-test",
+    "route": "pub-test",
+    "is_public": true,
+    "created_by": 2,
+    "date_created": "Fri Sep 13 2024 21:07:06 GMT-0400 (Eastern Daylight Time)",
+    "content": "<h1>Hello world</h1>\n\n<p>Another paragraph</p>\n\n<p class=\"my-class\">A paragraph with a class</p>",
+    "history": [],
+    "_params": {
+      "_url": "/api/update-page"
+    },
+    "id": 1,
+    "session_id": "13"
+  }
+]

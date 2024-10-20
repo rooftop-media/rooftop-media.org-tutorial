@@ -1,0 +1,493 @@
+<div class="p-3 center-column" id="loading-page">
+  Loading page...
+</div>
+
+<div class="p-3 center-column" id="dynamic-page">
+  <div class="flex-row">
+    <div style="width:40%;">Route: / <input id="page-route" type="text" value="" oninput="update_pageRoute()" tabindex="1" /></div>
+    <div style="display: flex; align-items: center;">Public? <input id="is-public" type="checkbox" onclick="toggle_publicity()" tabindex="2"/></div>
+  </div>
+  <div class="flex-row">
+    <input id="page-title" type="text" value="" oninput="update_pageTitle()" tabindex="3">
+    <button onclick="cancel()">Cancel</button>
+    <button id="save" onclick="save()" tabindex="6">Save</button>
+  </div>
+  <div id="error"></div>
+
+  <textarea id="page-buffer" spellcheck="false" oninput="update_buffer(event.currentTarget.value)" onscroll="sync_scroll(this);" tabindex="5"></textarea>
+  <pre id="highlighting" aria-hidden="true"><code id="highlighting-content"></code></pre>
+    
+  <br/><br/>
+  <button onclick="load_preview()">Preview</button>
+  <button style="margin-left:20px;" onclick="window.location.href = `/${page_route}`">Go to Page</button>
+  <br/><br/><br/><hr/><br/><br/>
+  <button style="background: var(--red);" onclick="delete_page()">Delete Page</button>
+</div>
+
+<div class="p-3 center-column" id="preview-page">
+  <button onclick="back_to_editor()">Code editor</button><br/><hr/><br/>
+  <div id="preview-content"></div>
+  <div id="tag-editor">
+    <p>Tag: <select id="tag-options"></select></p>
+    <p>Attributes:</p>
+    <p>Text content:</p>
+
+  </div>
+</div>
+
+<script src="/pages/cms/convert-markup.js"></script>
+<script>
+
+////  SECTION 1: Page memory
+let page_route = _current_page.slice(6, _current_page.length);
+let buffer_data = {};
+let page_data = {};
+let is_saved = true;
+
+let cursor_pos = 20;
+let preview_buff = '';
+
+////  SECTION 2: Render
+
+//  Renders the text editor, final page, or "page does not exist" message.
+function render_page() {
+  document.getElementById('page-route').value = buffer_data.route;
+  document.getElementById('is-public').checked = buffer_data.is_public;
+  document.getElementById('page-title').value = buffer_data.title;
+  document.getElementById('page-buffer').value = buffer_data.content;
+
+  document.getElementById('highlighting-content').innerHTML = create_highlighting(buffer_data.content);
+  check_if_saved();
+}
+
+//  Switch to the preview page
+function load_preview() {
+  //  Switch to preview-page tag
+  document.getElementById('dynamic-page').style.display = `none`;
+  document.getElementById('preview-page').style.display = 'block';
+  //  Populate tag selection options
+  let tag_opts = [
+    'h1','h2','h3','h4','h5','h6','p','div','span','b','i','pre','code','style',
+    'ol','ul','li','table','tr','th','td','a','img','br','hr'
+  ];
+  for (let i = 0; i < tag_opts.length; i++) {
+    document.getElementById('tag-options').innerHTML += `<option value="${tag_opts[i]}">${tag_opts[i]}</option>`;
+  }
+  //  Add element ids for selectability
+  preview_buff = validate_html(buffer_data.content);
+  preview_buff = add_tag_ids(preview_buff); 
+  
+  render_preview();  //  Add cursor and render
+  detect_clicks();
+}
+
+//  Add cursor for editing
+function render_preview() {
+  let preview_buff_w_cursor = preview_buff.slice(0,cursor_pos);
+  preview_buff_w_cursor += '<span id="cursor"></span>';
+  preview_buff_w_cursor += preview_buff.slice(cursor_pos, preview_buff.length);
+  document.getElementById('preview-content').innerHTML = preview_buff_w_cursor;
+}
+
+//  For each tag present, adds class="id--3" for each numbered tag
+function add_tag_ids(_html) {
+  let _tokens = markup_to_tokens(_html)
+  let _parsed = tokens_to_parse(_tokens);
+  let _escaped_parse = parse_code_tags(_parsed)
+  let _tags = parse_to_tags(_escaped_parse);
+
+  let tag_to_id = false;
+  let current_id = 0;
+  for (let i = 0; i < _tags.length; i++) {
+    if (_tags[i].type == 'OPEN-TAG') {
+      tag_to_id = true;
+    } else if (tag_to_id && _tags[i].type == 'ATTR-NAME' && _tags[i].value.toLowerCase() == ' class') {
+      if (i+1 < _tags.length && _tags[i+1].type == 'ATTR-VALUE') {
+        _tags[i+1].value += ` id--${current_id}`;
+      } else {
+        _tags.splice(i-1, 0, {type: 'ATTR-VALUE', value: `id--${current_id}`});
+      }
+      current_id++;
+      tag_to_id = false;
+    } else if (tag_to_id && _tags[i].type == 'TEXT') {
+      _tags.splice(i, 0, {type: 'ATTR-NAME', value: ` class`});
+      _tags.splice(i+1, 0, {type: 'ATTR-VALUE', value: `id--${current_id}`});
+      current_id++;
+      tag_to_id = false;
+      i++;
+    }
+  }
+  let final_html = tags_to_html(_tags);
+  return final_html;
+}
+
+function back_to_editor() {
+  document.getElementById('dynamic-page').style.display = `block`;
+  document.getElementById('preview-page').style.display = 'none';
+  render_page();
+}
+
+function create_highlighting(markup_text) {
+  let tokens = markup_to_tokens(markup_text);
+  let pre_parsed = tokens_to_parse(tokens);
+  let parsed = parse_code_tags(pre_parsed);
+  let colors = {
+    'LESS-THAN': 'var(--yellow)',
+    'GREATER-THAN': 'var(--yellow)',
+    'OPEN-TAG': '#90E2B6',
+    'CLOSE-TAG': '#90E2B6',
+    'FORWARD-SLASH': 'white',
+    'ATTR-NAME': '#FFD024',
+    'EQUALS': 'white',
+    'ATTR-VALUE': '#86C3FD',
+    'DOUBLE-QUOTE': '#86C3FD',
+    'SINGLE-QUOTE': '#86C3FD',
+    'TEXT': 'white',
+    'COMMENT': 'gray',
+    'DASH': 'gray',
+    'EXCLAMATION': 'gray',
+    'CODE-TAG-TEXT': 'gray',
+    'INVALID': 'white'
+  }
+  let highlighted = '';
+  for (let i = 0; i < parsed.length; i++) {
+    let escaped_text = parsed[i].value.replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#39;");
+
+    highlighted += parsed[i].type == 'INVALID' ? '<span style="text-decoration:underline;text-decoration-color:red;">' : '';
+    highlighted += `<span style="color:${colors[parsed[i].type]};">${escaped_text}</span>`;
+    highlighted += parsed[i].type == 'INVALID' ? '</span>' : '';
+
+  }
+  if(buffer_data.content[buffer_data.content.length - 1] == "\n") {     // Fixing "last newline" error -- see css-tricks article
+    highlighted += " ";  
+  }
+  return highlighted;
+}
+
+////  SECTION 3: Event reactions
+
+//  Fired if unsaved changes exist
+function beforeUnloadListener(event) {
+  event.preventDefault();
+  return (event.returnValue = "");
+};
+
+//  Fired in render_page() and in any buffer editing function
+function check_if_saved() {
+  is_saved = (buffer_data.content == page_data.content) && (buffer_data.title == page_data.title) 
+    && (buffer_data.is_public == page_data.is_public) && (buffer_data.route == page_data.route);
+  if (!is_saved) {
+    addEventListener("beforeunload", beforeUnloadListener, { capture: true });
+    document.getElementById('save').classList.remove('inactive');
+  } else {
+    removeEventListener("beforeunload", beforeUnloadListener, { capture: true, });
+    document.getElementById('save').classList.add('inactive');
+  }
+}
+
+//  Fires when new page content is typed.
+function update_buffer(newval) {
+  buffer_data.content = newval;
+  document.getElementById('highlighting-content').innerHTML = create_highlighting(buffer_data.content);
+
+  if(buffer_data.content[buffer_data.content.length - 1] == "\n") {     // Fixing "last newline" error -- see css-tricks article
+    document.getElementById('highlighting-content').innerHTML += " ";  
+  }
+  check_if_saved();
+}
+
+//  Syncronizes the textarea scroll with the highlighted <pre> scroll
+function sync_scroll(element) {
+  let result_element = document.querySelector("#highlighting");
+  result_element.scrollTop = element.scrollTop;
+  result_element.scrollLeft = element.scrollLeft;
+}
+
+//  Fires when the page title is changed. 
+function update_pageTitle() {
+  buffer_data.title = document.getElementById('page-title').value;
+  check_if_saved();
+}
+
+function update_pageRoute() {
+  buffer_data.route = document.getElementById('page-route').value;
+  check_if_saved();
+}
+
+function toggle_publicity() {
+  buffer_data.is_public = !buffer_data.is_public;
+  render_page();
+}
+
+//  Fires when "Save page changes" is clicked.
+function save() {
+  console.log("saving...")
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/update-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    title: buffer_data.title,
+    content: buffer_data.content,
+    route: buffer_data.route,
+    is_public: buffer_data.is_public,
+    session_id: _session_id
+  }));
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        console.log("Response recieved! Page updated.");
+        page_data.content = buffer_data.content;
+        page_data.title = buffer_data.title;
+        page_data.route = buffer_data.route;
+        page_data.is_public = buffer_data.is_public;
+        render_page();
+        if (_current_page.split('/edit/')[1] != buffer_data.route) {
+          window.location.href = '/edit/' + buffer_data.route;
+        }
+      } else {
+        console.warn("Err")
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+//  Fires when the cancel button is clicked.
+function cancel() {
+  if (confirm('Are you sure? Changes will not be saved!')) {
+    window.location.href = '/edit/' + page_route;
+  }
+}
+
+//  Fired when the delete page button is clicked
+function delete_page() {
+  if (!confirm(`Are you sure you want to permanently delete /${page_route}?`)) {
+    return;
+  }
+  const http = new XMLHttpRequest();
+  http.open('POST', '/api/delete-page');
+  http.send(JSON.stringify({ 
+    id: page_data.id,
+    session_id: _session_id
+  }));
+  http.onreadystatechange = (e) => {
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      if (!response.error) {
+        document.getElementById('error').innerHTML = "Page deleted.  Redirecting you...";
+        window.location.href = '/';
+      } else {
+        console.warn(response.msg);
+        document.getElementById('error').innerHTML = response.msg;
+      }
+    }
+  }
+}
+
+// Listen for arrow keys, to move cursor
+document.addEventListener("keydown", event => {
+  if (document.getElementById('preview-page').style.display == 'none') returrn;
+  switch (event.key) {
+    case 'ArrowUp':
+      console.log('Up arrow pressed');
+      break;
+    case 'ArrowDown':
+      console.log('Down arrow pressed');
+      break;
+    case 'ArrowLeft':
+      console.log('Left arrow pressed');
+      cursor_pos--;
+      render_preview();
+      break;
+    case 'ArrowRight':
+      console.log('Right arrow pressed');
+      cursor_pos++;
+      render_preview();
+      break;
+    case 'Enter':
+      console.log('Enter pressed');
+      break;
+    case 'Control':
+      console.log('Ctrl pressed');
+      break;
+    default:
+      let new_preview_buff = preview_buff.substring(0, cursor_pos);
+      new_preview_buff += event.key;
+      preview_buff = new_preview_buff + preview_buff.substring(cursor_pos, preview_buff.length)
+      cursor_pos++;
+      console.log(new_preview_buff)
+      render_preview();
+  }
+});
+
+//  Place the cursor where we clicked, in the rich text editor
+function detect_clicks() {
+  document.body.onclick = function(e) {
+    let range;
+    let textNode;
+    let offset;
+
+    range = document.caretPositionFromPoint(e.pageX, e.pageY);
+    textNode = range.offsetNode;
+    offset = range.offset;
+
+    let selected_id = textNode.parentNode.classList.value.split(' ').find(function (class_name) {
+      return class_name.includes('id--');
+    });
+    //  update tag editor
+    document.getElementById('tag-options').value = textNode.parentNode.tagName.toLowerCase();
+
+    // update cursor
+    let tag_index = preview_buff.indexOf(selected_id);
+    let text_index = tag_index;
+    while (text_index < preview_buff.length && preview_buff[text_index] != '>') {
+      text_index++;
+    }
+    cursor_pos = text_index += offset;
+    render_preview();
+    
+  }
+}
+
+////  SECTION 4: Boot
+//  Load all page elements from API, then render buffer
+function load_page() {
+  const http = new XMLHttpRequest();
+  http.open('GET', `/api/page?route=${page_route}&session_id=${_session_id}`);
+  http.send();
+  console.log('Requesting page')
+  http.onreadystatechange = (e) => {
+    let response;      
+    if (http.readyState == 4 && http.status == 200) {
+      response = JSON.parse(http.responseText);
+      document.getElementById('loading-page').style.display = 'none';
+      document.getElementById('dynamic-page').style.display = 'block';
+      if (!response.error) {
+        console.log("Response recieved! Loading page.");
+        page_data = response.data;
+        if (page_data.created_by != _current_user.id) {
+          document.getElementById('dynamic-page').innerHTML = "You don't have permission to edit this page.";
+          return;
+        }
+        buffer_data.content = page_data.content || "";
+        buffer_data.title = page_data.title || "";
+        buffer_data.route = page_data.route;
+        buffer_data.is_public = page_data.is_public;
+        render_page();
+      } else {
+        document.getElementById('dynamic-page').innerHTML = response.msg;
+      }
+    }
+  }
+}
+current_user_loaded = function() {
+  load_page();
+}
+
+</script>
+
+<style> 
+  #dynamic-page {
+    position: relative;
+    padding: 40px 0px;
+    display: none;
+  }
+
+  #dynamic-page input:not([type='checkbox']) {
+    font-family: CrimsonText;
+    width: 60%;
+  }
+
+  input#page-route {
+    font-size: 1em;
+  }
+
+  input#page-title {
+    margin: 0.67em 0px;
+    padding: 0px;
+    font-size: 2em;
+  }
+  
+  /*  Page buffer + highlighter */
+  #page-buffer, #highlighting {
+    height: 60vh;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    box-sizing: border-box;
+    overflow-y: scroll;
+    
+  }
+  #page-buffer {
+    position: absolute;
+    z-index: 1;
+    color: transparent;
+    background: transparent;
+    caret-color: white;
+    resize: none;
+  }
+  #highlighting {
+    z-index: 0;
+  }
+
+  .flex-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #dynamic-page button {
+    width: 15%;
+  }
+
+  #dynamic-page button#save {
+    background: #3A7B64;
+  }
+  .inactive {
+    opacity: 0.5;
+  }
+
+  /**********************/
+  /*  Rich text editor  */
+  /**********************/
+  #preview-page {
+    display: none;
+    position: relative;
+    height: calc(100vh - 200px);
+  }
+
+  #cursor {
+    display: inline-block;
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    border-right: solid white 1px;
+    animation: blink 2s steps(2, start) infinite;
+  }
+  *:has(#cursor) {
+    position: relative;
+  }
+  @keyframes blink {
+    to {
+      visibility: hidden;
+    }
+  }
+
+  #tag-editor {
+    position: absolute;
+    width: 300px;
+    height: 200px;
+    padding: 10px;
+    background: var(--darkest-brown);
+    border: solid 1px var(--light-brown);
+    bottom: 50px;
+    right: 10px;
+  }
+
+</style>

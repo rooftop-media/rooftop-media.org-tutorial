@@ -1,0 +1,93 @@
+<div class="p-3 center-column">
+    <h3>Upload a File</h3>
+    <div>Select file: <input type="file" tabindex="1" id="file" placeholder="frida_kahlo.png"/></div>
+    <div>File description: <input type="text" tabindex="2" id="file_description" placeholder="A picture of Frida Kahlo."/></div>
+    <div>File name: <input type="text" tabindex="3" id="file_name" placeholder="frida_kahlo."/></div>
+    <div>Public? <input type="checkbox" tabindex="4" id="is_public"/></div>
+    <p id="error"></p>
+    <button onclick="upload_file()" tabindex="5">Upload</button>
+    <br/><br/>
+    <p id="upload-status"></p>
+  </div>
+  
+  <script>
+  
+  const utility_keys = [8, 9, 39, 37, 224]; // backspace, tab, command, arrow keys
+  
+  //  Page route -- lowercase, alphanumeric, and these special characters: - / _ 
+  const file_name_input = document.getElementById('file_name');
+  const file_name_regex = /^[a-z0-9_\-\.]*$/;
+  file_name_input.addEventListener("keydown", event => {
+    if (!file_name_regex.test(event.key) && !utility_keys.includes(event.keyCode)) {
+      event.preventDefault();
+      document.getElementById('error').innerHTML = "File name can only contain lowercase letters, numbers, underscores and dashes.";
+    } else {
+      document.getElementById('error').innerHTML = "";
+    }
+  });
+  
+  document.getElementById('file').addEventListener("change", (file) => {
+    let file_name_path = file.target.value.split('/');
+    if (file.target.value.indexOf('/') == -1) {
+      file_name_path = file.target.value.split('\\');
+    }
+    document.getElementById('file_name').value = file_name_path[file_name_path.length-1];
+  });
+  
+  function upload_file() {
+    let description = document.getElementById('file_description').value;
+    let name = document.getElementById('file_name').value;
+    let is_public = document.getElementById('is_public').checked;
+    let file = document.getElementById('file').files[0];
+    
+    if (!file) {
+      document.getElementById('error').innerHTML = 'File required.';
+      return;
+    } else if (name.length < 2) {
+      document.getElementById('error').innerHTML = 'File name must be at least 2 characters..';
+      return;
+    } else if (description.length < 2) {
+      document.getElementById('error').innerHTML = 'File description must be at least 2 characters..';
+      return;
+    } else if (!file_name_regex.test(name)) {
+      document.getElementById('error').innerHTML = "File name can only contain lowercase letters, numbers, underscores and dashes.";
+      return;
+    }
+  
+    //  Validating name extension
+    let split_at_ext = name.split('.');
+    if (split_at_ext.length != 2) {
+      document.getElementById('error').innerHTML = "File name must include exactly 1 '.', for an extension (like .png, .jpg, or .txt)";
+      return;
+    } else if (['js', 'exe'].includes(split_at_ext[1])) {
+      document.getElementById('error').innerHTML = "These extensions aren't allowed: .js, .exe";
+      return;
+    }
+    const all_periods = /\./g;
+    name = name.replace(all_periods, '%2E');
+  
+    document.getElementById('upload-status').innerHTML = 'Uploading...';
+  
+    let http = new XMLHttpRequest();
+    http.open('POST', `/api/upload-file?name=${name}&description=${description}&is_public=${is_public}&created_by=${_current_user.id}`);
+    http.setRequestHeader("Content-Type","application/octet-stream");
+    http.send(file);
+    http.onreadystatechange = (e) => {
+      let response;      
+      if (http.readyState == 4 && http.status == 200) {
+        response = JSON.parse(http.responseText);
+        if (!response.error) {
+          console.log("Response recieved! File uploaded.");
+          document.getElementById('upload-status').innerHTML = `Uploading... `;
+          window.location.href = '/files';
+        } else {
+          document.getElementById('upload-status').innerHTML = response.msg;
+        }
+      } else if (http.status == 400) {
+        response = JSON.parse(http.responseText);
+        document.getElementById('upload-status').innerHTML = response.msg;
+      }
+    }             
+    
+  }
+  </script>

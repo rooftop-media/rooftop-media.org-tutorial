@@ -1,0 +1,34 @@
+[
+  {
+    "username": "testuser",
+    "display_name": "Test",
+    "email": "",
+    "phone": "",
+    "password": "ebc45239da09eb2d5432af793ac422faebd4a61d6447ccf80e398ad62a9996b8271aac3b47c7897b58bb78d1a67c36f7cdc8548b8c28f68c1984c7a5cd077c37",
+    "salt": "05e9674cd824ccbca8e4e6ec9952ade9",
+    "id": 2
+  },
+  {
+    "username": "ben",
+    "display_name": "Ben",
+    "email": "",
+    "phone": "",
+    "password": "eb57239d2f8c1c4387d35ce042d65e8f4672de382b88f36cfdb3a7870684f578c5229e3c8da6ad080c1d6d1a723b11a90d6604e817ad2e39cc8925afe4ea4cd9",
+    "invite_code": "secret123",
+    "salt": "93d0b2ae973ffa6e137ff604cb748379",
+    "id": 3
+  },
+  {
+    "username": "hacker",
+    "display_name": "Ha cker",
+    "email": "",
+    "phone": "",
+    "password": "a4647392d3e4a9e1760b91ef8f69a0f4d1652aba4998a96dc459dc47c9c79df5fea5f779669a46a366d7b59aca5089cfb66a1bcac89ce319948b20e0f10d2ae3",
+    "invite_code": "",
+    "_params": {
+      "_url": "/api/register"
+    },
+    "salt": "70238ee4fe5b919aae3022e251477547",
+    "id": 6
+  }
+]
