@@ -31,7 +31,8 @@
     <p>Tag: <select id="tag-options"></select></p>
     <p>Attributes:</p>
     <p>Text content:</p>
-
+    <p>Editing element: <span id="el-id"></span></p>
+    <p>Cursor offset: <span id="cursor-offset"></span></p>
   </div>
 </div>
 
@@ -44,9 +45,6 @@ let buffer_data = {};
 let page_data = {};
 let is_saved = true;
 
-let cursor_pos = 20;
-let preview_buff = '';
-
 ////  SECTION 2: Render
 
 //  Renders the text editor, final page, or "page does not exist" message.
@@ -58,73 +56,6 @@ function render_page() {
 
   document.getElementById('highlighting-content').innerHTML = create_highlighting(buffer_data.content);
   check_if_saved();
-}
-
-//  Switch to the preview page
-function load_preview() {
-  //  Switch to preview-page tag
-  document.getElementById('dynamic-page').style.display = `none`;
-  document.getElementById('preview-page').style.display = 'block';
-  //  Populate tag selection options
-  let tag_opts = [
-    'h1','h2','h3','h4','h5','h6','p','div','span','b','i','pre','code','style',
-    'ol','ul','li','table','tr','th','td','a','img','br','hr'
-  ];
-  for (let i = 0; i < tag_opts.length; i++) {
-    document.getElementById('tag-options').innerHTML += `<option value="${tag_opts[i]}">${tag_opts[i]}</option>`;
-  }
-  //  Add element ids for selectability
-  preview_buff = validate_html(buffer_data.content);
-  preview_buff = add_tag_ids(preview_buff); 
-  
-  render_preview();  //  Add cursor and render
-  detect_clicks();
-}
-
-//  Add cursor for editing
-function render_preview() {
-  let preview_buff_w_cursor = preview_buff.slice(0,cursor_pos);
-  preview_buff_w_cursor += '<span id="cursor"></span>';
-  preview_buff_w_cursor += preview_buff.slice(cursor_pos, preview_buff.length);
-  document.getElementById('preview-content').innerHTML = preview_buff_w_cursor;
-}
-
-//  For each tag present, adds class="id--3" for each numbered tag
-function add_tag_ids(_html) {
-  let _tokens = markup_to_tokens(_html)
-  let _parsed = tokens_to_parse(_tokens);
-  let _escaped_parse = parse_code_tags(_parsed)
-  let _tags = parse_to_tags(_escaped_parse);
-
-  let tag_to_id = false;
-  let current_id = 0;
-  for (let i = 0; i < _tags.length; i++) {
-    if (_tags[i].type == 'OPEN-TAG') {
-      tag_to_id = true;
-    } else if (tag_to_id && _tags[i].type == 'ATTR-NAME' && _tags[i].value.toLowerCase() == ' class') {
-      if (i+1 < _tags.length && _tags[i+1].type == 'ATTR-VALUE') {
-        _tags[i+1].value += ` id--${current_id}`;
-      } else {
-        _tags.splice(i-1, 0, {type: 'ATTR-VALUE', value: `id--${current_id}`});
-      }
-      current_id++;
-      tag_to_id = false;
-    } else if (tag_to_id && _tags[i].type == 'TEXT') {
-      _tags.splice(i, 0, {type: 'ATTR-NAME', value: ` class`});
-      _tags.splice(i+1, 0, {type: 'ATTR-VALUE', value: `id--${current_id}`});
-      current_id++;
-      tag_to_id = false;
-      i++;
-    }
-  }
-  let final_html = tags_to_html(_tags);
-  return final_html;
-}
-
-function back_to_editor() {
-  document.getElementById('dynamic-page').style.display = `block`;
-  document.getElementById('preview-page').style.display = 'none';
-  render_page();
 }
 
 function create_highlighting(markup_text) {
@@ -290,71 +221,6 @@ function delete_page() {
   }
 }
 
-// Listen for arrow keys, to move cursor
-document.addEventListener("keydown", event => {
-  if (document.getElementById('preview-page').style.display == 'none') returrn;
-  switch (event.key) {
-    case 'ArrowUp':
-      console.log('Up arrow pressed');
-      break;
-    case 'ArrowDown':
-      console.log('Down arrow pressed');
-      break;
-    case 'ArrowLeft':
-      console.log('Left arrow pressed');
-      cursor_pos--;
-      render_preview();
-      break;
-    case 'ArrowRight':
-      console.log('Right arrow pressed');
-      cursor_pos++;
-      render_preview();
-      break;
-    case 'Enter':
-      console.log('Enter pressed');
-      break;
-    case 'Control':
-      console.log('Ctrl pressed');
-      break;
-    default:
-      let new_preview_buff = preview_buff.substring(0, cursor_pos);
-      new_preview_buff += event.key;
-      preview_buff = new_preview_buff + preview_buff.substring(cursor_pos, preview_buff.length)
-      cursor_pos++;
-      console.log(new_preview_buff)
-      render_preview();
-  }
-});
-
-//  Place the cursor where we clicked, in the rich text editor
-function detect_clicks() {
-  document.body.onclick = function(e) {
-    let range;
-    let textNode;
-    let offset;
-
-    range = document.caretPositionFromPoint(e.pageX, e.pageY);
-    textNode = range.offsetNode;
-    offset = range.offset;
-
-    let selected_id = textNode.parentNode.classList.value.split(' ').find(function (class_name) {
-      return class_name.includes('id--');
-    });
-    //  update tag editor
-    document.getElementById('tag-options').value = textNode.parentNode.tagName.toLowerCase();
-
-    // update cursor
-    let tag_index = preview_buff.indexOf(selected_id);
-    let text_index = tag_index;
-    while (text_index < preview_buff.length && preview_buff[text_index] != '>') {
-      text_index++;
-    }
-    cursor_pos = text_index += offset;
-    render_preview();
-    
-  }
-}
-
 ////  SECTION 4: Boot
 //  Load all page elements from API, then render buffer
 function load_page() {
@@ -388,6 +254,258 @@ function load_page() {
 }
 current_user_loaded = function() {
   load_page();
+}
+
+
+///
+///  Rich text editor
+///
+
+let _cursor_pos = 20;
+let _preview_buff = '';
+let _selected_id = '';
+let _shift_held = false;
+let _ctrl_held = false;
+
+//  Switch to the preview page
+function load_preview() {
+  //  Switch to preview-page tag
+  document.getElementById('dynamic-page').style.display = `none`;
+  document.getElementById('preview-page').style.display = 'block';
+  //  Populate tag selection options
+  let tag_opts = [
+    'h1','h2','h3','h4','h5','h6','p','div','span','b','i','pre','code','style',
+    'ol','ul','li','table','tr','th','td','a','img','br','hr'
+  ];
+  for (let i = 0; i < tag_opts.length; i++) {
+    document.getElementById('tag-options').innerHTML += `<option value="${tag_opts[i]}">${tag_opts[i]}</option>`;
+  }
+  //  Add element ids for selectability
+  _preview_buff = validate_html(buffer_data.content);
+  _preview_buff = add_tag_ids(_preview_buff); 
+  
+  render_preview();  //  Add cursor and render
+  detect_clicks();
+}
+
+function back_to_editor() {
+  document.getElementById('dynamic-page').style.display = `block`;
+  document.getElementById('preview-page').style.display = 'none';
+  buffer_data.content = remove_tag_ids();
+  document.body.onclick = null;
+  render_page();
+}
+
+
+//  Find the index of the start of the text, inside the current tag.
+function get_tag_text_start() {
+  let tag_index = _preview_buff.indexOf("id--" + _selected_id);
+  let text_index = tag_index;
+  while (text_index < _preview_buff.length && _preview_buff[text_index] != '>') {
+    text_index++;
+  }
+  return text_index;
+}
+function get_absolute_cursor_pos() {
+  return get_tag_text_start() + _cursor_pos;
+}
+
+//  Add cursor for editing
+function render_preview() {
+  let abs_curs_pos = get_absolute_cursor_pos();
+  let preview_buff_w_cursor = _preview_buff.slice(0,abs_curs_pos);
+  preview_buff_w_cursor += '<span id="cursor"></span>';
+  preview_buff_w_cursor += _preview_buff.slice(abs_curs_pos, _preview_buff.length);
+  document.getElementById('preview-content').innerHTML = preview_buff_w_cursor;
+  document.getElementById('cursor-offset').innerHTML = _cursor_pos;
+  document.getElementById('el-id').innerHTML = _selected_id;
+}
+
+//  For each tag present, adds class="id--3" for each numbered tag
+function add_tag_ids(_html) {
+  let _tokens = markup_to_tokens(_html)
+  let _parsed = tokens_to_parse(_tokens);
+  let _escaped_parse = parse_code_tags(_parsed)
+  let _tags = parse_to_tags(_escaped_parse);
+
+  let tag_to_id = false;
+  let current_id = 0;
+  for (let i = 0; i < _tags.length; i++) {
+    if (_tags[i].type == 'OPEN-TAG') {
+      tag_to_id = true;
+    } else if (tag_to_id && _tags[i].type == 'ATTR-NAME' && _tags[i].value.toLowerCase() == ' class') {
+      if (i+1 < _tags.length && _tags[i+1].type == 'ATTR-VALUE') {
+        _tags[i+1].value += ` id--${current_id}`;
+      } else {
+        _tags.splice(i-1, 0, {type: 'ATTR-VALUE', value: `id--${current_id}`});
+      }
+      current_id++;
+      tag_to_id = false;
+    } else if (tag_to_id && _tags[i].type == 'TEXT') {
+      _tags.splice(i, 0, {type: 'ATTR-NAME', value: ` class`});
+      _tags.splice(i+1, 0, {type: 'ATTR-VALUE', value: `id--${current_id}`});
+      current_id++;
+      tag_to_id = false;
+      i++;
+    }
+  }
+  let final_html = tags_to_html(_tags);
+  return final_html;
+}
+
+//  Undoes the "add_tag_ids" function, to be edited in the code editor. 
+function remove_tag_ids() {
+  let _tokens = markup_to_tokens(_preview_buff)
+  let _parsed = tokens_to_parse(_tokens);
+  let _escaped_parse = parse_code_tags(_parsed)
+  let _tags = parse_to_tags(_escaped_parse);
+
+  let tag_to_un_id = false;
+  let current_id = 0;
+  for (let i = 0; i < _tags.length; i++) {
+    if (_tags[i].type == 'OPEN-TAG') {
+      tag_to_un_id = true;
+    } else if (tag_to_un_id && _tags[i].type == 'ATTR-NAME' && _tags[i].value.toLowerCase() == ' class') {
+      if (i+1 < _tags.length && _tags[i+1].type == 'ATTR-VALUE') {
+        _tags[i+1].value = _tags[i+1].value.replace(` id--${current_id}`, "");
+        _tags[i+1].value = _tags[i+1].value.replace(`id--${current_id}`, "");
+        if (_tags[i+1].value.length == 0) {  // If there's no other classes, remove the class attr entirely. 
+          _tags.splice(i, 2);
+          i--;
+        }
+      } 
+      current_id++;
+      tag_to_un_id = false;
+    }
+  }
+  let final_html = tags_to_html(_tags);
+  return final_html;
+}
+
+// Listen for arrow keys, to move cursor
+document.addEventListener("keydown", event => {
+  if (document.getElementById('preview-page').style.display == 'none') returrn;
+  let new_preview_buff;
+  let abs_pos = get_absolute_cursor_pos();
+  console.log(`"${event.key}"`);
+  switch (event.key) {
+    case 'ArrowUp':
+      if (_selected_id > 0) {
+        _selected_id--;
+        if (_cursor_pos > document.getElementsByClassName(`id--${_selected_id}`)[0].innerHTML.length+1) {
+          _cursor_pos = document.getElementsByClassName(`id--${_selected_id}`)[0].innerHTML.length+1;
+        }
+      } else {
+        _cursor_pos = 1;
+      }
+      render_preview();
+      break;
+    case 'ArrowDown':
+      console.log('Down arrow pressed');
+      let last_line = (document.getElementsByClassName(`id--${_selected_id + 1}`).length == 0)
+      if (!last_line) {
+        _selected_id++;
+        if (_cursor_pos > document.getElementsByClassName(`id--${_selected_id}`)[0].innerHTML.length+1) {
+          _cursor_pos = document.getElementsByClassName(`id--${_selected_id}`)[0].innerHTML.length+1;
+        }
+      } else {
+        _cursor_pos = document.getElementsByClassName(`id--${_selected_id}`)[0].innerHTML.length - 24;
+      }
+      render_preview();
+      break;
+    case 'ArrowLeft':
+      console.log('Left arrow pressed');
+      _cursor_pos--;
+      if (_cursor_pos == 0 && _selected_id > 0) {
+        _selected_id--;
+        _cursor_pos = document.getElementsByClassName(`id--${_selected_id}`)[0].innerHTML.length+1;
+      } else if (_cursor_pos == 0 && _selected_id <= 0) {
+        _cursor_pos++;
+      }
+      render_preview();
+      break;
+    case 'ArrowRight':
+      _cursor_pos++;
+      let end_of_line = document.getElementsByClassName(`id--${_selected_id}`)[0].innerHTML.length - 24; // Account for the cursor span
+      let is_last_line = (document.getElementsByClassName(`id--${_selected_id + 1}`).length == 0)
+      if (_cursor_pos > end_of_line && !is_last_line) {
+        _selected_id++;
+        _cursor_pos = 1;
+      } else if (_cursor_pos > end_of_line && is_last_line) {
+        _cursor_pos = document.getElementsByClassName(`id--${_selected_id}`)[0].innerHTML.length - 24;
+      }
+      render_preview();
+      break;
+    case 'Enter':
+      console.log('Enter pressed');
+      
+      break;
+    case 'Control':
+      console.log('Ctrl pressed');
+      _ctrl_held = true;
+      break;
+    case 'Shift':
+      _shift_held = true;
+      break;
+    case 'Backspace':
+      new_preview_buff = _preview_buff.substring(0, abs_pos-1);
+      _preview_buff = new_preview_buff + _preview_buff.substring(abs_pos, _preview_buff.length)
+      _cursor_pos--;
+      render_preview();
+      break;
+    default:
+      new_preview_buff = _preview_buff.substring(0, abs_pos);
+      if (_shift_held) event.key = event.key.toUpperCase();
+      new_preview_buff += event.key;
+      _preview_buff = new_preview_buff + _preview_buff.substring(abs_pos, _preview_buff.length)
+      _cursor_pos++;
+      render_preview();
+  }
+});
+ 
+
+// Listen for certain keys being released
+document.addEventListener("keyup", event => {
+  if (document.getElementById('preview-page').style.display == 'none') returrn;
+  let new_preview_buff;
+  let abs_pos = get_absolute_cursor_pos();
+  switch (event.key) {
+    case 'Shift':
+      _shift_held = false;
+      break;
+    case 'Control':
+      _ctrl_held = false;
+      break;
+  }
+});
+
+//  Place the cursor where we clicked, in the rich text editor
+function detect_clicks() {
+  document.body.onclick = function(e) {
+    let range;
+    let textNode;
+    let offset;
+
+    range = document.caretPositionFromPoint(e.pageX, e.pageY);
+    textNode = range.offsetNode;
+    offset = range.offset;
+
+    _selected_id = textNode.parentNode.classList.value.split(' ').find(function (class_name) {
+      return class_name.includes('id--');
+    });
+    _selected_id = Number(_selected_id.substring(4));
+    console.log(_selected_id);
+
+    // update cursor
+    _cursor_pos = offset;
+
+    //  update tag editor
+    document.getElementById('tag-options').value = textNode.parentNode.tagName.toLowerCase();
+
+    
+    render_preview();
+    
+  }
 }
 
 </script>
@@ -470,12 +588,18 @@ current_user_loaded = function() {
     border-right: solid white 1px;
     animation: blink 2s steps(2, start) infinite;
   }
-  *:has(#cursor) {
+  *:has( > #cursor) {
     position: relative;
+    animation: highlight 1s;
   }
   @keyframes blink {
     to {
       visibility: hidden;
+    }
+  }
+  @keyframes highlight {
+    from {
+      background: SlateBlue;
     }
   }
 
@@ -489,5 +613,6 @@ current_user_loaded = function() {
     bottom: 50px;
     right: 10px;
   }
+  
 
 </style>
