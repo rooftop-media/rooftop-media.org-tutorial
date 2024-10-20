@@ -30,7 +30,8 @@ Click a part title to jump down to it, in this file.
 | [Part C - Markup syntax](#part-c) | 15 min. | 11 |
 | [Part D - User permissions](#part-d) | 0 min. | 11 |
 | [Part E - Image & file upload](#part-e) | 0 min. | 12 |
-| [Part F - Data backup](#part-f) | 0 min. | 0 |
+| [Part F - Rich page editor](#part-f) | 0 min. | ? |
+| [Part G - Data backup](#part-g) | 0 min. | 0 |
 | [Version 3.0. - Rich page editor ???](#v3) | Todo | ? |
 
 <!--
@@ -3368,7 +3369,7 @@ Delete a file by clicking the trash can icon. Make sure it deletes both the reco
 
 
 
-<h3 id="e-11">☑️ Step 12. ❖ Part E review. </h3>
+<h3 id="e-12">☑️ Step 12. ❖ Part E review. </h3>
 
 The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version3.0/part_E).
 
@@ -3377,8 +3378,23 @@ The complete code for Part E is available [here](https://github.com/rooftop-medi
 
 
 
+<h2 id="part-f" align="center">  Part F:  Rich page editor </h2>
 
-<h2 id="part-f" align="center">  Part F:  Data backup </h2>
+In this part, we'll create an alternate editing interface, to avoid writing html.
+
+<br/><br/><br/><br/>
+
+
+
+<h3 id="f-?">☑️ Step ?. ❖ Part F review. </h3>
+
+The complete code for Part F is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version3.0/part_F).
+
+<br/><br/><br/><br/>
+<br/><br/><br/><br/>
+
+
+<h2 id="part-g" align="center">  Part G:  Data backup </h2>
 
 In this part, we'll allow an admin user to backup their data. 
 
@@ -3389,7 +3405,7 @@ Then we'll use the scheduling program [cron](https://en.wikipedia.org/wiki/Cron)
 
 
 
-<h3 id="f-1">  ☑️ Step 1: Create a file <code>~/bin/website-backup.sh</code>  </h3>
+<h3 id="g-1">  ☑️ Step 1: Create a file <code>~/bin/website-backup.sh</code>  </h3>
 
 Create the file <code>~/bin/website-backup.sh</code>.  
 This will be a bash script that will back up our website data.  
@@ -3444,7 +3460,7 @@ Make this file executable by running `chmod +x ~/bin/website-backup.sh`.
 
 
 
-<h3 id="f-2">  ☑️  Step 2: ☞ Test the code!  </h3>
+<h3 id="g-2">  ☑️  Step 2: ☞ Test the code!  </h3>
 
 In the terminal, run `~/bin/website-backup.sh`.  You should see output saying it was successful.  
 Go to `~/backups/` and make sure there's a folder there containing everything from the database's rows.  
@@ -3454,7 +3470,7 @@ Make sure the uploaded files copied too.
 
 
 
-<h3 id="f-3">  ☑️ Step 3: Use cron to backup data regularly  </h3>
+<h3 id="g-3">  ☑️ Step 3: Use cron to backup data regularly  </h3>
 
 [Cron](https://en.wikipedia.org/wiki/Cron) is job-scheduling software that comes on Linux machines.  
 We can use it to run our script every week (or at any frequency).
@@ -3474,7 +3490,7 @@ And save the file.
 
 
 
-<h3 id="f-4">  ☑️ Step 4: Get data off of the server  </h3>
+<h3 id="g-4">  ☑️ Step 4: Get data off of the server  </h3>
 
 Backups are now being regularly made on the server.  
 But what if the server is deleted?  
@@ -3490,19 +3506,17 @@ You can also manually copy files from the server to your computer using (scp)[ht
 
 
 
-<h3 id="f-5">  ☑️  Step 5: ☞ Test the code!  </h3>
+<h3 id="g-5">  ☑️  Step 5: ☞ Test the code!  </h3>
 
 After a day or two, make sure your cron jobs are continuing to run successfully!
 
 <br/><br/><br/><br/>
 
 
-<h3 id="f-6">☑️ Step 6. ❖ Part F review. </h3>
+<h3 id="g-6">☑️ Step 6. ❖ Part G review. </h3>
 
-The only code used in part 6 is in [step 1](#f-1) and...
+The only code used in part 6 is in [step 1](#g-1) and...
 But rest assured that your data will now be backed up.
-
-The complete code for Part E is available [here](https://github.com/rooftop-media/rooftop-media.org-tutorial/tree/main/version3.0/part_E).
 
 <br/><br/><br/><br/>
 <br/><br/><br/><br/>
